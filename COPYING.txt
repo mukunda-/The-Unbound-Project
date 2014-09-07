@@ -4,14 +4,17 @@ Copyright © 2014 Mukunda Johnson
 
 All rights reserved.
 
-The "ALL RIGHTS RESERVED OPEN TESTING LICENSE"
+The "ALL RIGHTS RESERVED TESTING LICENSE"
 
 This is NOT an open source project. 
 
 The sources for this project are publicly viewable ONLY
-for the purpose of reading or studying. 
+for the purpose of reading, studying, or testing. 
 
-You MAY download, fork, build, and test the project.
+You MAY download, fork, build, and test the project. This
+does not grant the right to do so for every version of
+the project. The author reserves the right to revoke any 
+privilege at any time.
 
 You MAY NOT modify the sources or use the sources for 
 another project. 
