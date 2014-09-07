@@ -213,3 +213,4 @@ $RECYCLE.BIN/
 *.msp
 
 env
+dev/protocol/compiled
