@@ -13,4 +13,4 @@ in another project is not allowed.
 "Sources" includes any material that is directly part of 
 The Unbound Project, but does not include certain sources 
 that are explicitly marked with a different license, such 
-as found in the dev/source/libsource folder.
+as found in the dev/libsource folder.
