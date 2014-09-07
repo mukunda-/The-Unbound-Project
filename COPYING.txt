@@ -4,12 +4,20 @@ Copyright © 2014 Mukunda Johnson
 
 All rights reserved.
 
+The "ALL RIGHTS RESERVED OPEN TESTING LICENSE"
+
 This is NOT an open source project. 
 
 The sources for this project are publicly viewable ONLY
-for the purpose of reading or studying. Use of the sources
-in another project without permission from the author
-is not allowed.
+for the purpose of reading or studying. 
+
+You MAY download, fork, build, and test the project.
+
+You MAY NOT modify the sources or use the sources for 
+another project. 
+
+The MAY NOT clause is only a clarification. All rights 
+are reserved unless the author explicitly grants them.
 
 "Sources" includes any material that is directly part of 
 The Unbound Project, but does not include certain sources 
