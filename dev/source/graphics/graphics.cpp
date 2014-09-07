@@ -140,15 +140,15 @@ split elements into shaders and material groups
 */
 
 //-------------------------------------------------------------------------------------------------
-void AddElement( Element &e ) {
-	if( e.m_layer == LAYER_OBJECTS ) {
-		if( e.m_blend_mode == Video::BLEND_OPAQUE ) {
-			g_elements_objects_opaque.Add( &e );
+void AddElement( Element &element ) {
+	if( element.m_layer == LAYER_OBJECTS ) {
+		if( element.m_blend_mode == Video::BLEND_OPAQUE ) {
+			g_elements_objects_opaque.Add( &element );
 		} else {
-			g_elements_objects_blended.Add( &e );
+			g_elements_objects_blended.Add( &element );
 		}
-	} else if( e.m_layer == LAYER_UI ) {
-		g_elements_ui.Add( &e );
+	} else if( element.m_layer == LAYER_UI ) {
+		g_elements_ui.Add( &element );
 	}
 }
 /*
@@ -357,15 +357,14 @@ void render_blended_graphics() {
 
 //-------------------------------------------------------------------------------------------------
 void SetupElement( Element &e, Video::VertexBuffer::Pointer &buffer, Video::BlendMode blendmode, 
-					Material &mat, GLuint buffer_index, GLuint buffer_offset, GLuint buffer_start, 
-					GLuint buffer_size, GLenum render_mode ) {
+					Material &mat, GLuint buffer_size, GLenum render_mode ) {
 
 	e.m_buffer = buffer;
 	e.m_blend_mode = blendmode;
 	e.m_material = &mat;
-	e.m_buffer_index = buffer_index;
-	e.m_buffer_offset = buffer_offset;
-	e.m_buffer_start = buffer_start;
+	e.m_buffer_index = 0;
+	e.m_buffer_offset = 0;
+	e.m_buffer_start = 0;
 	e.m_buffer_size = buffer_size;
 	e.m_render_mode = render_mode;
 }
@@ -468,6 +467,10 @@ void draw_sprite( cml::vector3f position, float width, float height, float u1, f
 
 }*/
 
+/**
+ * Render a linked list of graphic elements.
+ *
+ */
 void RenderList( Util::LinkedList<Element> &list ) {
 	Element *next;
 	for( Element* e = list.GetFirst(); e; e = next ) {
