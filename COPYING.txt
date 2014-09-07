@@ -12,5 +12,5 @@ in another project is not allowed.
 
 "Sources" includes any material that is directly part of 
 The Unbound Project, but does not include certain sources 
-included from outside libraries, such as found in the 
-dev/source/libsource folder, which are licensed separately.
+that are explicitly marked with a different license, such 
+as found in the dev/source/libsource folder.
