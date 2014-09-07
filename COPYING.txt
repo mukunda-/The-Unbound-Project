@@ -8,4 +8,4 @@ This is NOT an open source project.
 
 The sources for this project are publicly viewable ONLY
 for the purpose of reading or studying. Use of the sources 
-in another project is prohibited.
+in another project is not allowed.
