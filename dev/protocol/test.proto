@@ -1,0 +1,9 @@
+//============================  The Unbound Project  ==========================//
+//                                                                             //
+//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+
+package Protocol.Basic;
+
+message Test {
+	optional int32 test = 1;
+}

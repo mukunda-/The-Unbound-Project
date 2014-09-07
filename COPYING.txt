@@ -1,0 +1,11 @@
+The Unbound Project
+
+Copyright © 2014 Mukunda Johnson
+
+All rights reserved.
+
+This is NOT an open source project. 
+
+The sources for this project are publicly viewable ONLY
+for the purpose of reading or studying. Use of the code 
+in another project is prohibited.
