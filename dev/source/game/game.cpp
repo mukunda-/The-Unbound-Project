@@ -204,7 +204,7 @@ void Game::Run() {
 
 	Graphics::Element test_element;
 	Graphics::SetupElement( test_element, GenerateTestGeometry(), 
-		Video::BLEND_OPAQUE, mymat, 0, 0, 0, 44, GL_LINES );
+		Video::BLEND_OPAQUE, mymat, 44, GL_LINES );
 	
 
 	Graphics::AddElement( test_element );

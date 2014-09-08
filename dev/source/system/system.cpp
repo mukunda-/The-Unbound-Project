@@ -6,6 +6,8 @@
 #include "system/system.h"
 #include "system/console.h"
 
+#pragma warning( disable : 4996 )
+
 namespace System {
 
 //static std::vector<std::thread> g_threads;
