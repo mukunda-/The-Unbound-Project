@@ -1,29 +1,36 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//===========================  The Unbound Project  =========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
 
 namespace System { namespace Console {
 
-// execute a system command
-// path is relative to game contents folder
+/// ---------------------------------------------------------------------------
+/// Execute a command.
+///
 void Execute( const char *command_string );
 
-// execute a script file
-// path is relative to game contents folder
+/// ---------------------------------------------------------------------------
+/// Execute a script file
+///
+/// \param file Path to script file, relative to game contents folder.
+///
 bool ExecuteScript( const char *file );
 
-// print newline+text to console
-// and update terminal
-//
+/// ---------------------------------------------------------------------------
+/// Print newline+text to the console
+///
 void PrintS( const char *text );
 void PrintS( const char *format, va_list args );
 void Print( const char *format, ... );
 
-
-// print text tp console without updating terminal
+/// ---------------------------------------------------------------------------
+/// Print text to the console without updating the terminal.
+///
+/// i.e. doesn't actually print anything until an update.
+///
 void PrintExS( const char *text );
 void PrintExS( const char *format, va_list args );
 void PrintEx( const char *format, ... );
