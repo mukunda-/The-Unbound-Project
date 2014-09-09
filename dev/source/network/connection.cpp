@@ -199,6 +199,7 @@ Connection::Stream::Stream( Connection * p_parent ) : m_socket( DefaultService()
 
 	m_parent = p_parent;
 
+	// this doesn't work:
 	// allow lingering for 30 seconds to finish unsent sending data on shutdown
 //	boost::system::error_code ec; //ignore error, maybe log message
 //	boost::asio::socket_base::linger option(true, 30);
@@ -223,6 +224,7 @@ void Connection::Stream::Shutdown() {
 	}
 }
 
+//-------------------------------------------------------------------------------------------------
 void Connection::Stream::CloseAfterSend() {
 	
 	boost::unique_lock<boost::mutex> lock(m_send_lock);
@@ -235,8 +237,9 @@ void Connection::Stream::CloseAfterSend() {
 
 //-------------------------------------------------------------------------------------------------
 Connection::Stream::~Stream() {
-	 
-	assert( m_sending == false ); // deconstructor should not be called while operations are in progress.
+
+	// deconstructor should not be called while operations are in progress.
+	assert( m_sending == false ); 
 	assert( m_receiving == false );
 	
 	InterlockedExchange( &m_shutdown, 1 );
@@ -263,7 +266,9 @@ Connection::~Connection() {
  
 //-------------------------------------------------------------------------------------------------
 void Connection::Listen( Network::Listener &listener ) {
-	listener.AsyncAccept( m_stream->m_socket, boost::bind( &Stream::OnAccept, m_stream->shared_from_this(), boost::asio::placeholders::error ) );
+	listener.AsyncAccept( m_stream->m_socket, boost::bind( 
+			&Stream::OnAccept, m_stream->shared_from_this(), 
+			boost::asio::placeholders::error ) );
 }
 
 //-------------------------------------------------------------------------------------------------
