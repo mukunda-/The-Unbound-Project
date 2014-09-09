@@ -60,6 +60,9 @@
     <ClInclude Include="..\..\source\video\shaders\uishader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\game\testentity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\main_game.cpp">

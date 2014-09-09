@@ -71,7 +71,8 @@ int Connection::Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) 
 }
 
 //-------------------------------------------------------------------------------------------------
-void Connection::Stream::OnReceive( const boost::system::error_code& error, size_t bytes_transferred ) {
+void Connection::Stream::OnReceive( const boost::system::error_code& error, 
+								    size_t bytes_transferred ) {
 	
 	if( error ) {
 		m_connected = false;

@@ -189,6 +189,8 @@ Video::VertexBuffer::Pointer GenerateTestGeometry2() {
  
 void Game::Run() {
 
+	// connect to master
+
 	Shaders::LineTester shader;
 	Shaders::Ui ui_shader;
 	

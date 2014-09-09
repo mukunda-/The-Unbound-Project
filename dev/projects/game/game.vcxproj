@@ -88,6 +88,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\source\game\testentity.h" />
     <ClInclude Include="..\..\source\graphics\graphics.h" />
     <ClInclude Include="..\..\source\graphics\rasterfont.h" />
     <ClInclude Include="..\..\source\graphics\vertexformats.h" />
