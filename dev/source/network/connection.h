@@ -24,65 +24,85 @@ public:
 		/// -------------------------------------------------------------------
 		/// Called when an incoming connection is successful.
 		///
-		virtual void AcceptedConnection() {}
+		/// \param connection The connection associated with the event.
+		///
+		virtual void AcceptedConnection( Connection &connection ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called from a listening connection when an error occurs when
 		/// trying to accept an incoming connection.
 		///
+		/// \param connection The connection associated with the event.
 		/// \param error The error code.
 		///
 		virtual void AcceptError( 
+				Connection &connection,
 				const boost::system::error_code &error ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called during an asynchronous connection when the resolver
 		/// fails to resolve a host name.
 		///
+		/// \param connection The connection associated with the event.
 		/// \param error The error code.
 		///
 		virtual void CantResolve( 
+				Connection &connection,
 				const boost::system::error_code &error ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called during an asynchronous connection when the connection
 		/// fails.
 		///
+		/// \param connection The connection associated with the event.
 		/// \param error The error code.
 		///
 		virtual void ConnectError( 
+				Connection &connection,
 				const boost::system::error_code &error ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called when an outgoing connection is successful.
 		///
-		virtual void Connected() {}
+		/// \param connection The connection associated with the event.
+		///
+		virtual void Connected( Connection &connection ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called when the connection is closed.
 		///
+		/// \param connection The connection associated with the event.
 		/// \param error The error code.
 		///
 		virtual void Disconnected( 
+				Connection &connection,
 				const boost::system::error_code &error ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called when the connection fails during an outgoing operation.
 		///
+		/// \param connection The connection associated with the event.
 		/// \param error The error code.
 		///
 		virtual void DisconnectedError( 
+				Connection &connection,
 				const boost::system::error_code &error ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called when the connection receives a packet.
 		///
+		/// \param connection The connection associated with the event.
 		/// \param packet The packet that was received.
 		/// \return       Return true to not buffer the packet (handled)
 		///               Return false to buffer the packet (not handled)
 		///               Buffered packets are obtained from Connection::Read()
 		///
-		virtual bool Receive( Network::Packet &packet ) { return false; }
+		virtual bool Receive( 
+				Connection &connection,
+				Network::Packet &packet ) { 
+
+			return false; 
+		}
 
 	};
 
@@ -117,6 +137,17 @@ private:
 			///         handler is set or the parent is detached.
 			///
 			EventHandler *Handler();
+
+			// Event wrappers
+			void AcceptedConnection();
+			void AcceptError( const boost::system::error_code &error );
+			void CantResolve( const boost::system::error_code &error );
+			void ConnectError( const boost::system::error_code &error );
+			void Connected();
+			void Disconnected( const boost::system::error_code &error );
+			void DisconnectedError( const boost::system::error_code &error );
+			bool Receive( Network::Packet &packet );
+
 		};
 
 		/// -------------------------------------------------------------------
@@ -184,12 +215,7 @@ private:
 
 	// where this connection is coming from/going to
 	std::string m_hostname;
-	 
-	// source: reference to this connection
-	// type: see EventType
-	// data: variable depending on event type
-	// 
-	//typedef boost::function< int( Connection  &source, EventType type, void *data ) > event_handler_t;
+	  
 	EventHandler *m_event_handler; 
 	  
 	//int FireEvent( EventType type, void *data=0 );
@@ -240,40 +266,58 @@ public:
 	///  EVENT_CONNECTERROR
 	///  
 	void ConnectAsync( const std::string &host, const std::string &service );
-
-	void Close();
 	
-	// get socket base
+	// To close a connection, destruct the Connection object.
+	//void Close();
+	
+	/// -----------------------------------------------------------------------
+	/// Get boost asio socket object
+	///
+	/// \return TCP socket.
+	///
 	boost::asio::ip::tcp::socket &Socket();
 
-	// block until data is received
-	// note: this will not break if the data is handled within the receive event
-	//
+	/// -----------------------------------------------------------------------
+	/// Block until data is received
+	///
+	/// This will not return if the data is handled within a receive event.
+	///
 	void WaitForData();
 
-	// wait until all data in the output stack is put out on the line
-	//
+	/// -----------------------------------------------------------------------
+	/// wait until all data in the output queue is put out on the line
+	///
 	void WaitSendComplete();
 	
-	// read a buffered packet
-	// returns 0 if received stack is empty
-	//
+	/// -----------------------------------------------------------------------
+	/// Read a buffered packet, and remove it from the queue
+	///
+	/// \return A packet, or nullptr if the receive queue was empty.
+	///
 	Packet *Read();
 
-	// place a packet on the output queue
-	// 
+	/// -----------------------------------------------------------------------
+	/// Place a packet in the output queue
+	/// 
+	/// \param p Packet to queue.
+	///
 	void Write( Packet *p );
 
-	// set the function to receive events from this connection
-	//
-	void SetEventHandler( EventHandler cb );
+	/// -----------------------------------------------------------------------
+	/// Set the event handler for this connection.
+	///
+	void SetEventHandler( EventHandler &handler );
 
-	// get hostname of last connect operation
-	//
-	// returns in format "address:service"
+	/// -----------------------------------------------------------------------
+	/// Get hostname of last connect operation
+	///
+	/// Returns in format "address:service"
+	///
 	const std::string &GetHostname() const;
 
+	/// -----------------------------------------------------------------------
 	template <class T> void SetUserData( T *data ) {
+		
 		m_userdata = data;
 	}
 	template <class T> T *GetUserData() {
