@@ -1,22 +1,21 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//===========================  The Unbound Project  =========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
-//------------------------------------------------------------------------------------------------------------------------
-#include <boost/cstdint.hpp>
-#include <boost/thread.hpp>
+//-----------------------------------------------------------------------------
+#include "mem/memorylib.h"
 
-//------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 namespace Util {
 	
-//------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class LockList {
 private:
 
 	//-----------------------------------------------------------------------------------
-	typedef struct t_Lock {
+	typedef struct t_Lock : public Memory::FastAllocation {
 		boost::uint64_t id;
 		
 		struct t_Lock *prev;
@@ -37,23 +36,24 @@ private:
 
 public:
 
-	//-----------------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
 	LockList();
 	~LockList();
 	
-	//-----------------------------------------------------------------------------------
-	// acquire a lock on a table entry
-	// this function will block until the table entry is available (if not already)
-	//
-	// warning: deadlock if nested use within the same thread
-	// (will also deadlock if another thread never releases a lock)
-	//
+	/// --------------------------------------------------------------------------
+	/// Acquire a lock on a table entry.
+	/// This function will block until the table entry is available (if not already)
+	///
+	/// warning: deadlock if nested use within the same thread
+	/// (will also deadlock if another thread never releases a lock)
+	///
 	void Acquire( boost::uint64_t id );
 
-	//-----------------------------------------------------------------------------------
-	// release a table entry
-	// warning: this must not be called if a lock wasnt acquired.
-	//
+	/// --------------------------------------------------------------------------
+	/// Release a table entry.
+	///
+	/// This must not be called if a lock wasn't acquired.
+	///
 	void Release( boost::uint64_t id );
 };
 

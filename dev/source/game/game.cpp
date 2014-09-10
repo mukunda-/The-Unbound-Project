@@ -7,6 +7,8 @@
 #include "video/vertexbuffer.h"
 #include "video/shaders/uishader.h"
 #include "graphics/fontmaterial.h"
+#include "graphics/vertexformats.h"
+#include "video/shaders/linetest.h"
 
 static const char BUILD_DATE[] = __DATE__ "/" __TIME__;
 

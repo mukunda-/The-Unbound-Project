@@ -3,6 +3,7 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h"
+#include "io/bmp.h"
 
 Bitmap::Bitmap() {
 	pixels = 0;

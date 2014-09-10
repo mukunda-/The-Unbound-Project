@@ -8,6 +8,7 @@
 //-------------------------------------------------------------------------------------------------
 
 #include "video/shader.h"
+#include "video/shaders/backdropshader.h"
 
 namespace Shaders {
 

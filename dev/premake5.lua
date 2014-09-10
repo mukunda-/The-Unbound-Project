@@ -62,6 +62,7 @@ project "game"
 	
 	flags { "WinMain" }
 	defines { "WIN32", "_WINDOWS" }
+	linkoptions { "/nodefaultlib:msvcrt.lib" }
 	
 	configuration "Debug"
 		defines {"_DEBUG"}

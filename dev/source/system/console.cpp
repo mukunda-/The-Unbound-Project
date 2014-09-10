@@ -3,12 +3,17 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h" 
+
+
 #include "system/commands.h"
 #include "system/variables.h"
-#include "system/ServerConsole.h" // todo?
 #include "util/stringles.h"
 #include "util/codetimer.h"
 #include "util/fopen2.h"
+
+#if defined SERVER
+#include "system/server/serverconsole.h" // todo?
+#endif
 
 
 //-------------------------------------------------------------------------------------------------
@@ -87,33 +92,54 @@ bool ExecuteScript( const char *file ) {
 
 //-------------------------------------------------------------------------------------------------
 void PrintS( const char *text ) {
+#if defined SERVER
 	System::ServerConsole::PrintToWindow( text, true );
+#else 
+	// TODO
+#endif
 }
 
 //-------------------------------------------------------------------------------------------------
 void Print( const char *format, ... ) {
 	va_list argptr;
 	va_start( argptr, format );
+#if defined SERVER
 	System::ServerConsole::PrintToWindow( format, true, argptr );
+#else
+
+#endif
+
 	va_end( argptr );
 }
 
 //-------------------------------------------------------------------------------------------------
 void PrintS( const char *format, va_list args ) {
+#if defined SERVER
 	System::ServerConsole::PrintToWindow( format, true, args );
+#else
+
+#endif
 }
 
 
 //-------------------------------------------------------------------------------------------------
 void PrintExS( const char *text ) {
+#if defined SERVER
 	System::ServerConsole::PrintToWindow( text, false );
+#else
+
+#endif
 }
 
 //-------------------------------------------------------------------------------------------------
 void PrintEx( const char *format, ... ) {
 	va_list argptr;
 	va_start( argptr, format );
+#if defined SERVER
 	System::ServerConsole::PrintToWindow( format, false, argptr );
+#else
+
+#endif
 	va_end( argptr );
 }
 

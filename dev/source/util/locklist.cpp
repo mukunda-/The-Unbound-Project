@@ -17,7 +17,7 @@ LockList::Lock * LockList::FindLock( boost::uint64_t id ) const {
 
 //-------------------------------------------------------------------------------------------------
 void LockList::CreateLock( boost::uint64_t id ) {
-	Lock *lock = (Lock*)Memory::AllocMem(sizeof(Lock));
+	Lock *lock = new Lock;
 	lock->id = id;
 	lock->next = 0;
 	
@@ -44,7 +44,7 @@ void LockList::RemoveLock( Lock *lock ) {
 	else
 		first = lock->next;
 
-	Memory::FreeMem( lock );
+	delete lock;
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -4,6 +4,8 @@
 
 #include "stdafx.h"
 
+#if 0 // obsolete
+
 namespace objects {
 
 explosion::explosion( cml::vector3f position, float p_radius ) {
@@ -117,3 +119,6 @@ void explosion::render() {
 }
 
 }
+
+
+#endif

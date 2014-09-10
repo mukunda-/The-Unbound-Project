@@ -3,6 +3,8 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 #include "stdafx.h"
 
+#if 0 // obsolete
+
 namespace Players {
 static const double pi = 3.14159;
 static const double maxpitch = 0.45;
@@ -493,3 +495,6 @@ float Player::getHeadBobScale() const {
 }
 
 }
+
+
+#endif

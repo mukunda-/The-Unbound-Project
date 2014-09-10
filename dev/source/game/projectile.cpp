@@ -3,6 +3,8 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 #include "stdafx.h"
 
+#if 0 // obsolete
+
 namespace objects {
 
 void projectile::set_attributes( int explosion ) {
@@ -115,3 +117,5 @@ void projectile::render() {
 }
 
 }
+
+#endif

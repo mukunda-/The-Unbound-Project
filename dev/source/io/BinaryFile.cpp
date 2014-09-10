@@ -4,6 +4,7 @@
 // simple file i/o class
 
 #include "stdafx.h"
+#include "io/BinaryFile.h"
 
 //-------------------------------------------------------------------------------------------------
 BinaryFile::BinaryFile() {

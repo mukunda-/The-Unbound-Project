@@ -22,12 +22,12 @@ enum {
 };
 
 //-------------------------------------------------------------------------------------------------
-typedef struct t_MemoryHeader {
+struct MemoryHeader {
 	int index;
-	struct t_MemoryHeader *next;
-	struct t_MemoryHeader *prev;
+	MemoryHeader *next;
+	MemoryHeader *prev;
 	int reserved;
-} MemoryHeader;
+};
 
 
 //-------------------------------------------------------------------------------------------------

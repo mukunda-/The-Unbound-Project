@@ -3,6 +3,8 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 #include "stdafx.h"
 
+#if 0 // obsolete
+
 namespace TitleScreen {
 
 void OnExitButton( void *source, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -79,3 +81,6 @@ void Start() {
 }
 
 }
+
+
+#endif

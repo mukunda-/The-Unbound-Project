@@ -8,8 +8,6 @@
 #include "variables.h"
 #include "util/trie.h"
 
-#include "system/ServerConsole.h"
-
 //---------------------------------------------------------------------------------------
 namespace System {
 
