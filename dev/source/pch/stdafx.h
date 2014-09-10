@@ -2,6 +2,15 @@
 //                                                                             //
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
-#include "stdafx.h"
+#pragma once
 
-// poopies
+#if !defined(PROJECT)
+
+#error PROJECT must be defined.
+
+#endif
+
+#if PROJECT==GAME
+#include "pch_game.h"
+
+#endif

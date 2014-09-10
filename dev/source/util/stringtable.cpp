@@ -3,6 +3,9 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h"
+#include "util/stringtable.h"
+#include "util/hashstring.h"
+#include "util/stringles.h"
 
 namespace Util {
 

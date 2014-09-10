@@ -3,7 +3,8 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h"
-#include "include_game.h"
+#include "game/game.h"
+#include "video/vertexbuffer.h"
 #include "video/shaders/uishader.h"
 #include "graphics/fontmaterial.h"
 
