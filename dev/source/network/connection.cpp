@@ -7,20 +7,19 @@
 #include "network/resolver.h"
 
 namespace Network {
-
-//-------------------------------------------------------------------------------------------------
-int Connection::FireEvent( EventType type, void *data ) {
-	if( !m_event_handler ) return 0;
-	return m_event_handler( *this, type, data );
+ 
+Connection::Stream::EventLatch::EventLatch( Stream &stream ) : 
+		m_stream(stream),
+		m_lock( stream.m_handler_mutex ) {
+			 
 }
 
-int Connection::Stream::FireEvent( EventType type, void *data ) {
-	boost::lock_guard<boost::mutex> lock( m_handler_mutex );
+Connection::EventHandler *Connection::Stream::EventLatch::Handler() {
+	if( !m_stream.m_parent ) 
+		return &dummy_handler;
 
-	if( m_parent ) {
-		return m_parent->FireEvent( type, data );
-	}
-	return 0;
+	return m_stream.m_parent->m_event_handler;
+
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -50,9 +49,13 @@ int Connection::Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) 
 		m_recv_write += copy_amount;
 		if( m_recv_write == m_recv_size+2 ) {
 
+			bool handled = false;
 			// pass to event
 			// only push into fifo if not handled.
-			int	handled = FireEvent( EVENT_RECEIVE, (void*)m_recv_packet );
+			{
+				EventLatch event( *this );
+				handled = event.Handler()->Receive( *m_recv_packet );
+			}
 			
 			if( !handled ) {
 				m_recv_fifo.Push( m_recv_packet );
@@ -75,8 +78,13 @@ void Connection::Stream::OnReceive( const boost::system::error_code& error,
 								    size_t bytes_transferred ) {
 	
 	if( error ) {
+		
 		m_connected = false;
-		FireEvent( EVENT_DISCONNECT, (void*)error );
+
+		{
+			EventLatch event( *this );
+			event.Handler()->Disconnected( error );
+		}
 
 		boost::lock_guard<boost::mutex> lock(m_recv_lock);
 		m_receiving = false;
@@ -117,7 +125,10 @@ void Connection::Stream::OnDataSent( const boost::system::error_code& error, siz
 	
 	if( error ) {
 		m_connected = false;
-		FireEvent( EVENT_DISCONNECT2, (void*)error );
+		{
+			EventLatch event( *this );
+			event.Handler()->DisconnectedError( error );
+		}
 
 		boost::lock_guard<boost::mutex> lock(m_send_lock);
 		m_sending = false;
@@ -276,21 +287,39 @@ void Connection::Listen( Network::Listener &listener ) {
 void Connection::Stream::OnAccept( const boost::system::error_code &error ) {
 	if( !error ) {
 		m_connected = true;
-		int result = FireEvent( EVENT_ACCEPTEDCONNECTION );
-		if( result == 0 ) {
-			StartReceive(); 
+		{
+			EventLatch event( *this );
+			event.Handler()->AcceptedConnection();
 		}
+		
+		// TODO: deny connections in event?
+
+		StartReceive(); 
+		
 	} else { 
-		FireEvent( EVENT_ACCEPTERROR, (void*)(&error) );
+
+		{
+			EventLatch event( *this );
+			event.Handler()->AcceptError( error );
+		}
 	}
 }
 
 //-------------------------------------------------------------------------------------------------
-void Connection::Connect( const std::string &host, const std::string &service ) {
+bool Connection::Connect( const std::string &host, const std::string &service ) {
 	Network::Resolver resolver; 
 	m_hostname = host + ":" + service;
-	boost::asio::connect( m_stream->m_socket, resolver.Resolve( host, service ) );
+	boost::system::error_code ec;
+	boost::asio::connect( m_stream->m_socket, resolver.Resolve( host, service ), ec );
+	if( ec ) {
+		return false;
+	}
 	m_stream->m_connected = true;
+
+	if( m_event_handler ) {
+		m_event_handler->Connected();
+	}
+
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -305,7 +334,8 @@ void Connection::ConnectAsync( const std::string &host, const std::string &servi
 void Connection::Stream::OnResolve( const boost::system::error_code &error_code, 
 					boost::asio::ip::tcp::resolver::iterator endpoints ) {
 	if( error_code ) {
-		FireEvent( EVENT_CANTRESOLVE, (void*)&error_code );
+		EventLatch event( *this );
+		event.Handler()->CantResolve( error );
 	} else {
 		boost::asio::async_connect( m_socket, endpoints, 
 			boost::bind( &Stream::OnConnect, 
@@ -317,11 +347,17 @@ void Connection::Stream::OnResolve( const boost::system::error_code &error_code,
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::OnConnect( const boost::system::error_code &error ) {
 	if( error ) {
-		FireEvent( EVENT_CONNECTERROR, (void*)error );
+		EventLatch event( *this );
+		event.Handler()->ConnectError( error );
 		return;
 	}
+	
+	m_connected = true;
 
-	FireEvent( EVENT_CONNECTED );
+	{
+		EventLatch event(*this);
+		event.Handler()->Connected();
+	}
 
 	StartReceive();
 }

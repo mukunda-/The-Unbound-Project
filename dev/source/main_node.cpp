@@ -18,9 +18,9 @@
 #pragma comment( lib, "libprotobuf.lib" )
 
 //-------------------------------------------------------------------------------------------------
-#define VERSION "DEV1.2"
+#define VERSION "DEV1.3"
 
-#define WINDOW_TITLE ("UNBOUND SERVER (ZONE) " VERSION)
+#define WINDOW_TITLE ("UNBOUND SERVER (NODE) " VERSION)
 
 volatile bool g_shutdown;
 
