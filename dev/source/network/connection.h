@@ -13,7 +13,9 @@
 
 namespace Network {
   
-//-----------------------------------------------------------------------------
+/// ---------------------------------------------------------------------------
+/// A Connection manages a TCP socket with boost::asio.
+///
 class Connection {  
 
 public:
@@ -72,7 +74,8 @@ public:
 		/// Called when the connection is closed.
 		///
 		/// \param connection The connection associated with the event.
-		/// \param error The error code.
+		/// \param error The error code, to see if the disconnection
+		///              was a problem or a normal socket closure.
 		///
 		virtual void Disconnected( 
 				Connection &connection,
@@ -122,21 +125,16 @@ private:
 		///
 		class EventLatch {
 
+			// this class makes a lock on m_handler_mutex
 			boost::lock_guard<boost::mutex> m_lock;
+
+			// owner of this latch
 			Stream &m_stream;
 
 			static EventHandler dummy_handler;
 
 		public:
 			EventLatch( Stream &stream );
-
-			/// ---------------------------------------------------------------
-			/// Get the event handler.
-			///
-			/// \return The parent's event handler, or an empty handler if no
-			///         handler is set or the parent is detached.
-			///
-			EventHandler *Handler();
 
 			// Event wrappers
 			void AcceptedConnection();
@@ -163,8 +161,11 @@ private:
 		// tcp socket
 		boost::asio::ip::tcp::socket m_socket;
 		
-		Network::PacketFIFO m_recv_fifo; // complete packets that have been received
-		Network::Packet *m_recv_packet; // partial packet buffer
+		// complete packets that have been received
+		Network::PacketFIFO m_recv_fifo;
+
+		// partial packet buffer
+		Network::Packet *m_recv_packet; 
 
 		boost::uint8_t m_recv_buffer[BUFFER_SIZE]; 
 		int m_recv_size;
@@ -191,16 +192,17 @@ private:
 		boost::mutex m_handler_mutex;
 
 		int ProcessDataRecv( const boost::uint8_t *data, int size );
-		void OnReceive( const boost::system::error_code& error, size_t bytes_transferred );
-		void OnDataSent( const boost::system::error_code& error, size_t bytes_transferred );
+		void OnReceive( const boost::system::error_code& error, 
+						size_t bytes_transferred );
+		void OnDataSent( const boost::system::error_code& error,
+						size_t bytes_transferred );
 		void ContinueSend();
 
 		void OnAccept( const boost::system::error_code &error );
 		void OnConnect( const boost::system::error_code &error );
-		void OnResolve( const boost::system::error_code& ec, boost::asio::ip::tcp::resolver::iterator it );
-
-		//int FireEvent( EventType type, void *data=0 );
- 
+		void OnResolve( const boost::system::error_code& ec, 
+				boost::asio::ip::tcp::resolver::iterator it );
+		 
 		Stream( Connection *p_parent );
 		~Stream();
 		void StartReceive( bool first=true );
@@ -222,11 +224,11 @@ private:
 	
 	void *m_userdata; 
 
-	//------------------------------------------------------------------------------------------------- 
+	//-------------------------------------------------------------------------
 protected:
 
 public:  
-	//-------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 	Connection(); 
 	~Connection();
 

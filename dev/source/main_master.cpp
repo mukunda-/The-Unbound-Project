@@ -189,6 +189,113 @@ class ServerMaster {
 
 private: 
 
+	class NodeEventHandler : public Network::Connection::EventHandler {
+		
+		ServerMaster &m_parent;
+	public:
+
+		NodeEventHandler( ServerMaster &parent ) : m_parent(parent) {}
+		
+
+		void AcceptedConnection( Network::Connection &connection) override {
+			System::Log( "Node connected from \"%s\"", 
+					connection.Socket().remote_endpoint().address().to_string().c_str() );
+				
+			m_parent.m_nodes.push_back( std::move( m_parent.m_new_node ) );
+			m_parent.AcceptNode();
+		}
+
+		void AcceptError( Network::Connection &connection,
+				const boost::system::error_code &error  ) override {
+
+			System::Log( "Error accepting node server: Code %d", *error );
+			m_parent.AcceptNode();
+
+		}
+
+		void Disconnected( Network::Connection &connection, 
+				const boost::system::error_code &error ) override {
+
+
+		}
+
+		void DisconnectedError( Network::Connection &connection,
+				const boost::system::error_code &error ) override {
+
+		}
+
+	};
+
+	class ClientEventHandler : public Network::Connection::EventHandler {
+		ServerMaster &m_parent;
+
+	public:
+
+		ClientEventHandler( ServerMaster( &parent ) : m_parent(parent) {}
+
+		
+		void AcceptedConnection( Network::Connection &connection) override {
+			
+			System::Log( "Client connected from TODO" );
+			m_parent.m_clients.Add( m_parent.m_new_client.release() );
+			m_parent.AcceptClient();
+		}
+
+		void AcceptError( Network::Connection &connection,
+				const boost::system::error_code &error  ) override {
+
+			System::Log( "Error accepting client: Code %d", *error );
+			m_parent.AcceptClient();
+		}
+
+		void Disconnected( Network::Connection &connection, 
+				const boost::system::error_code &error ) override {
+
+			Client &c = *(connection.GetUserData<Client>());
+			if( !c.m_nickname.empty() ) {
+				System::Console::PrintEx( "%s has left.", c.m_nickname.c_str() ); 
+			}
+			m_parent.RemoveClient( &c );
+			m_parent.UpdateClientListing();
+		}
+
+		void DisconnectedError( Network::Connection &connection,
+				const boost::system::error_code &error ) override {
+
+			Disconnected( connection, error );
+		}
+
+		bool Receive( Network::Connection &connection,
+				Network::Packet &packet ) {
+
+			// TODO.
+				/*
+			Network::Packet *p = (Network::Packet*)data;
+				if( p->size == 0 ) return 1;
+				switch((int)p->data[0] ) {
+				case 1:
+					// nickname
+					if( c.m_nickname.empty() ) {
+						c.m_nickname = std::string( p->data+1, p->size-1 );
+						System::Log( "%s has connected.", c.m_nickname.c_str() ); 
+						UpdateClientListing();
+					} else {
+						RemoveClient(&c); // client is being naughty.
+					}
+					break;
+				case 2:
+					// message
+					std::string message( p->data+1, p->size-1);
+					System::Console::Print( "[%s] %s", c.m_nickname.c_str(), message.c_str() ); 
+				}*/
+
+			return true;
+		}
+	};
+
+	NodeEventHandler node_event_handler;
+	ClientEventHandler client_event_handler;
+
 	Util::LinkedList<Client> m_clients; 
 	Network::Listener m_client_listener;
 	std::unique_ptr<Client> m_new_client;
@@ -246,8 +353,7 @@ public:
 
 		m_new_client = std::unique_ptr<Client>( new Client );
 		m_new_client->m_net.SetUserData( m_new_client.get() );
-		m_new_client->m_net.SetEventHandler( 
-			boost::bind( &ServerMaster::OnClientEvent, this, _1, _2, _3 ) ); 
+		m_new_client->m_net.SetEventHandler( client_event_handler );
 		m_new_client->m_net.Listen( m_client_listener );
 	}
 
@@ -255,8 +361,7 @@ public:
 	void AcceptNode() { 
 		m_new_node = std::unique_ptr<Node>( new Node ); 
 		m_new_node->m_net.SetUserData( m_new_node.get() );
-		m_new_node->m_net.SetEventHandler( 
-			boost::bind( &ServerMaster::OnNodeEvent, this, _1,_2,_3 ) );
+		m_new_node->m_net.SetEventHandler( node_event_handler );
 		m_new_node->m_net.Listen( m_node_listener );
 	}
 
@@ -272,83 +377,9 @@ public:
 			System::ServerConsole::SetMenuItem( line, "", false );
 		}
 		System::ServerConsole::Update();
-	}
+	} 
 
-	//-------------------------------------------------------------------------------------------------
-	int OnNodeEvent( Network::Connection &source, Network::Connection::EventType type, void *data ) {
-		switch( type ) {
-			case Network::Connection::EVENT_ACCEPTEDCONNECTION: {
-				System::Log( "Node connected from \"%s\"", 
-					m_new_node->m_net.Socket().remote_endpoint().address().to_string().c_str() );
-				
-					
-				m_nodes.push_back( std::move(m_new_node) );
-				AcceptNode();
-				return 0;
-			} case Network::Connection::EVENT_ACCEPTERROR: {
-				const boost::system::error_code *error = (const boost::system::error_code*)data;
-				System::Log( "Error accepting node server: Code %d", *error );
-				AcceptNode();
-				return 0;
-
-			}
-		}
-		return 0;
-	}
-	
-	int OnClientEvent( Network::Connection  &source, Network::Connection::EventType type, void *data ) {
-		Client &c = *(source.GetUserData<Client>());
-		if( g_shutdown ) return 0;
-
-		switch( type ) {
-			case Network::Connection::EVENT_ACCEPTEDCONNECTION: {
-
-				System::Log( "Client connected from TODO" );
-				m_clients.Add( m_new_client.release() );
-				AcceptClient();
-
-				return 0;
-			} case Network::Connection::EVENT_ACCEPTERROR: {
-				const boost::system::error_code *error = (const boost::system::error_code*)data;
-				System::Log( "Error accepting client: Code %d", *error );
-				AcceptClient();
-				return 0;
-
-			} case Network::Connection::EVENT_RECEIVE: {
-				Network::Packet *p = (Network::Packet*)data;
-				if( p->size == 0 ) return 1;
-				switch((int)p->data[0] ) {
-				case 1:
-					// nickname
-					if( c.m_nickname.empty() ) {
-						c.m_nickname = std::string( p->data+1, p->size-1 );
-						System::Log( "%s has connected.", c.m_nickname.c_str() ); 
-						UpdateClientListing();
-					} else {
-						RemoveClient(&c); // client is being naughty.
-					}
-					break;
-				case 2:
-					// message
-					std::string message( p->data+1, p->size-1);
-					System::Console::Print( "[%s] %s", c.m_nickname.c_str(), message.c_str() ); 
-				}
-
-				return 1;
-			} case Network::Connection::EVENT_DISCONNECT:
-			case Network::Connection::EVENT_DISCONNECT2: {
-				if( !c.m_nickname.empty() ) {
-					System::Console::PrintEx( "%s has left.", c.m_nickname.c_str() ); 
-				}
-				RemoveClient( &c );
-				UpdateClientListing();
-			}
-
-		}
-		
-		return 0;
-	}
-	 
+	//------------------------------------------------------------------------------------------------- 
 	void Run() {
 		System::Console::AddGlobalCommand( "quit", Command_Quit );
 		System::Post( IOThread );
