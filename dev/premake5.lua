@@ -7,8 +7,8 @@ project "game"
 	kind "WindowedApp"
 	language "C++"
 	-- do we need this?:
-	--debugenvs "PATH=$(Path);$(ProjectDir)../../../env/"
-	debugdir "../../env"
+	debugenvs "PATH=$(Path);$(ProjectDir)../../../env/"
+	debugdir "../env"
 	defines { "PROJECT=GAME" }
 	
 	pchsource "source/pch/stdafx.cpp"
