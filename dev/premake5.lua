@@ -1,15 +1,16 @@
-solution "game"
-local PROJECT_PATH = "projects/game"
-location (PROJECT_PATH)
-configurations { "Debug", "Release" }
-
-project "game"
-	kind "WindowedApp"
+function CreateProject( p_name, p_project, p_kind )
+	solution( p_name )
+	local project_path = "projects/" .. p_name
+	location( project_path )
+	configurations { "Debug", "Release" }
+	
+	project( p_name )
+	kind( p_kind )
 	language "C++"
-	-- do we need this?:
+	
 	debugenvs "PATH=$(Path);$(ProjectDir)../../../env/"
 	debugdir "../env"
-	defines { "PROJECT=GAME" }
+	defines { "PROJECT_" .. p_project }
 	
 	pchsource "source/pch/stdafx.cpp"
 	pchheader "stdafx.h"
@@ -17,14 +18,10 @@ project "game"
 	-- C++ PCH is not compatible with C files.
 	filter { "files:**.c" }
 		flags {"NoPCH"}
-		
-	-- Don't use PCH for generated protocol files.
-	-- Ignore google warnings (explained in google protobuf docs)
 	filter { "files:protocol/compiled/**.cc" }
 		flags {"NoPCH"}
 		warnings "Off"
 	filter {}
-	
 	
 	libdirs {
 		"$(BOOST_ROOT)/stage/lib",
@@ -33,6 +30,45 @@ project "game"
 		"$(DEVPATH)/freetype/objs/win32/vc2010"
 	}
 	
+	includedirs {
+		"source/",
+		"libsource/",
+		"$(BOOST_ROOT)",
+		"source/pch",
+		"$(DEVPATH)/libs/include",
+		"protocol/compiled"
+	}
+	
+	if p_kind == "WindowedApp" then
+		flags { "WinMain" }
+	end
+	defines { "WIN32", "_WINDOWS" }
+	linkoptions { "/nodefaultlib:msvcrt.lib" }
+	
+	configuration "Debug"
+		defines {"_DEBUG"}
+		flags {"Symbols"}
+		
+		libdirs {
+			"$(DEVPATH)/libs/debug",
+			"$(DEVPATH)/libs/release"
+		}
+		objdir (project_path .. "/Debug")
+	configuration "Release"
+		defines {"NDEBUG"}
+		optimize "On" 
+		
+		libdirs {
+			"$(DEVPATH)/libs/release"
+		}
+		objdir (project_path .. "/Release")
+	configuration {}
+	
+	return project_path
+end
+
+local project_path = CreateProject( "game", "GAME", "WindowedApp" )
+	defines { "CLIENT" }
 	files { 
 		"source/game/*.cpp",
 		"source/graphics/*.cpp",
@@ -51,33 +87,33 @@ project "game"
 		"protocol/compiled/**.cc"
 	}
 	
-	includedirs {
-		"source/",
-		"libsource/",
-		"$(BOOST_ROOT)",
-		"source/pch",
-		"$(DEVPATH)/libs/include",
-		"protocol/compiled"
+project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
+	defines { "SERVER" }
+	
+	files { 
+		"source/pch/*.cpp",
+		"source/io/*.cpp",
+		"source/network/*.cpp",
+		"source/system/*.cpp",
+		"source/system/server/*.cpp",
+		"source/util/*.cpp",
+		"source/mem/*.cpp",
+		"source/main_master.cpp",
+		
+		"protocol/compiled/**.cc"
+	}
+project_path = CreateProject( "node", "NODE", "ConsoleApp" )
+	defines { "SERVER" }
+	
+	files { 
+		"source/pch/*.cpp",
+		"source/io/*.cpp",
+		"source/network/*.cpp",
+		"source/system/*.cpp",
+		"source/util/*.cpp",
+		"source/mem/*.cpp",
+		"source/main_node.cpp",
+		
+		"protocol/compiled/**.cc"
 	}
 	
-	flags { "WinMain" }
-	defines { "WIN32", "_WINDOWS" }
-	linkoptions { "/nodefaultlib:msvcrt.lib" }
-	
-	configuration "Debug"
-		defines {"_DEBUG"}
-		flags {"Symbols"}
-		
-		libdirs {
-			"$(DEVPATH)/libs/debug",
-			"$(DEVPATH)/libs/release"
-		}
-		objdir (PROJECT_PATH .. "/Debug")
-	configuration "Release"
-		defines {"NDEBUG"}
-		optimize "On" 
-		
-		libdirs {
-			"$(DEVPATH)/libs/release"
-		}
-		objdir (PROJECT_PATH .. "/Release")

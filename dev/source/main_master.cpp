@@ -8,7 +8,7 @@
 #include "system/system.h"
 #include "system/console.h"
 #include "system/commands.h"
-#include "system/ServerConsole.h"
+#include "system/server/ServerConsole.h"
 #include "util/linkedlist.h"
 #include "network/connection.h"
 
@@ -397,7 +397,6 @@ void Main( int argc, char *argv[] ) {
 	printf(" OK.");
 	getc(stdin);
 }
-
 
 int main( int argc, char *argv[] ) {
 	Main( argc, argv );

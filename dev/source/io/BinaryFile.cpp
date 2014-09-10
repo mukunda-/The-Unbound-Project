@@ -42,9 +42,9 @@ bool BinaryFile::Open( const char *file, int mode ) {
 	if( opened ) Close();
 
 	if( mode == MODE_READ ) {
-		f = fopen(file, "rb");
+		f = fopen2(file, "rb");
 	} else {
-		f = fopen( file, "wb" );
+		f = fopen2( file, "wb" );
 	}
 
 	opened = f != 0;

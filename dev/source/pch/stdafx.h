@@ -3,14 +3,20 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #pragma once
+ 
 
-#if !defined(PROJECT)
+#if PROJECT_CLIENT
+#include "pch_client.h"
 
-#error PROJECT must be defined.
+#elif PROJECT_MASTER
+#include "pch_master.h"
+
+#elif PROJECT_NODE
+#include "pch_node.h"
+
+#else
+
+#error PROJECT IS NOT DEFINED.
 
 #endif
 
-#if PROJECT==GAME
-#include "pch_game.h"
-
-#endif

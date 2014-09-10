@@ -37,14 +37,14 @@ int StringTable::GetHash( const char *text ) const {
 }
 
 //-------------------------------------------------------------------------------------------------
-const StringTableEntry * StringTable::ReadEntry( int index ) const {
+const StringTableEntry * StringTable::ReadEntry( uint32_t index ) const {
 	if( index >= strings.size() ) return 0;
 	return &strings[index];
 }
 
 //-------------------------------------------------------------------------------------------------
 int StringTable::QueryIndex( int hash ) const {
-	for( int i = 0; i < strings.size(); i++ ) {
+	for( uint32_t i = 0; i < strings.size(); i++ ) {
 		if( strings[i].hashcode == hash ) {
 			return i;
 		}
@@ -58,7 +58,7 @@ int StringTable::QueryIndex( const char *text, const void *data ) const {
 		int hash = GetHash( text );
 		return QueryIndex( hash );
 	} else if( data != 0 ) {
-		for( int i = 0; i < strings.size(); i++ ) {
+		for( uint32_t i = 0; i < strings.size(); i++ ) {
 			if( strings[i].data == data ) return i;
 		}
 		return -1;
@@ -126,7 +126,7 @@ void StringTable::RemoveTextData( int index ) {
 
 	// todo: lookup how erase works
 	text_data.erase( e.text_offset, e.text_length );
-	for( int i = index+1; i < strings.size(); i++ ) {
+	for( uint32_t i = index+1; i < strings.size(); i++ ) {
 		strings[i].text_offset -= e.text_length;
 	}
 	
@@ -141,7 +141,7 @@ void StringTable::AddEntry( StringTableEntry &entry ) {
 
 //-------------------------------------------------------------------------------------------------
 void StringTable::RemoveEntry( int index ) {
-	for( int i = index+1; i < strings.size(); i++ ) {
+	for( uint32_t i = index+1; i < strings.size(); i++ ) {
 		strings[i-1] = strings[i];
 	}
 	strings.pop_back();

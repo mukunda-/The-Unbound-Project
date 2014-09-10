@@ -102,7 +102,7 @@ public:
 	//--------------------------------------------------------
 	// read data of an entry
 	//
-	const StringTableEntry *ReadEntry( int index ) const;
+	const StringTableEntry *ReadEntry( uint32_t index ) const;
 
 	//--------------------------------------------------------
 	// create hash code for a string

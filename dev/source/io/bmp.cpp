@@ -22,7 +22,7 @@ void Bitmap::load( const char *filename ) {
 	}
 	
 	FILE *in;
-	in = fopen( filename, "rb" );
+	in = fopen2( filename, "rb" );
 	
 	fread( &bmfh, sizeof( BITMAPFILEHEADER ), 1, in );
 	fread( &bmih, sizeof( BITMAPINFOHEADER ), 1, in );

@@ -5,7 +5,8 @@
 //-------------------------------------------------------------------------------------------------
 
 #include "stdafx.h"
-#include "system/zonemanager.h"
+#include "system/server/zonemanager.h"
+#include "mem/memorylib.h"
 
 //-------------------------------------------------------------------------------------------------
 namespace System {
