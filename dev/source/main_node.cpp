@@ -2,16 +2,22 @@
 //                                                                           //
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
+// [SERVER] NODE
+
 #include "stdafx.h"
-#include "system/ServerConsole.h"
+#include "system/server/ServerConsole.h"
 #include "system/variables.h"
 #include "system/console.h"
 #include "system/commands.h"
 #include "system/system.h"
 
-
 #include "network/connection.h"
 
+//-------------------------------------------------------------------------------------------------
+
+#pragma comment( lib, "libprotobuf.lib" )
+
+//-------------------------------------------------------------------------------------------------
 #define VERSION "DEV1.2"
 
 #define WINDOW_TITLE ("UNBOUND SERVER (ZONE) " VERSION)

@@ -6,6 +6,8 @@
 
 #include "mem/memorylib.h"
 
+#pragma warning(disable:4996)
+
 namespace Network {
 	
 //-------------------------------------------------------------------------------------------------
@@ -29,6 +31,7 @@ static inline Packet *BuildPacket( const char *fmt, ... ) {
 	va_list args;
 	va_start( args, fmt );
 	int size = vsnprintf( buffer, sizeof buffer, fmt, args );
+
 	Packet *p = CreatePacket( size +1 );
 	
 	memcpy( p->data, buffer, size+1 );

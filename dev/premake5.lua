@@ -67,8 +67,9 @@ function CreateProject( p_name, p_project, p_kind )
 	return project_path
 end
 
-local project_path = CreateProject( "game", "GAME", "WindowedApp" )
+local project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
 	defines { "CLIENT" }
+	
 	files { 
 		"source/game/*.cpp",
 		"source/graphics/*.cpp",
@@ -110,6 +111,7 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp" )
 		"source/io/*.cpp",
 		"source/network/*.cpp",
 		"source/system/*.cpp",
+		"source/system/server/*.cpp",
 		"source/util/*.cpp",
 		"source/mem/*.cpp",
 		"source/main_node.cpp",

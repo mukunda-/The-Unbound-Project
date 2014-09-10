@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "io/bmp.h"
+#include "util/fopen2.h"
 
 Bitmap::Bitmap() {
 	pixels = 0;

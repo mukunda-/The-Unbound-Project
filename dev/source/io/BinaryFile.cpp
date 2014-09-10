@@ -5,6 +5,7 @@
 
 #include "stdafx.h"
 #include "io/BinaryFile.h"
+#include "util/fopen2.h"
 
 //-------------------------------------------------------------------------------------------------
 BinaryFile::BinaryFile() {

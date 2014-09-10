@@ -2,6 +2,8 @@
 //                                                                             //
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
+// [SERVER] MASTER
+
 #include <stdafx.h>
 #include "util/keyvalues.h"
 #include "util/trie.h"
@@ -11,6 +13,9 @@
 #include "system/server/ServerConsole.h"
 #include "util/linkedlist.h"
 #include "network/connection.h"
+//-------------------------------------------------------------------------------------------------
+
+#pragma comment( lib, "libprotobuf.lib" )
 
 //-------------------------------------------------------------------------------------------------
 
@@ -170,8 +175,7 @@ public:
 };
 
 //-------------------------------------------------------------------------------------------------
-class Zone : 
-		public Util::LinkedItem<Zone>   {
+class Node  {
 
 public:
 	  
@@ -189,9 +193,10 @@ private:
 	Network::Listener m_client_listener;
 	std::unique_ptr<Client> m_new_client;
 
-	Util::LinkedList<Zone> m_zones;
-	Network::Listener m_zone_listener;
-	std::unique_ptr<Zone> m_new_zone; // current "listening" zone
+	std::vector<std::unique_ptr<Node>> m_nodes;
+	//Util::LinkedList<Node> m_nodes;
+	Network::Listener m_node_listener;
+	std::unique_ptr<Node> m_new_node; // current "listening" node
 		
 	  
 	//-------------------------------------------------------------------------------------------------
@@ -208,13 +213,13 @@ private:
 public:
 
 	//-------------------------------------------------------------------------------------------------
-	ServerMaster() : m_client_listener( 32798 ), m_zone_listener( 32790 ) {
+	ServerMaster() : m_client_listener( 32798 ), m_node_listener( 32790 ) {
 		
 		AcceptClient();
 		System::Console::Print( "Now accepting clients." );
 		 
-		AcceptZone();
-		System::Console::Print( "Now accepting zone services." );
+		AcceptNode();
+		System::Console::Print( "Now accepting nodes." );
 
 
 	}
@@ -227,12 +232,12 @@ public:
 			delete c;
 			c = next;
 		}  
-
-		for( Zone *zone = m_zones.GetFirst(); zone; ) {
-			Zone *next = zone->m_next;
-			delete zone;
-			zone = next;
-		}
+		/*
+		for( Node *node = m_nodes.GetFirst(); node; ) {
+			Node *next = node->m_next;
+			delete node;
+			node = next;
+		}*/
 	}
 	 
 	//4745781458114587478-5045781-4578-114578-84571258-1258-12-01270-1250-12580-1240-1245780-71240-124570-1240-1250-1245780-12450-120-12450-12450-1245-124580-14570-1258428-1458-20712458-1470-8518-05-028-05-0714570-000-258-258-521258218-28-2-2525825-25-25-252514-25-25-523821448148-2518-1248-1245
@@ -247,12 +252,12 @@ public:
 	}
 
 	//-------------------------------------------------------------------------------------------------
-	void AcceptZone() { 
-		m_new_zone = std::unique_ptr<Zone>( new Zone ); 
-		m_new_zone->m_net.SetUserData( m_new_zone.get() );
-		m_new_zone->m_net.SetEventHandler( 
-			boost::bind( &ServerMaster::OnZoneEvent, this, _1,_2,_3 ) );
-		m_new_zone->m_net.Listen( m_zone_listener );
+	void AcceptNode() { 
+		m_new_node = std::unique_ptr<Node>( new Node ); 
+		m_new_node->m_net.SetUserData( m_new_node.get() );
+		m_new_node->m_net.SetEventHandler( 
+			boost::bind( &ServerMaster::OnNodeEvent, this, _1,_2,_3 ) );
+		m_new_node->m_net.Listen( m_node_listener );
 	}
 
 	//-------------------------------------------------------------------------------------------------
@@ -270,20 +275,20 @@ public:
 	}
 
 	//-------------------------------------------------------------------------------------------------
-	int OnZoneEvent( Network::Connection &source, Network::Connection::EventType type, void *data ) {
+	int OnNodeEvent( Network::Connection &source, Network::Connection::EventType type, void *data ) {
 		switch( type ) {
 			case Network::Connection::EVENT_ACCEPTEDCONNECTION: {
-				System::Log( "Zone server connected from \"%s\"", 
-					m_new_zone->m_net.Socket().remote_endpoint().address().to_string().c_str() );
+				System::Log( "Node connected from \"%s\"", 
+					m_new_node->m_net.Socket().remote_endpoint().address().to_string().c_str() );
 				
-
-				m_zones.Add( m_new_zone.release() );
-				AcceptZone();
+					
+				m_nodes.push_back( std::move(m_new_node) );
+				AcceptNode();
 				return 0;
 			} case Network::Connection::EVENT_ACCEPTERROR: {
 				const boost::system::error_code *error = (const boost::system::error_code*)data;
-				System::Log( "Error accepting zone server: Code %d", *error );
-				AcceptZone();
+				System::Log( "Error accepting node server: Code %d", *error );
+				AcceptNode();
 				return 0;
 
 			}
@@ -398,6 +403,7 @@ void Main( int argc, char *argv[] ) {
 	getc(stdin);
 }
 
+//-------------------------------------------------------------------------------------------------
 int main( int argc, char *argv[] ) {
 	Main( argc, argv );
 	return 0;
