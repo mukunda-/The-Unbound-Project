@@ -65,9 +65,9 @@ void Connection::Stream::EventLatch::DisconnectedError( const boost::system::err
 
 //-------------------------------------------------------------------------------------------------
 bool Connection::Stream::EventLatch::Receive( Network::Packet &packet ) {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
-	m_stream.m_parent->m_event_handler->Receive( *m_stream.m_parent, packet );
+	if( !m_stream.m_parent ) return false;
+	if( !m_stream.m_parent->m_event_handler ) return false;
+	return m_stream.m_parent->m_event_handler->Receive( *m_stream.m_parent, packet );
 }
  
 //-------------------------------------------------------------------------------------------------
@@ -368,7 +368,7 @@ bool Connection::Connect( const std::string &host, const std::string &service ) 
 	if( m_event_handler ) {
 		m_event_handler->Connected( *this );
 	}
-
+	return true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -456,7 +456,7 @@ void Connection::Write( Packet *p ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-void Connection::SetEventHandler( EventHandler &handler ) {
+void Connection::SetEventHandler( EventHandler *handler ) {
 	m_event_handler = handler;
 }
 

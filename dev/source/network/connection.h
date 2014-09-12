@@ -308,7 +308,10 @@ public:
 	/// -----------------------------------------------------------------------
 	/// Set the event handler for this connection.
 	///
-	void SetEventHandler( EventHandler &handler );
+	/// \param handler Event handler to use. Pass nullptr to remove the event
+	///                handler.
+	///
+	void SetEventHandler( EventHandler *handler );
 
 	/// -----------------------------------------------------------------------
 	/// Get hostname of last connect operation

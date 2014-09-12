@@ -231,7 +231,7 @@ private:
 
 	public:
 
-		ClientEventHandler( ServerMaster( &parent ) : m_parent(parent) {}
+		ClientEventHandler( ServerMaster &parent ) : m_parent(parent) {}
 
 		
 		void AcceptedConnection( Network::Connection &connection) override {
@@ -320,7 +320,11 @@ private:
 public:
 
 	//-------------------------------------------------------------------------------------------------
-	ServerMaster() : m_client_listener( 32798 ), m_node_listener( 32790 ) {
+	ServerMaster() : 
+			m_client_listener( 32798 ), 
+			m_node_listener( 32790 ),
+			node_event_handler( *this ),
+			client_event_handler( *this ) {
 		
 		AcceptClient();
 		System::Console::Print( "Now accepting clients." );
@@ -353,7 +357,7 @@ public:
 
 		m_new_client = std::unique_ptr<Client>( new Client );
 		m_new_client->m_net.SetUserData( m_new_client.get() );
-		m_new_client->m_net.SetEventHandler( client_event_handler );
+		m_new_client->m_net.SetEventHandler( &client_event_handler );
 		m_new_client->m_net.Listen( m_client_listener );
 	}
 
@@ -361,7 +365,7 @@ public:
 	void AcceptNode() { 
 		m_new_node = std::unique_ptr<Node>( new Node ); 
 		m_new_node->m_net.SetUserData( m_new_node.get() );
-		m_new_node->m_net.SetEventHandler( node_event_handler );
+		m_new_node->m_net.SetEventHandler( &node_event_handler );
 		m_new_node->m_net.Listen( m_node_listener );
 	}
 

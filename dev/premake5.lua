@@ -17,9 +17,9 @@ function CreateProject( p_name, p_project, p_kind )
 	
 	-- C++ PCH is not compatible with C files.
 	filter { "files:**.c" }
-		flags {"NoPCH"}
+		flags { "NoPCH" }
 	filter { "files:protocol/compiled/**.cc" }
-		flags {"NoPCH"}
+		flags {"NoPCH" }
 		warnings "Off"
 	filter {}
 	
