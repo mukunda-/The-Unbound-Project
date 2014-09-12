@@ -46,6 +46,10 @@ class ServerZone  {
 	Network::Connection m_cmaster; // connection to master
 	System::Variable &sv_master_address;
 
+	class NetworkEventHandler : public Network::Connection::EventHandler {
+
+	};
+
 	enum {
 		STATE_CONNECTING
 	};
