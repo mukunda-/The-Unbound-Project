@@ -178,9 +178,9 @@ public:
 class Node  {
 
 public:
-	  
+	
 	Network::Connection m_net;
-	 
+	
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -195,7 +195,7 @@ private:
 	public:
 
 		NodeEventHandler( ServerMaster &parent ) : m_parent(parent) {}
-		
+			
 
 		void AcceptedConnection( Network::Connection &connection) override {
 			System::Log( "Node connected from \"%s\"", 

@@ -123,6 +123,9 @@ private:
 		/// -------------------------------------------------------------------
 		/// Class to provide safe access to the event handler.
 		///
+		/// When instantiated, it places a lock on the parent connection,
+		/// or silently ignores requests if the connection is detached.
+		///
 		class EventLatch {
 
 			// this class makes a lock on m_handler_mutex
@@ -138,8 +141,7 @@ private:
 
 			// Event wrappers
 			void AcceptedConnection();
-			void AcceptError( const boost::system::error_code &error );
-			void CantResolve( const boost::system::error_code &error );
+			void AcceptError( const boost::system::error_code &error ); 
 			void ConnectError( const boost::system::error_code &error );
 			void Connected();
 			void Disconnected( const boost::system::error_code &error );
@@ -261,11 +263,8 @@ public:
 	/// Make a remote connection asynchronously.
 	///
 	/// This starts a connection task that completes in the background.
-	///
-	/// Fires one of these events:
-	///  EVENT_CANTRESOLVE
-	///    Triggered if the host address can't be resolved.
-	///  EVENT_CONNECTERROR
+	/// 
+	/// Fires a connection error event on failure.
 	///  
 	void ConnectAsync( const std::string &host, const std::string &service );
 	

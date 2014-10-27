@@ -24,8 +24,8 @@
 
 volatile bool g_shutdown;
 
-class ServerZone;
-ServerZone *g_main;
+class ServerNode;
+ServerNode *g_main;
 
 //-------------------------------------------------------------------------------------------------
 void IOThread() {
@@ -41,14 +41,30 @@ void IOThread() {
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
-class ServerZone  {
-	Network::Connection m_cmaster; // connection to master
+/// ---------------------------------------------------------------------------
+/// Main class for the Server Node program
+///
+class ServerNode  {
+	// connection to master
+	Network::Connection m_cmaster; 
+
+	// String sysvar containing the master's address
 	System::Variable &sv_master_address;
 
 	class NetworkEventHandler : public Network::Connection::EventHandler {
+		void Connected( Network::Connection &connection ) override {
+			System::Console::Print( "Connection to master established." );
+		}
+
+		void ConnectError( Network::Connection &connection,
+				const boost::system::error_code &error ) {
+
+
+		}
 
 	};
+
+	NetworkEventHandler net_event_handler;
 
 	enum {
 		STATE_CONNECTING
@@ -58,14 +74,14 @@ class ServerZone  {
 	 
 public:
 
-	ServerZone() : 
+	ServerNode() : 
 			sv_master_address(System::Variable::Create( "sv_master_address", System::Variable::T_STRING, 
 							"localhost", "Address of master server" ))
 	{
 		state = STATE_CONNECTING;
 		System::Console::AddGlobalCommand( "quit", Command_Quit, "Shutdown server" );
 	
-		m_cmaster.SetEventHandler( boost::bind( &ServerZone::OnNetworkEvent, this, _1, _2, _3 ) );
+		m_cmaster.SetEventHandler( boost::bind( &ServerNode::OnNetworkEvent, this, _1, _2, _3 ) );
 		
 	}
 
@@ -85,7 +101,7 @@ public:
 					g_shutdown = true;
 
 				} else if( type == Network::Connection::EVENT_CONNECTED ) {
-					System::Console::Print( "Connected to master established." );
+					
 					// todo: change state
 				}
 				break;
@@ -109,22 +125,19 @@ public:
 		}
 	}
 };
-
- 
-
-//boost::asio::io_service test;
-//boost::asio::ip::tcp::socket s(test); 
-
-// main class
-
-//-------------------------------------------------------------------------------------------------
+  
+/// ---------------------------------------------------------------------------
+/// Create main instance and execute it
+///
 void RunProgram() {
-	auto instance = std::unique_ptr<ServerZone>( new ServerZone );
+	auto instance = std::unique_ptr<ServerNode>( new ServerNode );
 	g_main = instance.get();
 	g_main->Run();
 }
 
-//-------------------------------------------------------------------------------------------------
+/// ---------------------------------------------------------------------------
+/// Program entry point
+///
 int main() {
 	
 	System::Init i_system(2);

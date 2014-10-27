@@ -27,14 +27,7 @@ void Connection::Stream::EventLatch::AcceptError( const boost::system::error_cod
 	if( !m_stream.m_parent->m_event_handler ) return;
 	m_stream.m_parent->m_event_handler->AcceptError( *m_stream.m_parent, error );
 }
-
-//-------------------------------------------------------------------------------------------------
-void Connection::Stream::EventLatch::CantResolve( const boost::system::error_code &error ) {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
-	m_stream.m_parent->m_event_handler->CantResolve( *m_stream.m_parent, error );
-}
-
+ 
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::EventLatch::ConnectError( const boost::system::error_code &error ) {
 	if( !m_stream.m_parent ) return;
@@ -384,7 +377,7 @@ void Connection::Stream::OnResolve( const boost::system::error_code &error_code,
 					boost::asio::ip::tcp::resolver::iterator endpoints ) {
 	if( error_code ) {
 		EventLatch event( *this );
-		event.CantResolve( error_code );
+		event.ConnectError( error_code );
 	} else {
 		boost::asio::async_connect( m_socket, endpoints, 
 			boost::bind( &Stream::OnConnect, 
