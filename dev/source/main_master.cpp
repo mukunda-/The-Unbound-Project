@@ -136,14 +136,7 @@ void PrintKV( Util::KeyValues &kv, int level ) {
 
 	kv.Exit();
 }
-/*
-typedef boost::function< int( int ) > CommandHandler;
-//typedef int (*CommandHandler)( int client, int args );
-Util::Trie<CommandHandler> commands;
-
-void RegisterCommand( const char *name, CommandHandler handler ) {
-	commands.Set( name, handler, true );
-}*/
+ 
  
 //-------------------------------------------------------------------------------------------------
 void IOThread() {
@@ -230,7 +223,7 @@ private:
 		ServerMaster &m_parent;
 
 	public:
-
+		
 		ClientEventHandler( ServerMaster &parent ) : m_parent(parent) {}
 
 		
@@ -387,27 +380,7 @@ public:
 	void Run() {
 		System::Console::AddGlobalCommand( "quit", Command_Quit );
 		System::Post( IOThread );
-
-		/*
-		while( !g_shutdown ) {
-			System::Console::GetInput( input, sizeof input );
-			Util::BreakString( input, cmd, sizeof cmd );
-			Util::StringToUpper( cmd );
-			Util::StringASCIIFilter( cmd );
-			System::Console::Print( ">>> %s", input );
-			
-			if( cmd[0] != 0 ) {
-				CommandHandler handler;
-				if( commands.Get( cmd, handler ) ) {
-					handler( 0  );
-				} else {
-					System::Console::PrintError( "Unknown command: %s", cmd );
-			
-				}
-			}
-
-			System::ServerConsole::Update(); 
-		}*/
+		 
 
 		while( !g_shutdown ) {
 			std::this_thread::sleep_for( std::chrono::milliseconds(5) );
