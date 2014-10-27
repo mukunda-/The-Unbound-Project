@@ -52,14 +52,18 @@ class ServerNode  {
 	System::Variable &sv_master_address;
 
 	class NetworkEventHandler : public Network::Connection::EventHandler {
+
 		void Connected( Network::Connection &connection ) override {
 			System::Console::Print( "Connection to master established." );
+			g_main->state = STATE_CONNECTED;
 		}
 
 		void ConnectError( Network::Connection &connection,
 				const boost::system::error_code &error ) {
-
-
+			
+			System::LogError( "Couldn't connect to master \"%s\". Quitting.", 
+				connection.GetHostname().c_str() );
+			g_shutdown = true;
 		}
 
 	};
@@ -67,7 +71,8 @@ class ServerNode  {
 	NetworkEventHandler net_event_handler;
 
 	enum {
-		STATE_CONNECTING
+		STATE_CONNECTING,
+		STATE_CONNECTED
 	};
 	
 	int state;
@@ -75,13 +80,17 @@ class ServerNode  {
 public:
 
 	ServerNode() : 
-			sv_master_address(System::Variable::Create( "sv_master_address", System::Variable::T_STRING, 
-							"localhost", "Address of master server" ))
+			sv_master_address(
+				System::Variable::Create( 
+					"sv_master_address", 
+					System::Variable::T_STRING, 
+					"localhost", "Address of master server" )
+			)
 	{
 		state = STATE_CONNECTING;
 		System::Console::AddGlobalCommand( "quit", Command_Quit, "Shutdown server" );
 	
-		m_cmaster.SetEventHandler( boost::bind( &ServerNode::OnNetworkEvent, this, _1, _2, _3 ) );
+		m_cmaster.SetEventHandler( &net_event_handler );
 		
 	}
 
@@ -91,24 +100,7 @@ public:
 		return 0;
 	}
 
-	
-	//-------------------------------------------------------------------------------------------------
-	int OnNetworkEvent( Network::Connection &source, Network::Connection::EventType type, void *data ) {
-		switch( state ) {
-			case STATE_CONNECTING: {
-				if( type == Network::Connection::EVENT_CONNECTERROR ) {
-					System::LogError( "Couldn't connect to master \"%s\". Quitting.", source.GetHostname().c_str() );
-					g_shutdown = true;
-
-				} else if( type == Network::Connection::EVENT_CONNECTED ) {
-					
-					// todo: change state
-				}
-				break;
-			}
-		}
-		return 0;
-	}
+	 
 
 	void Run() {
 		
