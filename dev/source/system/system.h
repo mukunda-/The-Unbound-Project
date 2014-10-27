@@ -1,12 +1,14 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
 namespace System {
 
-	
+/// ---------------------------------------------------------------------------
+/// Wrapper for boost::asio::io_service, also manages a thread pool.
+///
 class Service {
 
 	boost::asio::io_service m_io_service;
@@ -17,46 +19,95 @@ class Service {
 public:
 	Service();
 	~Service();
-
+	
+	/// -----------------------------------------------------------------------
+	/// Get the underlying asio::io_service
+	///
 	boost::asio::io_service &operator ()() {
 		return m_io_service;   
 	}
 
-	// this function can be called multiple times to add network threads
-	// threads cannot be stopped individually.
+	/// -----------------------------------------------------------------------
+	/// Add threads into the thread pool.
+	///
+	/// This function can be called multiple times. but
+	/// threads cannot be stopped.
+	///
 	void Run( int number_of_threads );
-
-	// shutdown system, runs io_service.stop and all threads should terminate.
-	// called by deconstructor.
+	
+	/// -----------------------------------------------------------------------
+	/// Shutdown system.
+	///
+	/// Runs io_service.stop and all threads should terminate.
+	///
+	/// Called by deconstructor.
+	///
 	void Stop();
 
-	// finishes work and destroys threads (blocking function)
-	//
+	/// -----------------------------------------------------------------------
+	/// Finishes work and destroys threads. Blocking function.
+	///
+	/// Will stall if a thread is not told to exit.
+	///
 	void Finish();
+
+	/// -----------------------------------------------------------------------
+	/// Run a task in the thread pool.
+	///
+	template <typename CompletionHandler> 
+		void Post( const CompletionHandler &handler ) {
+			
+		m_io_service.post( handler );
+	}
+
 };
 
-	/*
-class ThreadList {
-	std::vector<std::thread> m_threads;
+/// ---------------------------------------------------------------------------
+/// Calls GetService().Finish()
+///
+void Finish(); 
 
-
-};*/
-//void AddGlobalThread( std::thread &&thread );
-void Finish();
-
-
+/// ---------------------------------------------------------------------------
+/// Print a message to the info logs. May also print to the console.
+///
+/// \param format printf syntax for output.
+/// \param ... Formatted arguments.
+///
 void Log( const char *format, ... );
+
+/// ---------------------------------------------------------------------------
+/// Print a message to the error logs. May also print to the console.
+///
+/// \param format printf syntax for output.
+/// \param ... Formatted arguments.
+///
 void LogError( const char *format, ... );
 
+/// ---------------------------------------------------------------------------
+/// Get the main Service instance.
+///
 Service &GetService();
 
-template <typename CompletionHandler> void Post( const CompletionHandler &handler ) {
-	GetService()().post( handler );
+/// ---------------------------------------------------------------------------
+/// Wrapper for GetService().Post (post a task to the main service).
+///
+/// \param handler Task to run.
+template <typename CompletionHandler> 
+	void Post( const CompletionHandler &handler ) {
+		
+	GetService().Post( handler );
 }
-
-
+	
+/// ---------------------------------------------------------------------------
+/// System initializer
+///
 struct Init {
+	 
+	/// -----------------------------------------------------------------------
+	/// \param threads Number of threads to start the main service with.
+	///
 	Init( int threads );
+
 	~Init();
 };
 

@@ -192,9 +192,6 @@ private:
 	class NodeEventHandler : public Network::Connection::EventHandler {
 		
 		ServerMaster &m_parent;
-	public:
-
-		NodeEventHandler( ServerMaster &parent ) : m_parent(parent) {}
 			
 
 		void AcceptedConnection( Network::Connection &connection) override {
@@ -223,7 +220,10 @@ private:
 				const boost::system::error_code &error ) override {
 
 		}
+		
+	public:
 
+		NodeEventHandler( ServerMaster &parent ) : m_parent(parent) {}
 	};
 
 	class ClientEventHandler : public Network::Connection::EventHandler {

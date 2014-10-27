@@ -18,8 +18,7 @@
 #pragma comment( lib, "libprotobuf.lib" )
 
 //-------------------------------------------------------------------------------------------------
-#define VERSION "DEV1.3"
-
+#define VERSION "DEV1.3" 
 #define WINDOW_TITLE ("UNBOUND SERVER (NODE) " VERSION)
 
 volatile bool g_shutdown;
@@ -27,7 +26,9 @@ volatile bool g_shutdown;
 class ServerNode;
 ServerNode *g_main;
 
-//-------------------------------------------------------------------------------------------------
+/// ---------------------------------------------------------------------------
+/// Thread for reading user input.
+///
 void IOThread() {
 	char input[256];
 	while( !g_shutdown ) {
@@ -52,20 +53,22 @@ class ServerNode  {
 	System::Variable &sv_master_address;
 
 	class NetworkEventHandler : public Network::Connection::EventHandler {
+		ServerNode &m_parent;
 
 		void Connected( Network::Connection &connection ) override {
 			System::Console::Print( "Connection to master established." );
-			g_main->state = STATE_CONNECTED;
+			m_parent.state = STATE_CONNECTED;
 		}
 
 		void ConnectError( Network::Connection &connection,
-				const boost::system::error_code &error ) {
+				const boost::system::error_code &error ) override  {
 			
-			System::LogError( "Couldn't connect to master \"%s\". Quitting.", 
-				connection.GetHostname().c_str() );
-			g_shutdown = true;
+			System::LogError( "Connection failed, retrying in 120 seconds." );
+		
 		}
-
+		
+	public:
+		NetworkEventHandler( ServerNode &parent ) : m_parent(parent) {}
 	};
 
 	NetworkEventHandler net_event_handler;
@@ -85,7 +88,8 @@ public:
 					"sv_master_address", 
 					System::Variable::T_STRING, 
 					"localhost", "Address of master server" )
-			)
+			),
+			net_event_handler( *this )
 	{
 		state = STATE_CONNECTING;
 		System::Console::AddGlobalCommand( "quit", Command_Quit, "Shutdown server" );
@@ -132,7 +136,7 @@ void RunProgram() {
 ///
 int main() {
 	
-	System::Init i_system(2);
+	System::Init i_system(1);
 	Network::Init i_network(1);
 	
 	{
