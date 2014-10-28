@@ -9,8 +9,6 @@
 #pragma warning( disable : 4996 )
 
 namespace System {
-
-//static std::vector<std::thread> g_threads;
  
 Service *g_service = nullptr;
 
@@ -47,19 +45,27 @@ void Service::Stop() {
 	m_io_service.stop();
 	m_threads.join_all();
 } 
-/*
-void CleanThreadList() {
-	// this seems nasty
-	for( auto i = g_threads.begin(); i != g_threads.end();) {
-		auto a = i++;
-		if( !(*a).joinable() ) {
-			g_threads.erase(a);
-		}
+
+void Service::PostDelayed( std::function<void()> handler, int delay )  {
+			
+	boost::shared_ptr<boost::asio::deadline_timer> timer( 
+			new boost::asio::deadline_timer(
+							m_io_service, 
+							boost::posix_time::milliseconds( delay ) ));
+
+	timer->async_wait( boost::bind( &Service::PostDelayedCallback, 
+						boost::asio::placeholders::error, timer, handler ));
+} 
+
+void Service::PostDelayedCallback( 
+					    const boost::system::error_code &error, 
+						boost::shared_ptr<boost::asio::deadline_timer> &timer,
+						std::function<void()> &handler ) {									
+	if( !error ) {
+		handler();
 	}
-}*/
-/*
-void test() {
-}*/
+}
+ 
 
 //-------------------------------------------------------------------------------------------------
 Service &GetService() {

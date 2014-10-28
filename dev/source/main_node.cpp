@@ -64,7 +64,8 @@ class ServerNode  {
 				const boost::system::error_code &error ) override  {
 			
 			System::LogError( "Connection failed, retrying in 120 seconds." );
-		
+			System::PostDelayed( 
+				std::bind(&ServerNode::RetryConnection, &m_parent), 5*1000 );
 		}
 		
 	public:
@@ -79,6 +80,16 @@ class ServerNode  {
 	};
 	
 	int state;
+
+	void RetryConnection() {
+		Connect();
+
+	}
+
+	void Connect() {
+		System::Console::Print( "Connecting to master..." );
+		m_cmaster.ConnectAsync( sv_master_address.GetString().c_str(), "32790" );	
+	}
 	 
 public:
 
@@ -103,7 +114,6 @@ public:
 		g_shutdown = true;
 		return 0;
 	}
-
 	 
 
 	void Run() {
@@ -113,8 +123,7 @@ public:
 		System::Post( IOThread );
 		
 		System::Console::Print( "---" );
-		System::Console::Print( "Connecting to master..." );
-		m_cmaster.ConnectAsync( sv_master_address.GetString().c_str(), "32790" );
+		Connect();
 
 		while( !g_shutdown ) {
 			std::this_thread::sleep_for( std::chrono::milliseconds(5) );
@@ -136,7 +145,7 @@ void RunProgram() {
 ///
 int main() {
 	
-	System::Init i_system(1);
+	System::Init i_system(4);
 	Network::Init i_network(1);
 	
 	{

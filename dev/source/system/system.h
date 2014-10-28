@@ -54,14 +54,26 @@ public:
 	/// -----------------------------------------------------------------------
 	/// Run a task in the thread pool.
 	///
+	/// \param handler Handler to execute.
+	///
 	template <typename CompletionHandler> 
 		void Post( const CompletionHandler &handler ) {
 			
 		m_io_service.post( handler );
 	}
-
+		
 	/// -----------------------------------------------------------------------
-	/// Run a task
+	/// Run a task in the thread pool after a certain delay.
+	///
+	/// \param handler Handler to execute.
+	/// \param delay Time to wait, in milliseconds.
+	/// 
+	void PostDelayed( std::function<void()> handler, int delay );
+	static void Service::PostDelayedCallback( 
+					    const boost::system::error_code &error, 
+						boost::shared_ptr<boost::asio::deadline_timer> &timer,
+						std::function<void()> &handler );
+	 
 };
 
 /// ---------------------------------------------------------------------------
@@ -94,10 +106,19 @@ Service &GetService();
 /// Wrapper for GetService().Post (post a task to the main service).
 ///
 /// \param handler Task to run.
+///
 template <typename CompletionHandler> 
 	void Post( const CompletionHandler &handler ) {
 		
 	GetService().Post( handler );
+}
+
+/// ---------------------------------------------------------------------------
+/// Wrapper for GetService().PostDelayed
+///
+static inline void PostDelayed( std::function<void()> handler, int delay ) {
+		
+	GetService().PostDelayed( handler, delay );
 }
 	
 /// ---------------------------------------------------------------------------
