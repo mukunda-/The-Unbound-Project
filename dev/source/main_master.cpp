@@ -189,7 +189,8 @@ private:
 
 		void AcceptedConnection( Network::Connection &connection) override {
 			System::Log( "Node connected from \"%s\"", 
-					connection.Socket().remote_endpoint().address().to_string().c_str() );
+					connection.Socket()
+					.remote_endpoint().address().to_string().c_str() );
 				
 			m_parent.m_nodes.push_back( std::move( m_parent.m_new_node ) );
 			m_parent.AcceptNode();

@@ -46,20 +46,22 @@ void Service::Stop() {
 	m_threads.join_all();
 } 
 
+//-------------------------------------------------------------------------------------------------
 void Service::PostDelayed( std::function<void()> handler, int delay )  {
 			
-	boost::shared_ptr<boost::asio::deadline_timer> timer( 
+	std::shared_ptr<boost::asio::deadline_timer> timer( 
 			new boost::asio::deadline_timer(
 							m_io_service, 
 							boost::posix_time::milliseconds( delay ) ));
 
-	timer->async_wait( boost::bind( &Service::PostDelayedCallback, 
+	timer->async_wait( boost::bind( &Service::PostDelayedHandler, 
 						boost::asio::placeholders::error, timer, handler ));
 } 
 
-void Service::PostDelayedCallback( 
+//-------------------------------------------------------------------------------------------------
+void Service::PostDelayedHandler( 
 					    const boost::system::error_code &error, 
-						boost::shared_ptr<boost::asio::deadline_timer> &timer,
+						std::shared_ptr<boost::asio::deadline_timer> &timer,
 						std::function<void()> &handler ) {									
 	if( !error ) {
 		handler();

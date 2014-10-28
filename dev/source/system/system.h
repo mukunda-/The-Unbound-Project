@@ -61,7 +61,7 @@ public:
 			
 		m_io_service.post( handler );
 	}
-		
+	
 	/// -----------------------------------------------------------------------
 	/// Run a task in the thread pool after a certain delay.
 	///
@@ -69,9 +69,9 @@ public:
 	/// \param delay Time to wait, in milliseconds.
 	/// 
 	void PostDelayed( std::function<void()> handler, int delay );
-	static void Service::PostDelayedCallback( 
+	static void PostDelayedHandler( 
 					    const boost::system::error_code &error, 
-						boost::shared_ptr<boost::asio::deadline_timer> &timer,
+						std::shared_ptr<boost::asio::deadline_timer> &timer,
 						std::function<void()> &handler );
 	 
 };
