@@ -185,7 +185,6 @@ private:
 	class NodeEventHandler : public Network::Connection::EventHandler {
 		
 		ServerMaster &m_parent;
-			
 
 		void AcceptedConnection( Network::Connection &connection) override {
 			System::Log( "Node connected from \"%s\"", 

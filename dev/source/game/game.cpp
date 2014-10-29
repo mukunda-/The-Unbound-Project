@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "game/game.h"
@@ -9,10 +9,22 @@
 #include "graphics/fontmaterial.h"
 #include "graphics/vertexformats.h"
 #include "video/shaders/linetest.h"
+#include "system/variables.h"
+#include "system/defs.h"
+
+#include "game/gamecamera.h"
 
 static const char BUILD_DATE[] = __DATE__ "/" __TIME__;
 
-Game::Game() {
+namespace Game {
+
+Game::Game() : 
+	cl_master_address(
+		System::Variable::Create( 
+			"cl_master_address", System::Variable::T_STRING,
+			"localhost", "Address of master server." ) )
+{
+	
 }
 
 Game::~Game() {
@@ -28,127 +40,6 @@ template <class m> void PrintMatrix3( m mat ) {
 	printf( "%8.2f | %8.2f | %8.2f\n",
 		mat(0,2),mat(1,2),mat(2,2) ); 
 }
-
-static float deg2rad( float degrees ) {
-	return degrees / 180.0f * 3.14159265f;
-}
-static float rad2deg( float radians ) {
-	return radians * 180.0f / 3.14159265f;
-}
-
-static const float pi = 3.14159265f;
-
-class GameCamera {
-
-public:
-	Video::Camera camera;
-	Eigen::Vector3f orientation;
-
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-	GameCamera() {
-		orientation = Eigen::Vector3f( 0.0f, 1.0f, 0.0f );
-	}
-
-
-
-	void UpdateVideo() {
-		camera.Fixup();
-		camera.UpdateVideo();
-	}
-
-	void SetPosition( const Eigen::Vector3f &pos ) {
-		camera.SetPosition( pos );
-	}
-
-	void LookAt( const Eigen::Vector3f &pos ) {
-		camera.LookAt( pos, orientation );
-	}
-
-	void SetOrientation( const Eigen::Vector3f &up ) {
-		orientation = up;
-	}
-
-	void Pan( float mx, float my ) {
-		
-		if( my < 0.0f ) {
-			float ang = my * 0.001f;
-			Eigen::Vector3f fwd = orientation.cross(camera.Right()).normalized();
-			float theta = acos(fwd.dot(camera.Forward()));
-			camera.Rotate( -ang );
-			float theta2 = acos(fwd.dot(camera.Forward()));
-			if( theta2 > theta ) {
-				// we are moving away from the center
-				if( theta2 > deg2rad(95.0f) ) {
-					// we went too far
-					camera.Rotate( -(theta2 - deg2rad(95.0f)) );
-				}
-			} 
-		} else if( my > 0.0f ) {
-			float ang = -my * 0.001f;
-			Eigen::Vector3f fwd = orientation.cross(camera.Right()).normalized();
-			float theta = acos(fwd.dot(camera.Forward()));
-			camera.Rotate( ang );
-			float theta2 = acos(fwd.dot(camera.Forward()));
-			if( theta2 > theta ) {
-				// we are moving away from the center
-				if( theta2 > deg2rad(95.0f) ) {
-					// we went too far
-					camera.Rotate( (theta2 - deg2rad(95.0f)) );
-				}
-			} 
-		}
-		camera.Rotate( 0.0f, -mx * 0.001f );
-	}
-
-	// 
-	void MoveRel( const Eigen::Vector3f &amt ) {
-		if( amt[0] != 0.0f ) {
-			camera.Move( camera.Right() * amt[0] );
-		}
-		if( amt[1] != 0.0f ) {
-			camera.Move( camera.Up() * amt[1] );
-		}
-		if( amt[2] != 0.0f ) {
-			camera.Move( camera.Forward() * amt[2] );
-		}
-	}
-
-	void Rotate( const Eigen::Vector3f &angles ) {
-		camera.Rotate(angles);
-	}
-
-	void OnTick() {
-		Eigen::Vector3f oriented_up = orientation.cross(camera.Forward()).normalized();
-		Eigen::AngleAxisf a( 3.14159f/2.0f, camera.Forward());
-		float roll = -oriented_up.dot(camera.Up());
-		oriented_up = a * oriented_up;
-		float tolerance = orientation.dot(camera.Forward());
-		float balance = acos(oriented_up.dot(camera.Up()));
-
-		float horizon = abs(pi/2.0f - (acos(tolerance)));
-
-		float deadzone = deg2rad( 80.0f );
-		float strictzone = deg2rad( 5.0f );
- 
-		float speed = (horizon - strictzone) / (deadzone-strictzone);// * 180.0f;
-		if( speed < 0.0f ) speed = 0.0f;
-		if( speed > 1.0f ) speed = 1.0f;
-		speed = 1.0f - speed; 
-		speed = 1.0f - pow((1.0f-speed),0.3f);
-		speed *= 0.3f; 
-				
-		float amount = balance; 
-				
-		if( amount > 0.0f ) {
-			 
-			if( roll < 0.0f ) {
-				amount = -amount;
-			}
-			camera.Rotate( 0.0f, 0.0f, amount * speed ); 
-		}
-	}
-};
 
 Video::VertexBuffer::Pointer GenerateTestGeometry() {
 	Graphics::VertexStream<Graphics::Vertex::Generic3D> verts; 
@@ -193,6 +84,11 @@ Video::VertexBuffer::Pointer GenerateTestGeometry2() {
 void Game::Run() {
 
 	// connect to master
+	 
+	m_net_master.Connect(
+		cl_master_address.GetString(), 
+		std::to_string( System::PORT_CLIENT ) );
+
 
 	Shaders::LineTester shader;
 	Shaders::Ui ui_shader;
@@ -223,14 +119,7 @@ void Game::Run() {
 
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
-	/*
-	Graphics::Element test_element2;
-	Graphics::SetupElement( test_element2, GenerateTestGeometry2(), 
-		Video::BLEND_OPAQUE, mymat2, 0, 0, 0, 6, GL_TRIANGLES );
-	test_element2.m_layer = Graphics::LAYER_UI;
-	Graphics::AddElement( test_element2 );
-	*/
-	 
+	
 	SDL_Event e;
 	bool quit = false;
 	while (!quit){
@@ -317,4 +206,6 @@ void Game::Run() {
 		Video::Swap();
 		 
 	}
+}
+
 }

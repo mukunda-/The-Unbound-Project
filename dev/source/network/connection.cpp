@@ -348,20 +348,16 @@ void Connection::Stream::OnAccept( const boost::system::error_code &error ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-bool Connection::Connect( const std::string &host, const std::string &service ) {
+void Connection::Connect( const std::string &host, const std::string &service ) {
 	Network::Resolver resolver; 
 	m_hostname = host + ":" + service;
 	boost::system::error_code ec;
-	boost::asio::connect( m_stream->m_socket, resolver.Resolve( host, service ), ec );
-	if( ec ) {
-		return false;
-	}
+	boost::asio::connect( m_stream->m_socket, resolver.Resolve( host, service ) );
 	m_stream->m_connected = true;
 
 	if( m_event_handler ) {
 		m_event_handler->Connected( *this );
 	}
-	return true;
 }
 
 //-------------------------------------------------------------------------------------------------

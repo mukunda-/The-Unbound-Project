@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 
 //------------------------------------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 
 //------------------------------------------------------------------------------------------------------
 void RunGame() {
-	boost::scoped_ptr<Game> game(new Game);
+	std::unique_ptr<Game::Game> game(new Game::Game);
 	game->Run();
 }
 

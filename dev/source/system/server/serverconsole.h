@@ -19,11 +19,7 @@ static const int SIDEBAR_WIDTH  = 20;
 static const int SIDEBAR_HEIGHT = 22;
 
 void SetTitle( const char *text );
-/*
-void Print( const char *format, ... );
-void PrintEx( const char *format, ... );
-void PrintError( const char *format, ... );
-void PrintErrorEx( const char *format, ... );*/
+
 void PrintToWindow( const char * format, bool newline, va_list args );
 void PrintToWindow( const char * text, bool newline  );
 void GetInput( char *input, int maxlen );

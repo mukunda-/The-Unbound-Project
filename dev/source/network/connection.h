@@ -26,7 +26,7 @@ public:
 		/// -------------------------------------------------------------------
 		/// Called when an incoming connection is successful.
 		///
-		/// \param connection The connection associated with the event.
+		/// @param connection The connection associated with the event.
 		///
 		virtual void AcceptedConnection( Connection &connection ) {}
 
@@ -34,8 +34,8 @@ public:
 		/// Called from a listening connection when an error occurs when
 		/// trying to accept an incoming connection.
 		///
-		/// \param connection The connection associated with the event.
-		/// \param error The error code.
+		/// @param connection The connection associated with the event.
+		/// @param error The error code.
 		///
 		virtual void AcceptError( 
 				Connection &connection,
@@ -45,8 +45,8 @@ public:
 		/// Called during an asynchronous connection when the resolver
 		/// fails to resolve a host name.
 		///
-		/// \param connection The connection associated with the event.
-		/// \param error The error code.
+		/// @param connection The connection associated with the event.
+		/// @param error The error code.
 		///
 		virtual void CantResolve( 
 				Connection &connection,
@@ -56,8 +56,8 @@ public:
 		/// Called during an asynchronous connection when the connection
 		/// fails.
 		///
-		/// \param connection The connection associated with the event.
-		/// \param error The error code.
+		/// @param connection The connection associated with the event.
+		/// @param error The error code.
 		///
 		virtual void ConnectError( 
 				Connection &connection,
@@ -66,15 +66,15 @@ public:
 		/// -------------------------------------------------------------------
 		/// Called when an outgoing connection is successful.
 		///
-		/// \param connection The connection associated with the event.
+		/// @param connection The connection associated with the event.
 		///
 		virtual void Connected( Connection &connection ) {}
 
 		/// -------------------------------------------------------------------
 		/// Called when the connection is closed.
 		///
-		/// \param connection The connection associated with the event.
-		/// \param error The error code, to see if the disconnection
+		/// @param connection The connection associated with the event.
+		/// @param error The error code, to see if the disconnection
 		///              was a problem or a normal socket closure.
 		///
 		virtual void Disconnected( 
@@ -84,8 +84,8 @@ public:
 		/// -------------------------------------------------------------------
 		/// Called when the connection fails during an outgoing operation.
 		///
-		/// \param connection The connection associated with the event.
-		/// \param error The error code.
+		/// @param connection The connection associated with the event.
+		/// @param error The error code.
 		///
 		virtual void DisconnectedError( 
 				Connection &connection,
@@ -94,9 +94,9 @@ public:
 		/// -------------------------------------------------------------------
 		/// Called when the connection receives a packet.
 		///
-		/// \param connection The connection associated with the event.
-		/// \param packet The packet that was received.
-		/// \return       Return true to not buffer the packet (handled)
+		/// @param connection The connection associated with the event.
+		/// @param packet The packet that was received.
+		/// @return       Return true to not buffer the packet (handled)
 		///               Return false to buffer the packet (not handled)
 		///               Buffered packets are obtained from Connection::Read()
 		///
@@ -243,7 +243,7 @@ public:
 	/// will become an active connection or a closed connection
 	/// respectively.
 	///
-	/// \param listener Network listener which describes what port to listen
+	/// @param listener Network listener which describes what port to listen
 	///                 on.
 	///
 	void Listen( Network::Listener &listener );
@@ -253,11 +253,11 @@ public:
 	///
 	/// This is a blocking function that connects to the specified address.
 	///
-	/// \param host Address to connect to
-	/// \param service Service/port number to connect to.
-	/// \return false if the connection failed.
+	/// @param host Address to connect to
+	/// @param service Service/port number to connect to.
+	/// @throws boost::system::system_error on failure.
 	///
-	bool Connect( const std::string &host, const std::string &service );
+	void Connect( const std::string &host, const std::string &service );
 
 	/// -----------------------------------------------------------------------
 	/// Make a remote connection asynchronously.
@@ -274,7 +274,7 @@ public:
 	/// -----------------------------------------------------------------------
 	/// Get boost asio socket object
 	///
-	/// \return TCP socket.
+	/// @return TCP socket.
 	///
 	boost::asio::ip::tcp::socket &Socket();
 
@@ -293,21 +293,21 @@ public:
 	/// -----------------------------------------------------------------------
 	/// Read a buffered packet, and remove it from the queue
 	///
-	/// \return A packet, or nullptr if the receive queue was empty.
+	/// @returns A packet, or nullptr if the receive queue was empty.
 	///
 	Packet *Read();
 
 	/// -----------------------------------------------------------------------
 	/// Place a packet in the output queue
 	/// 
-	/// \param p Packet to queue.
+	/// @param p Packet to queue.
 	///
 	void Write( Packet *p );
 
 	/// -----------------------------------------------------------------------
 	/// Set the event handler for this connection.
 	///
-	/// \param handler Event handler to use. Pass nullptr to remove the event
+	/// @param handler Event handler to use. Pass nullptr to remove the event
 	///                handler.
 	///
 	void SetEventHandler( EventHandler *handler );
