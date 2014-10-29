@@ -12,9 +12,13 @@
 
 #include "graphics/gui/gui.h"
 #include "network/connection.h"
+#include "system/variables.h"
 
 namespace Game {
 
+/// ---------------------------------------------------------------------------
+/// Main game class.
+///
 class Game : public Gui::Interface {
 
 	class NetEventHandler {

@@ -7,13 +7,21 @@
 namespace Util {
 
 	namespace {
-
-		inline float DegToRad( float degrees ) {
-			return degrees / 180.0f * 3.14159265f;
+		
+		/// ------------------------------------------------------------------
+		/// Convert degrees to radians.
+		///
+		template <typename T>
+		inline T DegToRad( T degrees ) {
+			return degrees * 0.01745329252f;
 		}
 		
-		inline float RadToDeg( float radians ) {
-			return radians * 180.0f / 3.14159265f;
+		/// ------------------------------------------------------------------
+		/// Convert radians to degrees.
+		///
+		template <typename T>
+		inline T RadToDeg( T radians ) {
+			return radians * 57.2957795130f;
 		}
  
 		const float PI = 3.14159265f;

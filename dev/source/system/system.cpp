@@ -71,6 +71,7 @@ void Service::PostDelayedHandler(
 
 //-------------------------------------------------------------------------------------------------
 Service &GetService() {
+	assert( g_service );
 	return *g_service;
 }
 
