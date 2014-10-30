@@ -19,7 +19,7 @@ function CreateProject( p_name, p_project, p_kind )
 	filter { "files:**.c" }
 		flags { "NoPCH" }
 	filter { "files:protocol/compiled/**.cc" }
-		flags {"NoPCH" }
+		flags { "NoPCH" }
 		warnings "Off"
 	filter {}
 	

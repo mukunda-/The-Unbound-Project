@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "network/nwcore.h"
@@ -25,6 +25,7 @@ Init::Init( int threads ) {
 
 //-------------------------------------------------------------------------------------------------
 Init::~Init() {
+	assert( g_default_service );
 	g_default_service->Finish();
 	delete g_default_service;
 	g_default_service = nullptr;
