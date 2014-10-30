@@ -161,8 +161,14 @@ public:
 
 	Network::Connection m_net;
 
-	Client()  {
+	int m_state;
 
+	enum {
+		STATE_LOGIN
+	};
+
+	Client()  {
+		m_state = STATE_LOGIN;
 	}
 	 
 };
