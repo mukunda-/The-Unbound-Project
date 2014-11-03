@@ -12,7 +12,11 @@ namespace System {
 class Service {
 
 	boost::asio::io_service m_io_service;
+
+	// work to keep the thread pool alive
 	std::unique_ptr<boost::asio::io_service::work> m_dummy_work;
+
+	// thread pool
 	boost::thread_group m_threads;
 
 	

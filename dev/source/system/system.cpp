@@ -12,18 +12,20 @@ namespace System {
  
 Service *g_service = nullptr;
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Service::Service() {
-	m_dummy_work = std::unique_ptr<boost::asio::io_service::work>( 
-		new boost::asio::io_service::work( m_io_service ) );
+	using namespace boost::asio;
+	m_dummy_work = std::unique_ptr<io_service::work>( 
+		new io_service::work( m_io_service ) );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Service::~Service() {
 	Finish();
 	Stop();
 }
 
+//-----------------------------------------------------------------------------
 void Service::Finish() {
 	// delete work object
 	m_dummy_work.reset( nullptr );

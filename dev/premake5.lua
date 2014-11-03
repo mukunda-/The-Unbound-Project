@@ -23,6 +23,8 @@ function CreateProject( p_name, p_project, p_kind )
 		warnings "Off"
 	filter {}
 	
+	buildoptions { "/Zm130" }
+	
 	libdirs {
 		"$(BOOST_ROOT)/stage/lib",
 		"$(DEVPATH)/glew/lib/Release/Win32",

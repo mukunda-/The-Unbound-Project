@@ -13,6 +13,7 @@
 #include "system/server/ServerConsole.h"
 #include "util/linkedlist.h"
 #include "network/connection.h"
+#include "db/dbtest1.h"
 //-------------------------------------------------------------------------------------------------
 
 #pragma comment( lib, "libprotobuf.lib" )
@@ -384,9 +385,12 @@ public:
 
 	//------------------------------------------------------------------------------------------------- 
 	void Run() {
+
+		DB::Test1 test1;
+
 		System::Console::AddGlobalCommand( "quit", Command_Quit );
 		System::Post( IOThread );
-		 
+		
 
 		while( !g_shutdown ) {
 			std::this_thread::sleep_for( std::chrono::milliseconds(5) );
