@@ -14,7 +14,7 @@ function SetupDatabases() {
 			accountid INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 			username VARCHAR(255) COMMENT 'Username.',
 			password VARCHAR(255) COMMENT 'Hashed password.',
-			userhash INT UNSIGNED,
+			userhash INT UNSIGNED COMMENT 'Username hash for for index.',
 			INDEX USING BTREE (userhash)
 		)
 		ENGINE InnoDB

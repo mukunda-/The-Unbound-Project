@@ -1,3 +1,8 @@
+-------------------------------------------------------------------------------
+--- Project creation helper
+---   p_name: Actual name of project, eg master
+---   p_project: Project definition, eg MASTER
+---   p_kind: WindowedApp or ConsoleApp
 function CreateProject( p_name, p_project, p_kind )
 	solution( p_name )
 	local project_path = "projects/" .. p_name
@@ -8,10 +13,14 @@ function CreateProject( p_name, p_project, p_kind )
 	kind( p_kind )
 	language "C++"
 	
+	-- debug environment, point to /env folder
 	debugenvs "PATH=$(Path);$(ProjectDir)../../../env/"
 	debugdir "../env"
+	
+	-- project definition, passed in as an argument
 	defines { "PROJECT_" .. p_project }
 	
+	-- PCH source files
 	pchsource "source/pch/stdafx.cpp"
 	pchheader "stdafx.h"
 	
@@ -23,8 +32,10 @@ function CreateProject( p_name, p_project, p_kind )
 		warnings "Off"
 	filter {}
 	
+	-- PCH memory allocation
 	buildoptions { "/Zm130" }
 	
+	-- library directories
 	libdirs {
 		"$(BOOST_ROOT)/stage/lib",
 		"$(DEVPATH)/glew/lib/Release/Win32",
@@ -32,6 +43,7 @@ function CreateProject( p_name, p_project, p_kind )
 		"$(DEVPATH)/freetype/objs/win32/vc2010"
 	}
 	
+	-- include directories
 	includedirs {
 		"source/",
 		"libsource/",
@@ -56,6 +68,7 @@ function CreateProject( p_name, p_project, p_kind )
 			"$(DEVPATH)/libs/release"
 		}
 		objdir (project_path .. "/Debug")
+		
 	configuration "Release"
 		defines {"NDEBUG"}
 		optimize "On" 
@@ -64,12 +77,15 @@ function CreateProject( p_name, p_project, p_kind )
 			"$(DEVPATH)/libs/release"
 		}
 		objdir (project_path .. "/Release")
+		
 	configuration {}
 	
 	return project_path
 end
 
-local project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
+local project_path;
+
+project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
 	defines { "CLIENT" }
 	
 	files { 
@@ -89,7 +105,7 @@ local project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
 		
 		"protocol/compiled/**.cc"
 	}
-	
+
 project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
 	defines { "SERVER" }
 	
@@ -105,10 +121,11 @@ project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
 		
 		"protocol/compiled/**.cc"
 	}
+
 project_path = CreateProject( "node", "NODE", "ConsoleApp" )
 	defines { "SERVER" }
 	
-	files { 
+	files {
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
 		"source/network/*.cpp",
@@ -120,4 +137,3 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp" )
 		
 		"protocol/compiled/**.cc"
 	}
-	
