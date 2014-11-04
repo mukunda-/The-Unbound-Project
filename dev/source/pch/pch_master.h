@@ -30,5 +30,6 @@
 #include <mysql_driver.h>	
 #include <mysql_connection.h>	
 #include <cppconn/statement.h>
+#include <cppconn/exception.h>
 
 #include <yaml-cpp/yaml.h>
