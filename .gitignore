@@ -217,3 +217,4 @@ dev/protocol/compiled
 trash
 dev/projects
 env/private
+scripts/private
