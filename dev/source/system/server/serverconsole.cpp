@@ -3,13 +3,13 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
-#include "ServerConsole.h"
-
-#define _CRT_SECURE_NO_WARNINGS
-
+#include "system/server/serverconsole.h"
+#include "system/console.h"
+#include "system/system.h"
+ 
 namespace System { namespace ServerConsole {
 	
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 enum {
 	WINDOW_OUTPUT,
 	WINDOW_HEADER,
@@ -18,14 +18,13 @@ enum {
 	WINDOW_COUNT
 };
 
-
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 WINDOW *windows[WINDOW_COUNT];
 PANEL *panels[WINDOW_COUNT];
 
 boost::mutex console_mutex;
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void SetTitle( const char *text ) {
 
 	{
@@ -37,7 +36,7 @@ void SetTitle( const char *text ) {
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void InitializeWindows() {
 		
 	// 80X24
@@ -62,12 +61,12 @@ void InitializeWindows() {
 
 
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void ClearInputWindow() {
 	werase( windows[WINDOW_INPUT] );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void GetInputEx( const char *prompt, char *input, int maxlen ) {
 	{
 		boost::lock_guard<boost::mutex> lock(console_mutex);
@@ -80,12 +79,12 @@ void GetInputEx( const char *prompt, char *input, int maxlen ) {
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void GetInput( char *input, int maxlen ) {
 	GetInputEx( "$ ", input, maxlen );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void PrintToWindow( const char * text, bool newline ) {
 
 	boost::lock_guard<boost::mutex> lock(console_mutex);
@@ -99,7 +98,7 @@ void PrintToWindow( const char * text, bool newline ) {
 	
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void PrintToWindow( const char * format, bool newline, va_list args ) {
 
 	boost::lock_guard<boost::mutex> lock(console_mutex);
@@ -165,8 +164,19 @@ void Update() {
 	doupdate();
 }
 
+//-------------------------------------------------------------------------------------------------
+void IOThread() {
+	char input[256];
+	while( System::Live() ) {
+		System::ServerConsole::GetInput( input, sizeof input );
+		if( !System::Live() ) break;
+		System::Console::Execute( input );
 
-Init::Init() {
+		System::ServerConsole::Update();
+	}
+}
+
+Init::Init( const std::string &window_title ) {
 	initscr();
 	start_color();
 	init_pair(3, COLOR_BLACK , COLOR_WHITE );
@@ -180,6 +190,8 @@ Init::Init() {
 	InitializeWindows();
 
 	ClearInputWindow();
+
+	SetTitle( window_title.c_str() );
 }
 
 Init::~Init() {

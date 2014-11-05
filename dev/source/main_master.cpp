@@ -410,9 +410,8 @@ void Main( int argc, char *argv[] ) {
 	System::Init i_system(1);
 	Network::Init i_network(1);
 	{
-		System::ServerConsole::Init i_serverconsole;
-
-		System::ServerConsole::SetTitle( WINDOW_TITLE );
+		System::ServerConsole::Init i_serverconsole( WINDOW_TITLE ); 
+		//System::ServerConsole::SetTitle( WINDOW_TITLE );
 
 		g_shutdown = false;
 		RunProgram(); 

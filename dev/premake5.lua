@@ -137,3 +137,18 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp" )
 		
 		"protocol/compiled/**.cc"
 	}
+
+project_path = CreateProject( "auth", "AUTH", "ConsoleApp" )
+	defines {"SERVER"}
+	
+	files {
+		"source/pch/*.cpp",
+		"source/network/*.cpp",
+		"source/system/*.cpp",
+		"source/system/server/*.cpp",
+		"source/util/*.cpp",
+		"source/mem/*.cpp",
+		"source/main_auth.cpp",
+		
+		"protocol/compiled/**.cc"
+	}

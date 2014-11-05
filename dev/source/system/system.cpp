@@ -11,6 +11,7 @@
 namespace System {
  
 Service *g_service = nullptr;
+bool g_live = false;
 
 //-----------------------------------------------------------------------------
 Service::Service() {
@@ -44,6 +45,7 @@ void Service::Run( int count ) {
 
 //-------------------------------------------------------------------------------------------------
 void Service::Stop() {
+	
 	m_io_service.stop();
 	m_threads.join_all();
 } 
@@ -104,19 +106,25 @@ void LogError( const char *format, ... ) {
 	va_end(argptr);
 }
 
+bool Live() {
+	return g_live;
+}
+
 //-------------------------------------------------------------------------------------------------
 Init::Init( int threads ) {
 	assert( g_service == nullptr );
 	g_service = new Service();
-
 	g_service->Run( threads );
+	g_live = true;
 }
 
 //-------------------------------------------------------------------------------------------------
 Init::~Init() {
+	g_live = false;
 	g_service->Finish();
 	delete g_service;
 	g_service = nullptr;
+	
 }
 
 }

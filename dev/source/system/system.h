@@ -124,6 +124,14 @@ static inline void PostDelayed( std::function<void()> handler, int delay ) {
 		
 	GetService().PostDelayed( handler, delay );
 }
+
+/// ---------------------------------------------------------------------------
+/// Checks the status of the system.
+///
+/// @returns true if the system is live and running. false if the system
+///          hasn't started yet or is shutting down.
+///
+bool Live();
 	
 /// ---------------------------------------------------------------------------
 /// System initializer
