@@ -18,10 +18,10 @@ public:
 		Object *next = nullptr;
 
 		for( Object *obj = first; obj; obj = next ) {
-			next = obj->next;
+			next = obj->m_next;
 			delete obj;
 		}
 	}
-}
+};
 
 }

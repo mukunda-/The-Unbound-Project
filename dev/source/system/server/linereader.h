@@ -15,6 +15,10 @@ class LineReader {
 	public:
 		HistoryEntry( const char *text );
 		HistoryEntry( const std::string &text );
+
+		const char *Contents() {
+			return m_text.get();
+		}
 	};
 
 	Util::DeletedLinkedList<HistoryEntry> m_history;
@@ -35,7 +39,7 @@ class LineReader {
 	WINDOW *m_window; // window to paint to 
 
 	bool CursorOnScreen();
-	void Redraw();
+	void Redraw( bool force = false );
 	void DrawCursorChar( char c );
 	
 public:
