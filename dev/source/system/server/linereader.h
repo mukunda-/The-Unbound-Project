@@ -4,26 +4,29 @@
 
 #pragma once
 
-#include "util/linkedlist.h"
+#include "util/deletedlinkedlist.h"
 
 namespace System { namespace ServerConsole {
 
 class LineReader {
 
 	class HistoryEntry : public Util::LinkedItem<HistoryEntry> {
-		std::unique_ptr<char> text;
+		std::unique_ptr<char> m_text;
 	public:
 		HistoryEntry( const char *text );
+		HistoryEntry( const std::string &text );
 	};
 
-	Util::LinkedList<HistoryEntry> m_history;
+	Util::DeletedLinkedList<HistoryEntry> m_history;
+	HistoryEntry *m_history_iter;
+	int m_history_counter;
 	 
 //	char m_history[HISTORY_SIZE][INPUT_LENGTH]; // history of completed lines
 //	int  m_history_index; // navigation index when pressing up/down
 	std::string m_buffer;
 	//char m_buffer[INPUT_LENGTH]; // current line being written to
 	int  m_cursor; // text caret position
-	int  m_length; // length of current buffered line
+	
 	int  m_view; // position of leftmost char, the horizontal scrolling offset
 	bool m_dirty; // needs full redraw
 

@@ -11,11 +11,10 @@ namespace System { namespace ServerConsole {
 
 //-----------------------------------------------------------------------------
 LineReader::LineReader( WINDOW  *window ) {
-	m_cursor = 0;
-	m_length = 0;
-	m_history_index = 0;
+	m_cursor = 0; 
 	m_window = nullptr;
 	m_view = 0;
+	m_history_iter = nullptr;
 
 	if( window != nullptr ) {
 		SetWindow( window );
@@ -23,22 +22,19 @@ LineReader::LineReader( WINDOW  *window ) {
 }
 
 void LineReader::SetWindow( WINDOW *window ) {
-	m_window = window;
-
-	int dummy;
+	m_window = window; 
 	getmaxyx( m_window, m_height, m_width );
 }
 
 //-----------------------------------------------------------------------------
 void LineReader::MoveCursor( int pos ) {
-	if( pos > m_length ) pos = m_length;
-	if( pos >= INPUT_LENGTH ) pos = INPUT_LENGTH-1;
+	if( pos > (int)m_buffer.size() ) pos = (int)m_buffer.size();
 	if( pos < 0 ) pos = 0;
 
 	m_cursor = pos;
 	if( m_cursor <= m_view ) {
 		if( m_view != 0 ) {
-			m_view = m_cursor -10;
+			m_view = m_cursor - 10;
 			if( m_view < 0 ) m_view = 0;
 			m_dirty = true;
 		}
@@ -63,7 +59,7 @@ void LineReader::Redraw() {
 
 	int x;
 	for( x = 0; x < m_width; x++ ) {
-		if( m_view + x >= m_length ) break;
+		if( m_view + x >= (int)m_buffer.size() ) break;
 		mvwaddch( m_window, 0, x, m_buffer[ m_view + x ] );
 	}
 
@@ -84,60 +80,62 @@ void LineReader::DrawCursorChar( char c ) {
 void LineReader::InputChar( int c ) {
 	
 	if( c >= 32 && c < 127 ) {
-		if( m_length == INPUT_LENGTH ) return;
 
-		if( m_cursor == m_length ) {
+		if( m_cursor == m_buffer.size() ) {
 			// append
+			m_buffer += (char)c;
+			DrawCursorChar( c );
 		} else {
 			// insert
 			m_dirty = true;
-			for( int i = m_length; i >= m_cursor+1; i-- ) {
-				m_buffer[i] = m_buffer[i-1];
-			}
+			 
+			char chars[2];
+			chars[1] = 0;
+			chars[0] = c;
+			m_buffer.insert( m_cursor, chars );
 		}
-		
-		m_buffer[m_cursor] = c;
-		DrawCursorChar(c);
-		m_length++;
 		MoveCursor(m_cursor+1);
 		Redraw();
-		 
 	} else {
 		if( c == 10 || c == 13 ) {
 			// submit input.
 
 		} else if( c == 8 || c == KEY_BACKSPACE ) {
 			if( m_cursor == 0 ) return;
-			for( int i = m_cursor; i < m_length; i++ ) {
-				m_buffer[i-1] = m_buffer[i];
-			}
+			m_buffer.erase( m_cursor-1, 1 );
 			m_dirty = true;
-			m_length--;
 			MoveCursor(m_cursor-1);
 			Redraw();
 			// backspace
 		} else if( c == 127 || c == KEY_DC ) {
 			// delete
-			if( m_cursor == m_length ) return;
-			for( int i = m_cursor; i < m_length-1; i++ ) {
-				m_buffer[i] = m_buffer[i+1];
-			}
+			if( m_cursor == m_buffer.size() ) return;
+			m_buffer.erase( m_cursor, 1 );
 			m_dirty = true;
-			m_length--;
 			Redraw();
 		} else if( c == KEY_LEFT ) {
 			MoveCursor( m_cursor-1 );
+			Redraw();
 		} else if( c == KEY_RIGHT ) {
 			MoveCursor( m_cursor+1 );
+			Redraw();
 		} else if( c == KEY_UP ) {
 			// previous history
+			if( m_history_iter == nullptr ) {
+				m_history_iter = m_history.GetLast();
+				if( m_buffer.size() != 0 ) {
+					m_history.Add( new HistoryEntry( m_buffer ) );
+				}
+			}
 		} else if( c == KEY_DOWN ) {
 			// next history
 			
 		} else if( c == KEY_HOME ) {
 			MoveCursor(0);
+			Redraw();
 		} else if( c == KEY_END ) {
-			MoveCursor( m_length );
+			MoveCursor( m_buffer.size() );
+			Redraw();
 		}
 	}
 }
@@ -146,6 +144,7 @@ void LineReader::InputChar( int c ) {
 
 //}
 
+//-----------------------------------------------------------------------------
 void LineReader::Process() {
 	MoveCursor( m_cursor );
 	int input = mvwgetch( m_window, 0, m_cursor-m_view );
@@ -153,9 +152,17 @@ void LineReader::Process() {
 	System::Console::Print( "%d", input );
 }
 
+//-----------------------------------------------------------------------------
 LineReader::HistoryEntry::HistoryEntry( const char *text ) {
-
+	m_text = std::unique_ptr<char>( new char[strlen(text) + 1] );
+	strcpy( m_text.get(), text );
 }
+
+//-----------------------------------------------------------------------------
+LineReader::HistoryEntry::HistoryEntry( const std::string &text ) {
+	HistoryEntry( text.c_str() );
+}
+ 
 
 //-----------------------------------------------------------------------------
 }}

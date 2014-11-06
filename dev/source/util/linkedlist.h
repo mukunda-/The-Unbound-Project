@@ -26,7 +26,7 @@ template<class Object>
 class LinkedList {
 //-------------------------------------------------------------------------------------------------
 
-private:
+protected:
 	Object *first;
 	Object *last;
 
