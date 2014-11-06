@@ -25,6 +25,7 @@
 #include <Eigen/Dense>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include <boost/asio/posix/stream_descriptor.hpp>
 #include <thread>
 
 #include <mysql_driver.h>	

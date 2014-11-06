@@ -301,6 +301,7 @@ int ConvertHexByte( const char *str ) {
 	return ConvertHexDigit( str[0] ) * 16 + ConvertHexDigit( str[1] );
 }
 
+#ifdef EIGEN_CORE_H
 //-------------------------------------------------------------------------------------------------
 bool ParseColorString( const char *input, Eigen::Vector4f &output  ) {
 	// parses a color string into a vector
@@ -349,6 +350,7 @@ bool ParseColorString( const char *input, Eigen::Vector4f &output  ) {
 	}
 	return true;
 }
+#endif
 
 std::string RoundDecimal( double input, int digits  ) {
 	double scale = pow(10,digits);

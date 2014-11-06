@@ -10,6 +10,7 @@
 #include <curses.h>
 #include <panel.h>
 #include <boost/asio.hpp>
+#include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/array.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>

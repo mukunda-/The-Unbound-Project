@@ -13,8 +13,18 @@
 namespace System {
 namespace ServerConsole {
 
-static const int SIDEBAR_WIDTH  = 20;
-static const int SIDEBAR_HEIGHT = 22;
+enum {
+	WINDOW_OUTPUT=0,
+	WINDOW_HEADER,
+	WINDOW_SIDEBAR,
+	WINDOW_INPUT,
+	WINDOW_COUNT,
+};
+
+enum {
+	SIDEBAR_WIDTH = 20,
+	SIDEBAR_HEIGHT = 22
+};
 
 /// ---------------------------------------------------------------------------
 /// Change the title bar of the server console window.
@@ -73,6 +83,14 @@ void Update();
 void SetMenuItem( int line, const char *format, bool update=true, ... );
 
 /// ---------------------------------------------------------------------------
+/// Get a curses window handle from its index
+///
+/// @param index WINDOW_*
+/// @returns Window handle for use with curses functions.
+///
+WINDOW *GetWindowHandle( int index );
+
+/// ---------------------------------------------------------------------------
 /// Initialization struct
 ///
 struct Init {
@@ -84,6 +102,16 @@ struct Init {
 	///
 	Init( const std::string &title = "" );
 	~Init();
+
+public:
+
+#if BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR
+//	boost::asio::posix::stream_descriptor m_input_stream;
+#else
+	//boost::asio::windows::stream_handle m_input_stream;
+#endif
+	//boost::asio::streambuf m_input_buffer;
+
 };
 
 //------------------------------------------------------------------------------

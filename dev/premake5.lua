@@ -86,7 +86,7 @@ end
 local project_path;
 
 project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
-	defines { "CLIENT" }
+	defines { "UB_CLIENT" }
 	
 	files { 
 		"source/game/*.cpp",
@@ -107,7 +107,7 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
 	}
 
 project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
-	defines { "SERVER" }
+	defines { "UB_SERVER" }
 	
 	files { 
 		"source/pch/*.cpp",
@@ -123,7 +123,7 @@ project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
 	}
 
 project_path = CreateProject( "node", "NODE", "ConsoleApp" )
-	defines { "SERVER" }
+	defines { "UB_SERVER" }
 	
 	files {
 		"source/pch/*.cpp",
@@ -139,16 +139,33 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp" )
 	}
 
 project_path = CreateProject( "auth", "AUTH", "ConsoleApp" )
-	defines {"SERVER"}
+	defines {"UB_SERVER"}
 	
 	files {
 		"source/pch/*.cpp",
+		"source/io/*.cpp",
 		"source/network/*.cpp",
 		"source/system/*.cpp",
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
 		"source/mem/*.cpp",
 		"source/main_auth.cpp",
+		
+		"protocol/compiled/**.cc"
+	}
+
+project_path = CreateProject( "test", "TEST", "ConsoleApp" )
+	defines {"UB_TESTING"}
+	
+	files {
+		"source/pch/*.cpp",
+		"source/io/*.cpp",
+		"source/network/*.cpp",
+		"source/system/*.cpp",
+		"source/system/server/*.cpp",
+		"source/util/*.cpp",
+		"source/mem/*.cpp",
+		"source/main_test.cpp",
 		
 		"protocol/compiled/**.cc"
 	}
