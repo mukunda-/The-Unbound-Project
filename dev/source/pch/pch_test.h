@@ -4,6 +4,7 @@
 
 #pragma once
 
+#define SERVER
 
 #define WIN32_LEAN_AND_MEAN 
 

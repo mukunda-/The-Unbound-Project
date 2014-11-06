@@ -6,74 +6,54 @@
 #include "system/server/serverconsole.h"
 #include "system/console.h"
 #include "system/system.h"
+#include "system/server/linereader.h"
  
 namespace System { namespace ServerConsole {
 	
 //-----------------------------------------------------------------------------
-Init *g_instance;
-
+Instance *g_instance;
+ 
 //-----------------------------------------------------------------------------
-WINDOW *windows[WINDOW_COUNT];
-PANEL *panels[WINDOW_COUNT];
-
-#define HISTORY_SIZE 128
-#define INPUT_LENGTH 1024
-
-char g_history[HISTORY_SIZE][INPUT_LENGTH];
-int g_history_position;
-
-char g_input_buffer[INPUT_LENGTH]; 
-int g_cursor; // position in input buffer
-int g_input_length;
-
-char g_stdin_data[8];
-
-boost::mutex console_mutex;
-
-//-----------------------------------------------------------------------------
-void SetTitle( const char *text ) {
-
+void Instance::SetTitle( const char *text ) {
+	
 	{
-		boost::lock_guard<boost::mutex> lock(console_mutex);
-		mvwaddch( windows[WINDOW_HEADER], 0,0,' ' );
+		ConsoleLock lock(this);
+		mvwaddch( m_windows[WINDOW_HEADER], 0,0,' ' );
 		for( int i = 0; i < 80; i++ )
-			waddch( windows[WINDOW_HEADER], ' ');
-		mvwprintw( windows[WINDOW_HEADER], 0,1, text );
+			waddch( m_windows[WINDOW_HEADER], ' ');
+		mvwprintw( m_windows[WINDOW_HEADER], 0,1, text );
 	}
 }
 
 //-----------------------------------------------------------------------------
-void InitializeWindows() {
-		
+void Instance::InitializeWindows() {
+	
 	// 80X24
-	windows[WINDOW_OUTPUT] = newwin( 22, 60, 1,0 ); 
-	windows[WINDOW_SIDEBAR] = newwin( 22,20, 1,60 );
-	windows[WINDOW_INPUT] = newwin( 1,80, 23,0 );
-	windows[WINDOW_HEADER] = newwin( 1, 80, 0,0 );
-	for( int i = 0; i < (sizeof windows)/sizeof(WINDOW*); i++ ) {
-		panels[i] = new_panel( windows[i] );
+	m_windows[WINDOW_OUTPUT] = newwin( 22, 60, 1,0 ); 
+	m_windows[WINDOW_SIDEBAR] = newwin( 22,20, 1,60 );
+	m_windows[WINDOW_INPUT] = newwin( 1,80, 23,0 );
+	m_windows[WINDOW_HEADER] = newwin( 1, 80, 0,0 );
+	for( int i = 0; i < (sizeof m_windows)/sizeof(WINDOW*); i++ ) {
+		m_panels[i] = new_panel( m_windows[i] );
 		
 	}
 
-	wbkgd( windows[WINDOW_HEADER], COLOR_PAIR(1) );
-	wbkgd( windows[WINDOW_OUTPUT], COLOR_PAIR(2) );
-	wbkgd( windows[WINDOW_SIDEBAR], COLOR_PAIR(3) );
+	wbkgd( m_windows[WINDOW_HEADER], COLOR_PAIR(1) );
+	wbkgd( m_windows[WINDOW_OUTPUT], COLOR_PAIR(2) );
+	wbkgd( m_windows[WINDOW_SIDEBAR], COLOR_PAIR(3) );
 
-	scrollok( windows[WINDOW_OUTPUT], true );
+	scrollok( m_windows[WINDOW_OUTPUT], true );
 	
 	update_panels();
 }
 
-
-
-
 //-----------------------------------------------------------------------------
-void ClearInputWindow() {
-	werase( windows[WINDOW_INPUT] );
+void Instance::ClearInputWindow() {
+	werase( m_windows[WINDOW_INPUT] );
 }
-
+/*
 //-----------------------------------------------------------------------------
-void GetInputEx( const char *prompt, char *input, int maxlen ) {
+void Instance::GetInputEx( const char *prompt, char *input, int maxlen ) {
 	{
 		boost::lock_guard<boost::mutex> lock(console_mutex);
 		mvwprintw( windows[WINDOW_INPUT], 0, 0, prompt );
@@ -83,20 +63,20 @@ void GetInputEx( const char *prompt, char *input, int maxlen ) {
 		boost::lock_guard<boost::mutex> lock(console_mutex);
 		ClearInputWindow();
 	}
-}
+}*/
 
+/*
 //-----------------------------------------------------------------------------
 void GetInput( char *input, int maxlen ) {
 	GetInputEx( "$ ", input, maxlen );
-}
+}*/
 
 //-----------------------------------------------------------------------------
-void PrintToWindow( const char * text, bool newline ) {
-
-	boost::lock_guard<boost::mutex> lock(console_mutex);
+void Instance::PrintToWindow( const char * text, bool newline ) {
+	ConsoleLock lock(this);
 	 
-	if( newline ) wprintw( windows[WINDOW_OUTPUT], "\n" );
-	wprintw( windows[WINDOW_OUTPUT], "%s", text );
+	if( newline ) wprintw( m_windows[WINDOW_OUTPUT], "\n" );
+	wprintw( m_windows[WINDOW_OUTPUT], "%s", text );
      
 	// todo OPTIMIZE
 	update_panels();
@@ -105,18 +85,15 @@ void PrintToWindow( const char * text, bool newline ) {
 }
 
 //-----------------------------------------------------------------------------
-void PrintToWindow( const char * format, bool newline, va_list args ) {
-
-	boost::lock_guard<boost::mutex> lock(console_mutex);
+void Instance::PrintToWindow( const char * format, bool newline, va_list args ) {
+	ConsoleLock lock(this);
 	 
-	if( newline ) wprintw( windows[WINDOW_OUTPUT], "\n" );
-	vwprintw( windows[WINDOW_OUTPUT], format, args );
+	if( newline ) wprintw( m_windows[WINDOW_OUTPUT], "\n" );
+	vwprintw( m_windows[WINDOW_OUTPUT], format, args );
 
 	// todo OPTIMIZE
 	update_panels();
 	doupdate();
-
-	
 }
 /*
 //----------------------------------------------------------------------------
@@ -140,22 +117,19 @@ void PrintEx( const char *format, ... ) {
 }*/
 
 //-----------------------------------------------------------------------------
-void SetMenuItem( int line, const char *format, bool update, ... ) {
+void Instance::SetMenuItem( int line, const char *format, bool update, va_list argptr ) {
 	if( line < 0 || line >= SIDEBAR_HEIGHT ) return;
-	boost::lock_guard<boost::mutex> lock(console_mutex);
-	va_list argptr;
-    va_start(argptr, update);
+	ConsoleLock lock(this);
 	char buffer[32];
 
 	for( int i = 0; i < SIDEBAR_WIDTH; i++ ) 
 		buffer[i] = ' ';
 	buffer[SIDEBAR_WIDTH] = 0;
-	mvwaddstr( windows[WINDOW_SIDEBAR], line, 0, buffer );
+	mvwaddstr( m_windows[WINDOW_SIDEBAR], line, 0, buffer );
 
 	vsnprintf( buffer, sizeof buffer, format, argptr );
-	va_end(argptr);
 	
-	mvwprintw( windows[WINDOW_SIDEBAR], line, 0, buffer );
+	mvwprintw( m_windows[WINDOW_SIDEBAR], line, 0, buffer );
 	if( update ) {
 		update_panels();
 		doupdate();
@@ -164,49 +138,29 @@ void SetMenuItem( int line, const char *format, bool update, ... ) {
 
 
 //-----------------------------------------------------------------------------
-void Update() {
-	boost::lock_guard<boost::mutex> lock(console_mutex);
+void Instance::Update() {
+	ConsoleLock lock(this);
 	update_panels();
 	doupdate();
 }
 
 
 //-----------------------------------------------------------------------------
-WINDOW *GetWindowHandle( int index ) {
-	return windows[index];
+WINDOW *Instance::GetWindowHandle( int index ) {
+	return m_windows[index];
 }
 
 //-----------------------------------------------------------------------------
-void InputChar( char c ) {
+void Instance::InputChar( char c ) {
 
-	if( c >= 32 && c < 127 ) {
-		g_input_buffer[g_cursor] = c;
-		if( g_cursor < g_input_length ) {
-			g_cursor++;
-		} else {
-			g_input_buffer[g_cursor] = c;
-			g_cursor++;
-			g_input_length++;
-		}
-		if( g_cursor > INPUT_LENGTH ) {
-			g_cursor = INPUT_LENGTH;
-		}
-	} else {
-		if( c == '\n' ) {
-			// submit input.
-		} else if( c == 8 ) {
-			// backspace
-		} else if( c == 127 ) {
-			// delete
-		}
-	}
 }
 
 //-----------------------------------------------------------------------------
-void IOThread() {
+void Instance::IOThread() {
 
-	int a = getch();
-	System::Console::Print( "%d", a );
+	while( System::Live() ) {
+		m_linereader.Process();	
+	} 
 	/*
 	char input[256];
 	while( System::Live() ) {
@@ -248,19 +202,19 @@ void ReadInputStream() {
 }*/
 
 //-----------------------------------------------------------------------------
-Init::Init( const std::string &window_title  )  {
+Instance::Instance( const std::string &window_title ) {
 
 	g_instance = this;
 
 	initscr();
 	start_color();
-	init_pair(3, COLOR_BLACK , COLOR_WHITE );
-	init_pair(2, COLOR_WHITE+8 , COLOR_CYAN );
-	init_pair(1, COLOR_WHITE+8, COLOR_BLUE+8);
+	init_pair( 3, COLOR_BLACK  , COLOR_WHITE  );
+	init_pair( 2, COLOR_WHITE+8, COLOR_CYAN   );
+	init_pair( 1, COLOR_WHITE+8, COLOR_BLUE+8 );
 	cbreak();
 	noecho();
 
-	keypad(stdscr, TRUE);
+	keypad( stdscr, TRUE );
 
 	refresh();
 
@@ -269,19 +223,67 @@ Init::Init( const std::string &window_title  )  {
 	SetTitle( window_title.c_str() );
 	
 	Update();
-
-	g_cursor = 0;
-	g_input_length = 0;
-	g_history_position = 0;
 	
-	std::thread iothrad( IOThread );
-	iothrad.detach();
+	keypad( m_windows[WINDOW_INPUT], TRUE );
+	m_linereader.SetWindow( m_windows[ WINDOW_INPUT ] );
+
+//	g_cursor = 0;
+//	g_input_length = 0;
+//	g_history_position = 0;
+	
+	std::thread iothread( std::bind( &Instance::IOThread, this ) );
+	iothread.detach();
 	//ReadInputStream();
 }
 
-Init::~Init() {
+Instance::~Instance() {
 	endwin();
+
+	g_instance = nullptr;
 }
 
+ConsoleLock::ConsoleLock( Instance *parent ) : 
+	lock( parent ? parent->m_mutex : g_instance->m_mutex ) {}
+
+
+
+//-----------------------------------------------------------------------------
+// Easy access:
+//-----------------------------------------------------------------------------
+
+void SetTitle( const char *text ) {
+	g_instance->SetTitle( text );
+}
+
+void PrintToWindow( const char * format, bool newline, va_list args ) {
+	g_instance->PrintToWindow( format, newline, args );
+}
+
+void PrintToWindow( const char * text, bool newline  ) {
+	g_instance->PrintToWindow( text, newline );
+}
+/*
+void GetInput( char *input, int maxlen ) {
+	g_instance->GetInput( input, maxlen );
+}
+void GetInputEx( const char *prompt, char *input, int maxlen ) {
+	g_instance->
+}*/
+
+void Update() {
+	g_instance->Update();
+}
+
+void SetMenuItem( int line, const char *format, bool update, ... ) {
+	va_list argptr;
+	va_start(argptr, format); 
+	
+	g_instance->SetMenuItem( line, format, update, argptr );
+	va_end(argptr);
+}
+
+WINDOW *GetWindowHandle( int index ) {
+	return g_instance->GetWindowHandle( index );
+}
 
 }}

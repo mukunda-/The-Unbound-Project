@@ -9,6 +9,8 @@
 
 #pragma once
 //-------------------------------------------------------------------------------------------------
+
+#include "system/server/linereader.h"
  
 namespace System {
 namespace ServerConsole {
@@ -93,26 +95,49 @@ WINDOW *GetWindowHandle( int index );
 /// ---------------------------------------------------------------------------
 /// Initialization struct
 ///
-struct Init {
+struct Instance {
+	friend class ConsoleLock;
 	
 	/// -----------------------------------------------------------------------
 	/// Initialize the server console.
 	///
 	/// @param title Title of program, may be changed later with SetTitle()
 	///
-	Init( const std::string &title = "" );
-	~Init();
+	Instance( const std::string &title = "" );
+	~Instance();
 
-public:
+	void SetTitle( const char *text );
+	void PrintToWindow( const char * text, bool newline );
+	void PrintToWindow( const char * format, bool newline, va_list args );
+	void SetMenuItem( int line, const char *format, bool update, va_list args );
+	void Update();
+	WINDOW *GetWindowHandle( int index );
+	
 
-#if BOOST_ASIO_HAS_POSIX_STREAM_DESCRIPTOR
-//	boost::asio::posix::stream_descriptor m_input_stream;
-#else
-	//boost::asio::windows::stream_handle m_input_stream;
-#endif
-	//boost::asio::streambuf m_input_buffer;
+private:
+	WINDOW *m_windows[WINDOW_COUNT];
+	PANEL *m_panels[WINDOW_COUNT];
+	LineReader m_linereader;
+	boost::mutex m_mutex;
 
+	void InitializeWindows();
+	void ClearInputWindow();
+	void InputChar( char c );
+	void IOThread();
+	 
 };
 
-//------------------------------------------------------------------------------
+/// -----------------------------------------------------------------------
+/// This class must be instantiated during any call 
+/// to the curses functions.
+///
+class ConsoleLock {
+
+	boost::lock_guard<boost::mutex> lock;
+public:
+	ConsoleLock( Instance *parent = nullptr );
+};
+
+
+//-----------------------------------------------------------------------------
 }} // System::ServerConsole

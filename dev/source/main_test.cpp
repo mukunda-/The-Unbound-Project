@@ -6,6 +6,7 @@
 
 #include "system/system.h" 
 #include "system/server/serverconsole.h"
+#include "system/console.h"
  
 
 void Test() {
@@ -33,7 +34,7 @@ void Main( int argc, char *argv[] ) {
 		
 		//boost::asio::windows::stream_handle poop( System::GetService()(), 
 		//			  GetStdHandle(STD_INPUT_HANDLE) );
-		System::ServerConsole::Init i_serverconsole( "TESTING" );
+		System::ServerConsole::Instance i_serverconsole( "TESTING" );
 		RunProgram(); 
 	} 
 	getc(stdin);
