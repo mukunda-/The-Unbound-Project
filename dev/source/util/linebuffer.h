@@ -2,13 +2,15 @@
 //                                                                           //
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
-// A line buffering utility
-//
 
 #include "util/minmax.h"
   
 namespace Util {
 
+/// ---------------------------------------------------------------------------
+/// A line buffering utility. An interface to manage the history for a command
+/// line program.
+///
 class LineBuffer {
 	 
 	enum {
@@ -41,7 +43,12 @@ class LineBuffer {
 		return m_data.substr( m_index[index].position, 
 							  m_index[index].length );
 	}
-
+	
+	/// -----------------------------------------------------------------------
+	/// Remove some lines from the beginning of the buffer
+	///
+	/// @param amount Number of lines to delete
+	///
 	void Prune( int amount ) {
 		if( amount >= (int)m_index.size() ) {
 			m_data = "";
