@@ -149,11 +149,8 @@ int main() {
 	Network::Init i_network(1);
 	
 	{
-		System::ServerConsole::Init i_serverconsole;
+		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE );
 		g_shutdown = false;
-		
-		System::ServerConsole::SetTitle( WINDOW_TITLE );
-		System::ServerConsole::Update();
 		
 		RunProgram();   
 

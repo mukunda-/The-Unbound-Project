@@ -21,14 +21,14 @@ void RunProgram() {
 	//System::ServerConsole::GetInput( buffer, sizeof buffer );
 //	boost::this_thread::sleep_for( boost::chrono::seconds(15));
 
-	while(1){
-		boost::this_thread::sleep_for( boost::chrono::seconds(1));
-	}
+	System::Join();
 }
 
+	 
+
 //-------------------------------------------------------------------------------------------------
-void Main( int argc, char *argv[] ) {
-	System::Init i_system(2); 
+void Main( int argc, char *argv[] ) { 
+	System::Instance i_system(2); 
 	{
 	//	setvbuf(stdin, NULL, _IONBF, 0); //turn off buffering
 	//	getchar();
@@ -46,3 +46,35 @@ int main( int argc, char *argv[] ) {
 	Main( argc, argv );
 	return 0;
 }
+
+/*
+
+boost::asio::io_service test_service;
+
+void pee( const char *text ) {
+	printf("hi");
+}
+ 
+void PostDelayedHandler( 
+					const boost::system::error_code &error, 
+					std::shared_ptr<boost::asio::deadline_timer> &timer,
+					std::function<void()> &handler ) {
+
+	if( !error ) {
+		handler();
+	}
+}
+
+void PostDelayed( std::function<void()> handler, int delay ) {
+	
+	std::shared_ptr<boost::asio::deadline_timer> timer( 
+			new boost::asio::deadline_timer(
+							test_service, 
+							boost::posix_time::milliseconds( delay ) ));
+
+	timer->async_wait( boost::bind( PostDelayedHandler, 
+						boost::asio::placeholders::error, timer, handler ));
+}
+
+
+*/

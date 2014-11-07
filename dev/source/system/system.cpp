@@ -9,10 +9,9 @@
 #pragma warning( disable : 4996 )
 
 namespace System {
- 
-Service *g_service = nullptr;
-bool g_live = false;
 
+Instance *g_instance;
+  
 //-----------------------------------------------------------------------------
 Service::Service() {
 	using namespace boost::asio;
@@ -29,62 +28,71 @@ Service::~Service() {
 //-----------------------------------------------------------------------------
 void Service::Finish() {
 	// delete work object
-	m_dummy_work.reset( nullptr );
-
+	m_dummy_work.reset( nullptr ); 
 	m_threads.join_all();
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Service::Run( int count ) {
 	for(; count--; ) {
 		
-		m_threads.create_thread( boost::bind(&boost::asio::io_service::run, &m_io_service) );
-		//boost::thread t( boost::bind( &Service::IOThread, this ) );
+		m_threads.create_thread( 
+			boost::bind( &boost::asio::io_service::run, &m_io_service )); 
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void Service::Join() {
+	m_io_service.run();
+}
+
+//-----------------------------------------------------------------------------
 void Service::Stop() {
-	
+	// terminate io service
 	m_io_service.stop();
 	m_threads.join_all();
 } 
 
-//-------------------------------------------------------------------------------------------------
-void Service::PostDelayed( std::function<void()> handler, int delay )  {
-	
-	std::shared_ptr<boost::asio::deadline_timer> timer( 
-			new boost::asio::deadline_timer(
-							m_io_service, 
-							boost::posix_time::milliseconds( delay ) ));
+//-----------------------------------------------------------------------------
+void Service::Post( std::function<void()> handler, int delay ) {
 
-	timer->async_wait( boost::bind( &Service::PostDelayedHandler, 
-						boost::asio::placeholders::error, timer, handler ));
-} 
+	if( delay == 0 ) {
+		m_io_service.post( handler );
 
-//-------------------------------------------------------------------------------------------------
+	} else {
+		std::shared_ptr<boost::asio::deadline_timer> timer( 
+				new boost::asio::deadline_timer(
+					m_io_service, 
+					boost::posix_time::milliseconds( delay ) ));
+
+		timer->async_wait( 
+			boost::bind( &Service::PostDelayedHandler, 
+						 boost::asio::placeholders::error, 
+						 timer, handler ));
+	}
+}
+  
+//-----------------------------------------------------------------------------
 void Service::PostDelayedHandler( 
 					    const boost::system::error_code &error, 
 						std::shared_ptr<boost::asio::deadline_timer> &timer,
 						std::function<void()> &handler ) {									
-	if( !error ) {
+	if( !error ) 
 		handler();
-	}
 }
- 
-
-//-------------------------------------------------------------------------------------------------
+  
+//-----------------------------------------------------------------------------
 Service &GetService() {
-	assert( g_service );
-	return *g_service;
+	assert(g_instance);
+	return *g_instance;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Finish() {
 	GetService().Finish(); 
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Log( const char *format, ... ) {
 	va_list argptr;
 	va_start(argptr, format);
@@ -95,7 +103,7 @@ void Log( const char *format, ... ) {
 	va_end(argptr);
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void LogError( const char *format, ... ) {
 	va_list argptr;
 	va_start(argptr, format);
@@ -106,25 +114,44 @@ void LogError( const char *format, ... ) {
 	va_end(argptr);
 }
 
+//-----------------------------------------------------------------------------
 bool Live() {
-	return g_live;
+	return g_instance->Live();
 }
 
-//-------------------------------------------------------------------------------------------------
-Init::Init( int threads ) {
-	assert( g_service == nullptr );
-	g_service = new Service();
-	g_service->Run( threads );
-	g_live = true;
+//-----------------------------------------------------------------------------
+void Join() {
+	g_instance->Join();
 }
 
-//-------------------------------------------------------------------------------------------------
-Init::~Init() {
-	g_live = false;
-	g_service->Finish();
-	delete g_service;
-	g_service = nullptr;
-	
+//-----------------------------------------------------------------------------
+void Post( std::function<void()> handler, bool main, int delay ) {
+	g_instance->PostSystem( handler, main, delay );
+}
+
+//-----------------------------------------------------------------------------
+Instance::Instance( int threads ) : m_strand( m_io_service ) {
+	assert( g_instance == nullptr );
+	g_instance = this;
+	Run( threads );
+	m_live = true;
+}
+
+//-----------------------------------------------------------------------------
+Instance::~Instance() {
+	m_live = false;
+	Finish();
+	g_instance = nullptr;
+}
+
+void Instance::PostSystem( std::function<void()> handler, 
+						   bool main, int delay ) {
+
+	if( main ) {
+		Post( m_strand.wrap( handler ), delay );
+	} else {
+		Post( handler, delay );
+	}
 }
 
 }

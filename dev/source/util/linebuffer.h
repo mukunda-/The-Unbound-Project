@@ -8,8 +8,8 @@
 namespace Util {
 
 /// ---------------------------------------------------------------------------
-/// A line buffering utility. An interface to manage the history for a command
-/// line program.
+/// A line buffering utility. An interface to manage 
+/// the history for a command line program.
 ///
 class LineBuffer {
 	 

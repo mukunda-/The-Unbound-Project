@@ -44,8 +44,7 @@ void Execute( const char *command_string ) {
 	if( TryExecuteCommand( command_string ) ) {
 		return;
 	}
-	
-	
+	 
 	System::Variable *var = System::Variable::Find( name );
 	if( !var ) {
 

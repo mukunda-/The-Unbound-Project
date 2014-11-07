@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "system/server/serverconsole.h"
 #include "linereader.h"
+#include "system/system.h"
 #include "system/console.h"
 
 namespace System { namespace ServerConsole {
@@ -76,6 +77,11 @@ void LineReader::DrawCursorChar( char c ) {
 }
 
 //-----------------------------------------------------------------------------
+static void ExecuteCommand( std::string buffer ) {
+	System::Console::Execute( buffer.c_str() );
+}
+
+//-----------------------------------------------------------------------------
 void LineReader::InputChar( int c ) {
 	
 	if( c >= 32 && c < 127 ) {
@@ -111,7 +117,8 @@ void LineReader::InputChar( int c ) {
 			
 			// execute command.
 			// m_buffer
-			System::Console::Execute( m_buffer.c_str() );
+			System::Post( std::bind( ExecuteCommand, m_buffer ) );
+			//System::Console::Execute( m_buffer.c_str() );
 
 			m_buffer = "";
 			MoveCursor( 0 );
@@ -177,11 +184,7 @@ void LineReader::InputChar( int c ) {
 	wmove( m_window, 0, m_cursor - m_view );
 	Update();
 }
-
-//void LineReader::PushHistory( const char *text ) {
-
-//}
-
+ 
 //-----------------------------------------------------------------------------
 bool LineReader::Process( int key ) {
 
@@ -191,18 +194,6 @@ bool LineReader::Process( int key ) {
 	InputChar( key ); 
 	return true;
 }
-/*
-//-----------------------------------------------------------------------------
-LineReader::HistoryEntry::HistoryEntry( const char *text ) {
-	m_text = std::unique_ptr<char>( new char[strlen(text) + 1] );
-	strcpy( m_text.get(), text );
-}
-
-//-----------------------------------------------------------------------------
-LineReader::HistoryEntry::HistoryEntry( const std::string &text ) {
-	HistoryEntry( text.c_str() );
-}
- */
-
+  
 //-----------------------------------------------------------------------------
 }}

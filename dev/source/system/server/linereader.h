@@ -10,28 +10,10 @@
 namespace System { namespace ServerConsole {
 
 class LineReader {
-	/*
-	class HistoryEntry : public Util::LinkedItem<HistoryEntry> {
-		std::unique_ptr<char> m_text;
-	public:
-		HistoryEntry( const char *text );
-		HistoryEntry( const std::string &text );
-
-		const char *Contents() {
-			return m_text.get();
-		}
-	};*/
-
+  
 	Util::LineBuffer m_history;
-
-//	Util::DeletedLinkedList<HistoryEntry> m_history;
-//	HistoryEntry *m_history_iter;
-//	int m_history_counter;
 	 
-//	char m_history[HISTORY_SIZE][INPUT_LENGTH]; // history of completed lines
-//	int  m_history_index; // navigation index when pressing up/down
-	std::string m_buffer;
-	//char m_buffer[INPUT_LENGTH]; // current line being written to
+	std::string m_buffer; 
 	int  m_cursor; // text caret position
 	
 	int  m_view; // position of leftmost char, the horizontal scrolling offset

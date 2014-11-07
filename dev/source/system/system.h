@@ -11,15 +11,16 @@ namespace System {
 ///
 class Service {
 
-	boost::asio::io_service m_io_service;
-
+private:
 	// work to keep the thread pool alive
 	std::unique_ptr<boost::asio::io_service::work> m_dummy_work;
 
 	// thread pool
 	boost::thread_group m_threads;
 
-	
+protected:
+	boost::asio::io_service m_io_service;
+	 
 public:
 	Service();
 	~Service();
@@ -40,6 +41,11 @@ public:
 	void Run( int number_of_threads );
 	
 	/// -----------------------------------------------------------------------
+	/// Add the current thread into the thread pool.
+	///
+	void Join();
+
+	/// -----------------------------------------------------------------------
 	/// Shutdown system.
 	///
 	/// Runs io_service.stop and all threads should terminate.
@@ -58,21 +64,12 @@ public:
 	/// -----------------------------------------------------------------------
 	/// Run a task in the thread pool.
 	///
-	/// \param handler Handler to execute.
+	/// @param handler Handler to execute.
+	/// @param delay   Optional delay in milliseconds to 
+	///                wait before execution.
 	///
-	template <typename CompletionHandler> 
-		void Post( const CompletionHandler &handler ) {
-			
-		m_io_service.post( handler );
-	}
-	
-	/// -----------------------------------------------------------------------
-	/// Run a task in the thread pool after a certain delay.
-	///
-	/// \param handler Handler to execute.
-	/// \param delay Time to wait, in milliseconds.
-	/// 
-	void PostDelayed( std::function<void()> handler, int delay );
+	void Post( std::function<void()> handler, int delay = 0 ); 
+	 
 	static void PostDelayedHandler( 
 					    const boost::system::error_code &error, 
 						std::shared_ptr<boost::asio::deadline_timer> &timer,
@@ -88,16 +85,16 @@ void Finish();
 /// ---------------------------------------------------------------------------
 /// Print a message to the info logs. May also print to the console.
 ///
-/// \param format printf syntax for output.
-/// \param ... Formatted arguments.
+/// @param format printf syntax for output.
+/// @param ... Formatted arguments.
 ///
 void Log( const char *format, ... );
 
 /// ---------------------------------------------------------------------------
 /// Print a message to the error logs. May also print to the console.
 ///
-/// \param format printf syntax for output.
-/// \param ... Formatted arguments.
+/// @param format printf syntax for output.
+/// @param ... Formatted arguments.
 ///
 void LogError( const char *format, ... );
 
@@ -107,24 +104,15 @@ void LogError( const char *format, ... );
 Service &GetService();
 
 /// ---------------------------------------------------------------------------
-/// Wrapper for GetService().Post (post a task to the main service).
+/// Post a task to be executed by the system.
 ///
-/// \param handler Task to run.
-///
-template <typename CompletionHandler> 
-	void Post( const CompletionHandler &handler ) {
-		
-	GetService().Post( handler );
-}
-
-/// ---------------------------------------------------------------------------
-/// Wrapper for GetService().PostDelayed
-///
-static inline void PostDelayed( std::function<void()> handler, int delay ) {
-		
-	GetService().PostDelayed( handler, delay );
-}
-
+/// @param handler Function to run.
+/// @param main    If true, the handler will be wrapped in the system strand.
+/// @param delay   If nonzero, will wait this many milliseconds before
+///                executing the handler.
+/// 
+void Post( std::function<void()> handler, bool main = true, int delay = 0 );
+ 
 /// ---------------------------------------------------------------------------
 /// Checks the status of the system.
 ///
@@ -134,16 +122,30 @@ static inline void PostDelayed( std::function<void()> handler, int delay ) {
 bool Live();
 	
 /// ---------------------------------------------------------------------------
-/// System initializer
+/// Merge current thread with the system service.
 ///
-struct Init {
+void Join();
+  
+/// ---------------------------------------------------------------------------
+/// System instance
+///
+class Instance : public Service {
 	 
+public:
 	/// -----------------------------------------------------------------------
-	/// \param threads Number of threads to start the main service with.
+	/// @param threads Number of threads to start the main service with.
 	///
-	Init( int threads );
+	Instance( int threads ); 
+	~Instance();
 
-	~Init();
+private: 
+	bool m_live; 
+	boost::asio::strand m_strand;
+
+public: 
+	bool Live() { return m_live; }
+	void PostSystem( std::function<void()> handler, 
+					 bool main = true, int delay = 0 );
 };
 
 } // namespace System

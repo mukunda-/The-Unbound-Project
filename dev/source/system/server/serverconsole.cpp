@@ -167,8 +167,7 @@ void Instance::HandleConsoleInput() {
 	HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
 
 	do {
-		if( !ReadConsoleInput( stdin_handle, 
-							   records, 16, &numRead) ) {
+		if( !ReadConsoleInput( stdin_handle, records, 16, &numRead) ) {
 			return;
 		}
 
