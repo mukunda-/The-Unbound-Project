@@ -160,35 +160,38 @@ void Instance::HandleConsoleInput() {
 
 	//http://stackoverflow.com/questions/19955617/win32-read-from-stdin-with-timeout
 
-    INPUT_RECORD record;
+    INPUT_RECORD records[16];
     DWORD numRead;
+	DWORD more;
 
-	if( !ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &record, 1, &numRead) ) {
-		return;
-	}
+	HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
 
-    if( record.EventType != KEY_EVENT ) {
-        // don't care about other console events
-        return;
-    }
+	do {
+		if( !ReadConsoleInput( stdin_handle, 
+							   records, 16, &numRead) ) {
+			return;
+		}
 
-    if( !record.Event.KeyEvent.bKeyDown ) {
-        return;
-        
-    }
-	// really only care about keydown
-	//record.Event.KeyEvent.
+		for( uint32_t i = 0; i < numRead; i++ ) {
+			INPUT_RECORD &record = records[i];
 
-	int key = record.Event.KeyEvent.uChar.AsciiChar;
-	if( key == 0 ) {
-		key = record.Event.KeyEvent.wVirtualKeyCode;
-		if( key < 0 || key > 255 ) key = 0;
-		key = m_vkey_map[key];
-	}
-	
-	if( key != 0 ){
-		m_linereader.Process( key );
-	}
+			if( record.EventType != KEY_EVENT ) continue;
+			if( !record.Event.KeyEvent.bKeyDown ) continue;
+
+			int key = record.Event.KeyEvent.uChar.AsciiChar;
+			if( key == 0 ) {
+				key = record.Event.KeyEvent.wVirtualKeyCode;
+				if( key < 0 || key > 255 ) key = 0;
+				key = m_vkey_map[key];
+			}
+		
+			if( key != 0 ) {
+				m_linereader.Process( key );
+			}
+		}
+
+		GetNumberOfConsoleInputEvents( stdin_handle, &more );
+	} while( more );
 }
 
 //-----------------------------------------------------------------------------
