@@ -5,11 +5,12 @@
 #pragma once
 
 #include "util/deletedlinkedlist.h"
+#include "util/linebuffer.h"
 
 namespace System { namespace ServerConsole {
 
 class LineReader {
-
+	/*
 	class HistoryEntry : public Util::LinkedItem<HistoryEntry> {
 		std::unique_ptr<char> m_text;
 	public:
@@ -19,11 +20,13 @@ class LineReader {
 		const char *Contents() {
 			return m_text.get();
 		}
-	};
+	};*/
 
-	Util::DeletedLinkedList<HistoryEntry> m_history;
-	HistoryEntry *m_history_iter;
-	int m_history_counter;
+	Util::LineBuffer m_history;
+
+//	Util::DeletedLinkedList<HistoryEntry> m_history;
+//	HistoryEntry *m_history_iter;
+//	int m_history_counter;
 	 
 //	char m_history[HISTORY_SIZE][INPUT_LENGTH]; // history of completed lines
 //	int  m_history_index; // navigation index when pressing up/down
@@ -66,9 +69,11 @@ public:
 	void SetWindow( WINDOW *window );
 
 	/// --------------------------------------------------------------------------
-	/// Read a character from the user and input it.
+	/// Read a character from stdin and process it.
 	///
-	void Process();
+	/// @returns false if EOF was read.
+	///
+	bool Process( int c );
 };
 
 }}

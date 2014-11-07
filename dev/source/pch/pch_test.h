@@ -36,3 +36,11 @@
 #include <cppconn/exception.h>
 
 #include <yaml-cpp/yaml.h>
+
+#include <unordered_map>
+
+#ifdef TARGET_WINDOWS
+#define STDIN_FILENO 0
+#else
+#include <unistd.h>
+#endif

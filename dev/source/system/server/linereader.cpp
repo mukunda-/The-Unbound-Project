@@ -13,8 +13,7 @@ namespace System { namespace ServerConsole {
 LineReader::LineReader( WINDOW  *window ) {
 	m_cursor = 0; 
 	m_window = nullptr;
-	m_view = 0;
-	m_history_iter = nullptr;
+	m_view = 0; 
 
 	if( window != nullptr ) {
 		SetWindow( window );
@@ -97,15 +96,27 @@ void LineReader::InputChar( int c ) {
 		MoveCursor(m_cursor+1);
 		Redraw();
 	} else {
-		if( c == 10 || c == 13 ) {
+		if( c == '\n' || c == '\r' ) {
 			// submit input.
-			HistoryEntry *history = m_history_iter;
-			if( !history ) history = m_history.GetLast();
-			if( history ) {
-				if( strcmp( history->Contents(), m_buffer.c_str() ) != 0 ) {
-					
+
+			if( m_history.HasSelected() ) {
+				if( m_history.Selected() == m_buffer ) {
+					m_history.DeleteSelected();
 				}
+				m_history.ResetSelector();
 			}
+
+			if( m_buffer == "" ) return;
+			m_history.Push( m_buffer );
+			
+			// execute command.
+			// m_buffer
+			System::Console::Execute( m_buffer.c_str() );
+
+			m_buffer = "";
+			MoveCursor( 0 );
+			Redraw(true);
+
 		} else if( c == 8 || c == KEY_BACKSPACE ) {
 			if( m_cursor == 0 ) return;
 			m_buffer.erase( m_cursor-1, 1 );
@@ -125,32 +136,34 @@ void LineReader::InputChar( int c ) {
 			Redraw();
 		} else if( c == KEY_UP ) {
 			// previous history
-			if( m_history_iter == nullptr ) {
-				m_history_iter = m_history.GetLast();
-				if( !m_history_iter ) return;
-				if( m_buffer.size() != 0 ) {
-					m_history.Add( new HistoryEntry( m_buffer ) );
-					m_history_counter++;
-				}
-			} else {
-				if( !m_history_iter->m_prev ) return;
-				m_history_iter = m_history_iter->m_prev;
+			if( !m_history.CheckPrevious() ) return;
+
+			if( !m_history.HasSelected() ) {
+				// if a history item isn't selected and the user
+				// has typed something new, then add it to the
+				// history before switching.
+				if( m_buffer != "" ) {
+					m_history.Push( m_buffer );
+					m_history.Previous(); // skip what we just pushed
+				} 
 			}
-			m_buffer = m_history_iter->Contents();
+
+			m_buffer = m_history.Previous(); 
+
 			MoveCursor( m_buffer.size() );
 			Redraw(true);
 		} else if( c == KEY_DOWN ) {
 			// next history
-			if( m_history_iter == nullptr ) {
-				return;
+			   
+			if( m_history.HasSelected() ) {
+				m_buffer = m_history.Next();
+			} else {
+				if( m_buffer != "" ) {
+					m_history.Push( m_buffer );
+				}
+				m_buffer = "";
 			}
 
-			m_history_iter = m_history_iter->m_next;
-			if( m_history_iter == nullptr ) {
-				m_buffer = "";
-			} else {
-				m_buffer = m_history_iter->Contents();
-			}
 			MoveCursor( m_buffer.size() );
 			Redraw(true);
 		} else if( c == KEY_HOME ) {
@@ -161,6 +174,8 @@ void LineReader::InputChar( int c ) {
 			Redraw();
 		}
 	}
+	wmove( m_window, 0, m_cursor - m_view );
+	Update();
 }
 
 //void LineReader::PushHistory( const char *text ) {
@@ -168,13 +183,15 @@ void LineReader::InputChar( int c ) {
 //}
 
 //-----------------------------------------------------------------------------
-void LineReader::Process() {
-	MoveCursor( m_cursor );
-	int input = mvwgetch( m_window, 0, m_cursor-m_view );
-	InputChar( input );
-	System::Console::Print( "%d", input );
-}
+bool LineReader::Process( int key ) {
 
+	MoveCursor( m_cursor );
+	//int input = mvwgetch( m_window, 0, m_cursor-m_view );
+ 
+	InputChar( key ); 
+	return true;
+}
+/*
 //-----------------------------------------------------------------------------
 LineReader::HistoryEntry::HistoryEntry( const char *text ) {
 	m_text = std::unique_ptr<char>( new char[strlen(text) + 1] );
@@ -185,7 +202,7 @@ LineReader::HistoryEntry::HistoryEntry( const char *text ) {
 LineReader::HistoryEntry::HistoryEntry( const std::string &text ) {
 	HistoryEntry( text.c_str() );
 }
- 
+ */
 
 //-----------------------------------------------------------------------------
 }}

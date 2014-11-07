@@ -113,18 +113,28 @@ struct Instance {
 	void Update();
 	WINDOW *GetWindowHandle( int index );
 	
+	
 
 private:
 	WINDOW *m_windows[WINDOW_COUNT];
 	PANEL *m_panels[WINDOW_COUNT];
 	LineReader m_linereader;
 	boost::mutex m_mutex;
+	std::thread m_iothread;
+
+	HANDLE m_terminate_event;
+
+	// windows virtual-key mapping to curses
+	int m_vkey_map[256];
+
+	//std::unordered_map<int,int> m_windows_curses_map;
 
 	void InitializeWindows();
 	void ClearInputWindow();
 	void InputChar( char c );
 	void IOThread();
-	 
+	void HandleConsoleInput();
+	
 };
 
 /// -----------------------------------------------------------------------

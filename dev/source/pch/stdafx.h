@@ -5,6 +5,12 @@
 #pragma once
  
 
+#ifdef _WIN32
+#define TARGET_WINDOWS
+#else
+#define TARGET_LINUX
+#endif
+
 #if PROJECT_CLIENT
 #include "pch_client.h"
 

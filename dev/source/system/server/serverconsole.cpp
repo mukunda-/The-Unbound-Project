@@ -156,20 +156,68 @@ void Instance::InputChar( char c ) {
 }
 
 //-----------------------------------------------------------------------------
+void Instance::HandleConsoleInput() {
+
+	//http://stackoverflow.com/questions/19955617/win32-read-from-stdin-with-timeout
+
+    INPUT_RECORD record;
+    DWORD numRead;
+
+	if( !ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &record, 1, &numRead) ) {
+		return;
+	}
+
+    if( record.EventType != KEY_EVENT ) {
+        // don't care about other console events
+        return;
+    }
+
+    if( !record.Event.KeyEvent.bKeyDown ) {
+        return;
+        
+    }
+	// really only care about keydown
+	//record.Event.KeyEvent.
+
+	int key = record.Event.KeyEvent.uChar.AsciiChar;
+	if( key == 0 ) {
+		key = record.Event.KeyEvent.wVirtualKeyCode;
+		if( key < 0 || key > 255 ) key = 0;
+		key = m_vkey_map[key];
+	}
+	
+	if( key != 0 ){
+		m_linereader.Process( key );
+	}
+}
+
+//-----------------------------------------------------------------------------
 void Instance::IOThread() {
+	  
+	HANDLE events[] = {
+		GetStdHandle(STD_INPUT_HANDLE),
+		m_terminate_event 
+	};
 
-	while( System::Live() ) {
-		m_linereader.Process();	
+
+	for(;;) {
+		DWORD wait = WaitForMultipleObjects( 2, events, FALSE, INFINITE );
+		switch( wait ) {
+			case WAIT_OBJECT_0 + 0:
+				HandleConsoleInput();
+				  
+				break;
+
+			case WAIT_TIMEOUT:
+				break;
+
+			case WAIT_OBJECT_0 + 1:
+			default:
+				goto exit_for; // error or termination.
+		}
 	} 
-	/*
-	char input[256];
-	while( System::Live() ) {
-		System::ServerConsole::GetInput( input, sizeof input );
-		if( !System::Live() ) break;
-		System::Console::Execute( input );
+exit_for:;
 
-		System::ServerConsole::Update();
-	}*/
 }
 /*
 void ReadInputStream();
@@ -206,6 +254,18 @@ Instance::Instance( const std::string &window_title ) {
 
 	g_instance = this;
 
+	memset( m_vkey_map, 0, sizeof( m_vkey_map ) );
+
+	m_vkey_map[VK_LEFT ]  = KEY_LEFT;
+	m_vkey_map[VK_RIGHT]  = KEY_RIGHT;
+	m_vkey_map[VK_UP   ]  = KEY_UP;
+	m_vkey_map[VK_DOWN ]  = KEY_DOWN;
+
+	m_vkey_map[VK_DELETE] = KEY_DC;
+
+	m_vkey_map[VK_HOME]   = KEY_HOME;
+	m_vkey_map[VK_END ]   = KEY_END;
+
 	initscr();
 	start_color();
 	init_pair( 3, COLOR_BLACK  , COLOR_WHITE  );
@@ -227,18 +287,22 @@ Instance::Instance( const std::string &window_title ) {
 	keypad( m_windows[WINDOW_INPUT], TRUE );
 	m_linereader.SetWindow( m_windows[ WINDOW_INPUT ] );
 
+	m_terminate_event = CreateEvent( NULL, FALSE, FALSE, NULL );
+
 //	g_cursor = 0;
 //	g_input_length = 0;
 //	g_history_position = 0;
 	
-	std::thread iothread( std::bind( &Instance::IOThread, this ) );
-	iothread.detach();
+	m_iothread = std::thread( std::bind( &Instance::IOThread, this ) );
+ 
 	//ReadInputStream();
 }
 
 Instance::~Instance() {
+	SetEvent( m_terminate_event );
+	 
+	m_iothread.join();
 	endwin();
-
 	g_instance = nullptr;
 }
 
