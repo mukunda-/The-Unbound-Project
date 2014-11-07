@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "system/program.h"
+
 namespace System {
 
 /// ---------------------------------------------------------------------------
@@ -132,6 +134,15 @@ bool Live();
 void Join();
 
 /// ---------------------------------------------------------------------------
+/// Run a Program
+///
+/// This also joins the current thread into the system thread pool.
+///
+/// @param program Program class.
+///
+void RunProgram( Program &program );
+
+/// ---------------------------------------------------------------------------
 /// Start clean program exit sequence.
 ///
 void Shutdown();
@@ -152,11 +163,15 @@ private:
 	bool m_live; 
 	boost::asio::strand m_strand;
 
+	Program *m_program;
+
 public: 
 	bool Live() { return m_live; }
 	void PostSystem( std::function<void()> handler, 
 					 bool main = true, int delay = 0 );
 	void Shutdown();
+
+	void RunProgram( Program &program );
 };
 
 } // namespace System

@@ -196,6 +196,7 @@ void Instance::HandleConsoleInput() {
 //-----------------------------------------------------------------------------
 void Instance::IOThread() {
 	  
+#ifdef TARGET_WINDOWS 
 	HANDLE events[] = {
 		GetStdHandle(STD_INPUT_HANDLE),
 		m_terminate_event 
@@ -220,36 +221,12 @@ void Instance::IOThread() {
 	} 
 exit_for:;
 
+#else
+
+#error TODO: LINUX
+
+#endif
 }
-/*
-void ReadInputStream();
-
-//-----------------------------------------------------------------------------
-void OnInput( boost::system::error_code error, int bytes_transferred ) {
-	if( error ) {
-		// break
-	} else {
-		// todo: do this right (lol..)
-	//	std::istream is(&g_instance->m_input_buffer);
-	//	std::string s;
-	//	is >> s;
-	//	InputChar( g_instance->m_input_buffer s.c_str()[0] );
-		InputChar( g_stdin_data[0] );
-
-		ReadInputStream();
-	}
-}*/
-/*
-//-----------------------------------------------------------------------------
-void ReadInputStream() {
-	
-	g_instance->m_input_stream.async_read_some( 
-			boost::asio::buffer( g_stdin_data, 1 ),
-			boost::bind( 
-				&OnInput, 
-				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred ) );
-}*/
 
 //-----------------------------------------------------------------------------
 Instance::Instance( const std::string &window_title ) {
@@ -272,7 +249,7 @@ Instance::Instance( const std::string &window_title ) {
 	start_color();
 	init_pair( 3, COLOR_BLACK  , COLOR_BLUE  ); // SIDEBAR
 	init_pair( 2, COLOR_WHITE+8, COLOR_BLUE   ); // output
-	init_pair( 1, COLOR_WHITE+8, COLOR_BLACK+8 ); // titlebar
+	init_pair( 1, COLOR_WHITE, COLOR_BLACK+8 ); // titlebar
 	cbreak();
 	noecho();
 

@@ -3,10 +3,10 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include <stdafx.h>
-#include "network/connection.h"
-#include "network/resolver.h"
+#include "connection.h"
+#include "resolver.h"
 
-namespace Network {
+namespace Net {
 
  //-------------------------------------------------------------------------------------------------
 Connection::Stream::EventLatch::EventLatch( Stream &stream ) : 
@@ -57,7 +57,7 @@ void Connection::Stream::EventLatch::DisconnectedError( const boost::system::err
 }
 
 //-------------------------------------------------------------------------------------------------
-bool Connection::Stream::EventLatch::Receive( Network::Packet &packet ) {
+bool Connection::Stream::EventLatch::Receive( Packet &packet ) {
 	if( !m_stream.m_parent ) return false;
 	if( !m_stream.m_parent->m_event_handler ) return false;
 	return m_stream.m_parent->m_event_handler->Receive( *m_stream.m_parent, packet );
@@ -72,15 +72,15 @@ int Connection::Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) 
 			if( size >= 2 ) {
 				m_recv_size |= data[1]<<8;
 				m_recv_write++;
-				if( m_recv_packet != 0 ) Network::DeletePacket( m_recv_packet );
-				m_recv_packet = Network::CreatePacket( m_recv_size );
+				if( m_recv_packet != 0 ) Packet::Delete( m_recv_packet );
+				m_recv_packet = Packet::Create( m_recv_size );
 				return 2;
 			}
 			return 1;
 		} else {
 			m_recv_size |= data[0] <<8;
-			if( m_recv_packet != 0 ) Network::DeletePacket( m_recv_packet );
-			m_recv_packet = Network::CreatePacket( m_recv_size );
+			if( m_recv_packet != 0 ) Packet::Delete( m_recv_packet );
+			m_recv_packet = Packet::Create( m_recv_size );
 			return 1;
 		}
 	} else {
@@ -102,7 +102,7 @@ int Connection::Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) 
 				m_recv_fifo.Push( m_recv_packet );
 				m_recv_packet = 0;
 			} else {
-				DeletePacket( m_recv_packet );
+				Packet::Delete( m_recv_packet );
 				m_recv_packet = 0;
 			}
 			
@@ -212,7 +212,7 @@ void Connection::Stream::ContinueSend() {
 				m_send_read += amount;
 				m_send_write += amount;
 				if( m_send_read >= m_send_packet->size+2) {
-					DeletePacket( m_send_packet );
+					Packet::Delete( m_send_packet );
 					m_send_packet = 0;
 					m_send_read = 0;
 				}
@@ -303,8 +303,8 @@ Connection::Stream::~Stream() {
 	m_socket.close(); //   this cancels any async operations
 	 
 	// free memory
-	if( m_recv_packet ) DeletePacket( m_recv_packet );
-	if( m_send_packet ) DeletePacket( m_send_packet ); 
+	if( m_recv_packet ) Packet::Delete( m_recv_packet );
+	if( m_send_packet ) Packet::Delete( m_send_packet ); 
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -319,7 +319,7 @@ Connection::~Connection() {
 } 
  
 //-------------------------------------------------------------------------------------------------
-void Connection::Listen( Network::Listener &listener ) {
+void Connection::Listen( Listener &listener ) {
 	listener.AsyncAccept( m_stream->m_socket, boost::bind( 
 			&Stream::OnAccept, m_stream->shared_from_this(), 
 			boost::asio::placeholders::error ) );
@@ -349,7 +349,7 @@ void Connection::Stream::OnAccept( const boost::system::error_code &error ) {
 
 //-------------------------------------------------------------------------------------------------
 void Connection::Connect( const std::string &host, const std::string &service ) {
-	Network::Resolver resolver; 
+	Resolver resolver; 
 	m_hostname = host + ":" + service;
 	boost::system::error_code ec;
 	boost::asio::connect( m_stream->m_socket, resolver.Resolve( host, service ) );
@@ -363,7 +363,7 @@ void Connection::Connect( const std::string &host, const std::string &service ) 
 //-------------------------------------------------------------------------------------------------
 void Connection::ConnectAsync( const std::string &host, const std::string &service ) {
 	m_hostname = host + ":" + service;
-	Network::Resolver::CreateThreaded( host, service, 
+	Resolver::CreateThreaded( host, service, 
 		boost::bind( 
 			&Stream::OnResolve, m_stream->shared_from_this(), _1, _2 ) ); 
 }

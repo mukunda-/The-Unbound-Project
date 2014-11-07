@@ -8,7 +8,8 @@ namespace System {
 
 class Program {
 
-	void OnStart() = 0;
-}
+public:
+	virtual void OnStart() = 0;
+};
 
 }

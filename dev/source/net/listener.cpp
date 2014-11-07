@@ -3,12 +3,12 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h"
-#include "network/listener.h"
-#include "network/nwcore.h"
+#include "listener.h"
+#include "nwcore.h"
 
 using boost::asio::ip::tcp;
 
-namespace Network {
+namespace Net {
 
 
 

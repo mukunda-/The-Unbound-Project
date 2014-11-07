@@ -5,9 +5,9 @@
 #pragma once
 
 #include <boost/thread.hpp>
-#include "network/packet.h"
+#include "packet.h"
 
-namespace Network {
+namespace Net {
 
 class PacketFIFO {
 
@@ -28,7 +28,7 @@ public:
 		Packet *p = first;
 		while(p) {
 			Packet *next = p->next;
-			DeletePacket(p);
+			Packet::Delete(p);
 			p = next;
 		}
 	}

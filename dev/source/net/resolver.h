@@ -4,14 +4,17 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
-#include <boost/shared_ptr.hpp>
-#include <util/threadstate.h>
-
-namespace Network {
+#ifndef BOOST_ASIO_HPP
+#  error Add boost/asio.hpp to PCH.
+#endif
 
 
-class Resolver : public boost::enable_shared_from_this<Resolver> {
+#include "util/threadstate.h"
+
+namespace Net {
+
+
+class Resolver : public std::enable_shared_from_this<Resolver> {
 
 private:
 	boost::asio::ip::tcp::resolver resolver; 
@@ -35,7 +38,7 @@ public:
 	boost::asio::ip::tcp::resolver::iterator 
 		Resolve( const std::string &hostname, const std::string &service );
 
-	typedef boost::shared_ptr<Resolver> Pointer;
+	typedef std::shared_ptr<Resolver> Pointer;
 
 	static Pointer CreateThreaded( const std::string &hostname, const std::string &service, callback_t callback ) {
 		Pointer resolver( new Resolver );

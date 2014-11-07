@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "network/listener.h"
-#include "network/packetfifo.h"
-#include "network/nwcore.h"
+#include "listener.h"
+#include "packetfifo.h"
+#include "nwcore.h"
 #include "util/minmax.h"
 
-namespace Network {
+namespace Net {
   
 /// ---------------------------------------------------------------------------
 /// A Connection manages a TCP socket with boost::asio.
@@ -102,7 +102,7 @@ public:
 		///
 		virtual bool Receive( 
 				Connection &connection,
-				Network::Packet &packet ) { 
+				Packet &packet ) { 
 
 			return false; 
 		}
@@ -146,7 +146,7 @@ private:
 			void Connected();
 			void Disconnected( const boost::system::error_code &error );
 			void DisconnectedError( const boost::system::error_code &error );
-			bool Receive( Network::Packet &packet );
+			bool Receive( Packet &packet );
 
 		};
 
@@ -164,10 +164,10 @@ private:
 		boost::asio::ip::tcp::socket m_socket;
 		
 		// complete packets that have been received
-		Network::PacketFIFO m_recv_fifo;
+		PacketFIFO m_recv_fifo;
 
 		// partial packet buffer
-		Network::Packet *m_recv_packet; 
+		Packet *m_recv_packet; 
 
 		boost::uint8_t m_recv_buffer[BUFFER_SIZE]; 
 		int m_recv_size;
@@ -176,8 +176,8 @@ private:
 		boost::mutex m_recv_lock;
 		boost::condition_variable m_cv_recv_complete;
 		
-		Network::PacketFIFO m_send_fifo; // packets waiting to be sent
-		Network::Packet *m_send_packet; // packet currently being transmitted
+		PacketFIFO m_send_fifo; // packets waiting to be sent
+		Packet *m_send_packet; // packet currently being transmitted
 		boost::uint8_t m_send_buffer[BUFFER_SIZE]; 
 		int m_send_read; // position in packet 2+ is data, 0,1 is header (size)
 		int m_send_write; // position in send buffer
@@ -246,7 +246,7 @@ public:
 	/// @param listener Network listener which describes what port to listen
 	///                 on.
 	///
-	void Listen( Network::Listener &listener );
+	void Listen( Listener &listener );
 
 	/// -----------------------------------------------------------------------
 	/// Make a remote connection.

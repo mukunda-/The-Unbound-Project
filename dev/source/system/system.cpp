@@ -104,6 +104,10 @@ void Finish() {
 	GetService().Finish( true ); 
 }
 
+void RunProgram( Program &program ) {
+	g_instance->RunProgram( program );
+}
+
 //-----------------------------------------------------------------------------
 void Shutdown() {
 	g_instance->Shutdown();
@@ -173,6 +177,13 @@ void Instance::PostSystem( std::function<void()> handler,
 	} else {
 		Post( handler, delay );
 	}
+}
+
+//-----------------------------------------------------------------------------
+void Instance::RunProgram( Program &program ) {
+	m_program = &program;
+	PostSystem( std::bind( &Program::OnStart, &program ) );
+	System::Join();
 }
 
 //-----------------------------------------------------------------------------

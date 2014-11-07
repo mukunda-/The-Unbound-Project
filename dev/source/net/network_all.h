@@ -4,21 +4,9 @@
 
 #pragma once
 
-#include "system/system.h"
-
-namespace Network {
-
-
-System::Service &DefaultService();
-
-void Run( int threads );
-
-struct Init {
-	 
-	Init( int threads );
-	~Init();
-};
-
-//extern Service DEFAULT_SERVICE;
-
-}
+#include "connection.h"
+#include "listener.h"
+#include "nwcore.h"
+#include "packet.h"
+#include "packetfifo.h"
+#include "resolver.h"

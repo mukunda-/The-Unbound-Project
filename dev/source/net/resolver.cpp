@@ -3,10 +3,10 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h"
-#include "network/resolver.h"
+#include "resolver.h"
 #include "nwcore.h"
 
-namespace Network {
+namespace Net {
 
 //-------------------------------------------------------------------------------------------------
 Resolver::Resolver(): resolver( DefaultService()() ) {

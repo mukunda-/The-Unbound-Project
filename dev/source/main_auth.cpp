@@ -2,35 +2,26 @@
 //                                                                           //
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
+// Authentication Server
+
 #include <stdafx.h>
 
 #include "system/system.h"
-#include "network/network_all.h"
+#include "net/network_all.h"
 #include "system/server/serverconsole.h"
+#include "programs/authserver.h"
 
 #define VERSION "DEV1"
 #define WINDOW_TITLE "UNBOUND SERVER (AUTH) " VERSION
-
-bool g_shutdown;
-
-void RunProgram() {
-	
-}
-
+ 
 //-------------------------------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) {
-	System::Init i_system(1);
-	Network::Init i_network(1);
+	System::Instance i_system(1);
+	Net::Instance i_network(1);
 	{
-		System::ServerConsole::Init i_serverconsole;
-
-		System::ServerConsole::SetTitle( WINDOW_TITLE );
-
-		g_shutdown = false;
-		RunProgram(); 
+		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE );
+		System::RunProgram( AuthServer() );
 	}
-	printf(" OK.");
-	getc(stdin);
 }
 
 //-------------------------------------------------------------------------------------------------

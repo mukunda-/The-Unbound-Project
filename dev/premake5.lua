@@ -94,7 +94,7 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
 		"source/graphics/gui/*.cpp",
 		"source/io/*.cpp",
 		"source/mem/*.cpp",
-		"source/network/*.cpp",
+		"source/net/*.cpp",
 		"source/system/*.cpp",
 		"source/util/*.cpp",
 		"source/video/*.cpp",
@@ -112,7 +112,7 @@ project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
 	files { 
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
-		"source/network/*.cpp",
+		"source/net/*.cpp",
 		"source/system/*.cpp",
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
@@ -128,7 +128,7 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp" )
 	files {
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
-		"source/network/*.cpp",
+		"source/net/*.cpp",
 		"source/system/*.cpp",
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
@@ -144,7 +144,7 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp" )
 	files {
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
-		"source/network/*.cpp",
+		"source/net/*.cpp",
 		"source/system/*.cpp",
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
@@ -160,7 +160,7 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp" )
 	files {
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
-		"source/network/*.cpp",
+		"source/net/*.cpp",
 		"source/system/*.cpp",
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",

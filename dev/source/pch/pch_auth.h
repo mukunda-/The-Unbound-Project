@@ -7,6 +7,14 @@
 
 #define WIN32_LEAN_AND_MEAN 
 #pragma comment(lib, "pdcurses.lib")
+#pragma comment(lib, "libprotobuf.lib")
+
+#ifdef _DEBUG
+	#pragma comment( lib, "libyaml-cppmdd.lib" )
+#else
+	#pragma comment( lib, "libyaml-cppmd.lib" )
+#endif
+
 #include <curses.h>
 #include <panel.h>
 #include <boost/asio.hpp>
@@ -14,3 +22,4 @@
 #include <boost/array.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>
+#include <thread>

@@ -10,6 +10,7 @@
 #include "system/system.h"
 #include "system/console.h"
 #include "system/commands.h"
+#include "system/program.h"
 #include "system/server/ServerConsole.h"
 #include "util/linkedlist.h"
 #include "network/connection.h"
@@ -163,7 +164,7 @@ public:
 };
 
 //-------------------------------------------------------------------------------------------------
-class ServerMaster {
+class ServerMaster : public System::Program {
 	
 
 private: 
@@ -368,14 +369,14 @@ public:
 		
 	}
 };
-
+/*
 //-------------------------------------------------------------------------------------------------
 void RunProgram() {
 	auto instance = std::unique_ptr<ServerMaster>( new ServerMaster );
 	System::Post( std::bind( &ServerMaster::OnStart, instance.get() ) );
 	System::Join();
 	//instance->Run();
-}
+}*/
 
 //-------------------------------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) {
@@ -384,8 +385,10 @@ void Main( int argc, char *argv[] ) {
 	{
 		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE ); 
 		//System::ServerConsole::SetTitle( WINDOW_TITLE );
-		 
-		RunProgram(); 
+		auto program = std::unique_ptr<ServerMaster>( new ServerMaster );
+
+		System::RunProgram( *program );
+		
 
 	}
 	//printf(" OK.");

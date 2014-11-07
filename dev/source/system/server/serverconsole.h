@@ -75,7 +75,7 @@ void GetInputEx( const char *prompt, char *input, int maxlen );
 void Update();
 
 /// ---------------------------------------------------------------------------
-/// Set a line on the menu box (sidebar).
+/// Set a line in the menu box (sidebar).
 /// 
 /// @param line   Number of line to change 0..21
 /// @param format printf format string.

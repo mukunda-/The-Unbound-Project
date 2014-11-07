@@ -4,9 +4,24 @@
 
 #pragma once
 
-#include "network/connection.h"
-#include "network/listener.h"
-#include "network/nwcore.h"
-#include "network/packet.h"
-#include "network/packetfifo.h"
-#include "network/resolver.h"
+#include "system/system.h"
+
+namespace Net {
+
+	System::Service &DefaultService();
+
+	void Run( int threads );
+
+	struct Instance {
+	 
+		Instance( int threads );
+		~Instance();
+
+		System::Service &GetService();
+
+	private:
+	
+		System::Service m_service;
+	};
+
+}

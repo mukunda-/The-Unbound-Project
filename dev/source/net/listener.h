@@ -5,7 +5,7 @@
 #pragma once
 
 
-namespace Network {
+namespace Net {
 
 class Listener {
 	boost::asio::ip::tcp::acceptor m_acceptor;

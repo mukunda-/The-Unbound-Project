@@ -25,27 +25,11 @@ volatile bool g_shutdown;
 
 class ServerNode;
 ServerNode *g_main;
-
-/// ---------------------------------------------------------------------------
-/// Thread for reading user input.
-///
-void IOThread() {
-	char input[256];
-	while( !g_shutdown ) {
-		System::ServerConsole::GetInput( input, sizeof input );
-
-		System::Console::Execute( input );
-
-		System::ServerConsole::Update();
-		
-		if( g_shutdown ) break;
-	}
-}
-
+ 
 /// ---------------------------------------------------------------------------
 /// Main class for the Server Node program
 ///
-class ServerNode  {
+class ServerNode : public System::Program {
 	// connection to master
 	Network::Connection m_cmaster; 
 
@@ -64,8 +48,8 @@ class ServerNode  {
 				const boost::system::error_code &error ) override  {
 			
 			System::LogError( "Connection failed, retrying in 120 seconds." );
-			System::PostDelayed( 
-				std::bind(&ServerNode::RetryConnection, &m_parent), 5*1000 );
+			System::Post( 
+				std::bind(&ServerNode::RetryConnection, &m_parent), true , 5*1000 );
 		}
 		
 	public:
@@ -116,44 +100,30 @@ public:
 	}
 	 
 
-	void Run() {
+	void OnStart() override {
 		
 		System::Console::ExecuteScript( "cfg/server.cfg" );
 		System::Console::ExecuteScript( "debug.cfg" );
-		System::Post( IOThread );
 		
 		System::Console::Print( "---" );
 		Connect();
-
-		while( !g_shutdown ) {
-			std::this_thread::sleep_for( std::chrono::milliseconds(5) );
-		}
 	}
 };
-  
-/// ---------------------------------------------------------------------------
-/// Create main instance and execute it
-///
-void RunProgram() {
-	auto instance = std::unique_ptr<ServerNode>( new ServerNode );
-	g_main = instance.get();
-	g_main->Run();
-}
+   
 
 /// ---------------------------------------------------------------------------
 /// Program entry point
 ///
 int main() {
 	
-	System::Init i_system(4);
+	System::Instance i_system(4);
 	Network::Init i_network(1);
 	
 	{
 		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE );
-		g_shutdown = false;
 		
-		RunProgram();   
-
+		auto instance = std::unique_ptr<ServerNode>( new ServerNode );
+		System::RunProgram( *instance );
 
 	}
 	return 0;
