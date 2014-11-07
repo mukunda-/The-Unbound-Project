@@ -19,11 +19,11 @@ void RunProgram() {
 //	char buffer[25];
 	//fgets(buffer,25,stdin);
 	//System::ServerConsole::GetInput( buffer, sizeof buffer );
-	boost::this_thread::sleep_for( boost::chrono::seconds(15));
+//	boost::this_thread::sleep_for( boost::chrono::seconds(15));
 
-//	while(1){
-//		boost::this_thread::sleep_for( boost::chrono::seconds(1));
-//	}
+	while(1){
+		boost::this_thread::sleep_for( boost::chrono::seconds(1));
+	}
 }
 
 //-------------------------------------------------------------------------------------------------

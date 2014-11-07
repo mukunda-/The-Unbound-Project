@@ -271,9 +271,9 @@ Instance::Instance( const std::string &window_title ) {
 
 	initscr();
 	start_color();
-	init_pair( 3, COLOR_BLACK  , COLOR_WHITE  );
-	init_pair( 2, COLOR_WHITE+8, COLOR_CYAN   );
-	init_pair( 1, COLOR_WHITE+8, COLOR_BLUE+8 );
+	init_pair( 3, COLOR_BLACK  , COLOR_BLUE  ); // SIDEBAR
+	init_pair( 2, COLOR_WHITE+8, COLOR_BLUE   ); // output
+	init_pair( 1, COLOR_WHITE+8, COLOR_BLACK+8 ); // titlebar
 	cbreak();
 	noecho();
 
