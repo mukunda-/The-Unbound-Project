@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define SERVER
+#define UB_SERVER
 
 #define WIN32_LEAN_AND_MEAN 
 

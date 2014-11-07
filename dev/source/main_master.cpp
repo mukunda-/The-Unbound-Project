@@ -22,7 +22,7 @@
 
 #define VERSION "DEV1.3"
 
-#define WINDOW_TITLE ("UNBOUND SERVER (MASTER) " VERSION)
+#define WINDOW_TITLE ("UNBOUND SERVER [MASTER] " VERSION)
 
 class ServerMaster;
 bool g_shutdown;
@@ -137,21 +137,7 @@ void PrintKV( Util::KeyValues &kv, int level ) {
 
 	kv.Exit();
 }
- 
- 
-//-------------------------------------------------------------------------------------------------
-void IOThread() {
-	char input[256];
-	while( !g_shutdown ) {
-		System::ServerConsole::GetInput( input, sizeof input );
-		if( g_shutdown ) break;
-		System::Console::Execute( input );
-
-		System::ServerConsole::Update();
-		
-		if( g_shutdown ) break;
-	}
-}
+  
 
 //-------------------------------------------------------------------------------------------------
 class Client : 
@@ -389,9 +375,7 @@ public:
 		DB::Test1 test1;
 
 		System::Console::AddGlobalCommand( "quit", Command_Quit );
-		System::Post( IOThread );
-		
-
+		 
 		while( !g_shutdown ) {
 			std::this_thread::sleep_for( std::chrono::milliseconds(5) );
 		}
@@ -410,11 +394,12 @@ void Main( int argc, char *argv[] ) {
 	System::Init i_system(1);
 	Network::Init i_network(1);
 	{
-		System::ServerConsole::Init i_serverconsole( WINDOW_TITLE ); 
+		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE ); 
 		//System::ServerConsole::SetTitle( WINDOW_TITLE );
 
 		g_shutdown = false;
 		RunProgram(); 
+
 	}
 	printf(" OK.");
 	getc(stdin);

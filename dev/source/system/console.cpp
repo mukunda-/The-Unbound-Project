@@ -11,7 +11,7 @@
 #include "util/codetimer.h"
 #include "util/fopen2.h"
 
-#if defined SERVER
+#if defined UB_SERVER
 #include "system/server/serverconsole.h" // todo?
 #endif
 
@@ -92,7 +92,7 @@ bool ExecuteScript( const char *file ) {
 
 //-------------------------------------------------------------------------------------------------
 void PrintS( const char *text ) {
-#if defined SERVER
+#if defined UB_SERVER
 	System::ServerConsole::PrintToWindow( text, true );
 #else 
 	// TODO
@@ -103,7 +103,7 @@ void PrintS( const char *text ) {
 void Print( const char *format, ... ) {
 	va_list argptr;
 	va_start( argptr, format );
-#if defined SERVER
+#if defined UB_SERVER
 	System::ServerConsole::PrintToWindow( format, true, argptr );
 #else
 
@@ -114,7 +114,7 @@ void Print( const char *format, ... ) {
 
 //-------------------------------------------------------------------------------------------------
 void PrintS( const char *format, va_list args ) {
-#if defined SERVER
+#if defined UB_SERVER
 	System::ServerConsole::PrintToWindow( format, true, args );
 #else
 
@@ -124,7 +124,7 @@ void PrintS( const char *format, va_list args ) {
 
 //-------------------------------------------------------------------------------------------------
 void PrintExS( const char *text ) {
-#if defined SERVER
+#if defined UB_SERVER
 	System::ServerConsole::PrintToWindow( text, false );
 #else
 
@@ -135,7 +135,7 @@ void PrintExS( const char *text ) {
 void PrintEx( const char *format, ... ) {
 	va_list argptr;
 	va_start( argptr, format );
-#if defined SERVER
+#if defined UB_SERVER
 	System::ServerConsole::PrintToWindow( format, false, argptr );
 #else
 
