@@ -18,6 +18,8 @@ private:
 	// thread pool
 	boost::thread_group m_threads;
 
+	void StopWork();
+
 protected:
 	boost::asio::io_service m_io_service;
 	 
@@ -59,7 +61,10 @@ public:
 	///
 	/// Will stall if a thread is not told to exit.
 	///
-	void Finish();
+	/// @param wait Join the thread pool. Set to false if this is being called
+	///             from inside a service handler.
+	///
+	void Finish( bool wait );
 
 	/// -----------------------------------------------------------------------
 	/// Run a task in the thread pool.
@@ -125,6 +130,11 @@ bool Live();
 /// Merge current thread with the system service.
 ///
 void Join();
+
+/// ---------------------------------------------------------------------------
+/// Start clean program exit sequence.
+///
+void Shutdown();
   
 /// ---------------------------------------------------------------------------
 /// System instance
@@ -146,6 +156,7 @@ public:
 	bool Live() { return m_live; }
 	void PostSystem( std::function<void()> handler, 
 					 bool main = true, int delay = 0 );
+	void Shutdown();
 };
 
 } // namespace System

@@ -26,7 +26,7 @@ Init::Init( int threads ) {
 //-------------------------------------------------------------------------------------------------
 Init::~Init() {
 	assert( g_default_service );
-	g_default_service->Finish();
+	g_default_service->Finish( true );
 	delete g_default_service;
 	g_default_service = nullptr;
 }

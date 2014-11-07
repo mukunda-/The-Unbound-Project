@@ -24,16 +24,9 @@
 
 #define WINDOW_TITLE ("UNBOUND SERVER [MASTER] " VERSION)
 
-class ServerMaster;
-bool g_shutdown;
+class ServerMaster; 
 ServerMaster *g_main = nullptr;
 
-//-------------------------------------------------------------------------------------------------
-int Command_Quit( Util::ArgString &args ) {
-	
-	g_shutdown = true;
-	return 0;
-}
 
 #if 0
 int Command_Test(  int args ) {
@@ -370,39 +363,33 @@ public:
 	} 
 
 	//------------------------------------------------------------------------------------------------- 
-	void Run() {
-
+	void OnStart() { 
 		DB::Test1 test1;
-
-		System::Console::AddGlobalCommand( "quit", Command_Quit );
-		 
-		while( !g_shutdown ) {
-			std::this_thread::sleep_for( std::chrono::milliseconds(5) );
-		}
-	  
+		
 	}
 };
 
 //-------------------------------------------------------------------------------------------------
 void RunProgram() {
 	auto instance = std::unique_ptr<ServerMaster>( new ServerMaster );
-	instance->Run();
+	System::Post( std::bind( &ServerMaster::OnStart, instance.get() ) );
+	System::Join();
+	//instance->Run();
 }
 
 //-------------------------------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) {
-	System::Init i_system(1);
+	System::Instance i_system(1);
 	Network::Init i_network(1);
 	{
 		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE ); 
 		//System::ServerConsole::SetTitle( WINDOW_TITLE );
-
-		g_shutdown = false;
+		 
 		RunProgram(); 
 
 	}
-	printf(" OK.");
-	getc(stdin);
+	//printf(" OK.");
+	//getc(stdin);
 }
 
 //-------------------------------------------------------------------------------------------------

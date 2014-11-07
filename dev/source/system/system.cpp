@@ -5,12 +5,24 @@
 #include "stdafx.h"
 #include "system/system.h"
 #include "system/console.h"
+#include "system/commands.h"
 
 #pragma warning( disable : 4996 )
 
 namespace System {
 
 Instance *g_instance;
+
+namespace {
+	
+	//-------------------------------------------------------------------------
+	int Command_Quit( Util::ArgString &args ) {
+
+		System::Shutdown(); 
+		return 0;
+	}
+
+}
   
 //-----------------------------------------------------------------------------
 Service::Service() {
@@ -21,15 +33,15 @@ Service::Service() {
 
 //-----------------------------------------------------------------------------
 Service::~Service() {
-	Finish();
+	Finish( true );
 	Stop();
 }
 
 //-----------------------------------------------------------------------------
-void Service::Finish() {
+void Service::Finish( bool wait ) {
 	// delete work object
 	m_dummy_work.reset( nullptr ); 
-	m_threads.join_all();
+	if( wait ) m_threads.join_all();
 }
 
 //-----------------------------------------------------------------------------
@@ -71,7 +83,7 @@ void Service::Post( std::function<void()> handler, int delay ) {
 						 timer, handler ));
 	}
 }
-  
+
 //-----------------------------------------------------------------------------
 void Service::PostDelayedHandler( 
 					    const boost::system::error_code &error, 
@@ -89,7 +101,12 @@ Service &GetService() {
 
 //-----------------------------------------------------------------------------
 void Finish() {
-	GetService().Finish(); 
+	GetService().Finish( true ); 
+}
+
+//-----------------------------------------------------------------------------
+void Shutdown() {
+	g_instance->Shutdown();
 }
 
 //-----------------------------------------------------------------------------
@@ -135,15 +152,19 @@ Instance::Instance( int threads ) : m_strand( m_io_service ) {
 	g_instance = this;
 	Run( threads );
 	m_live = true;
+
+	System::Console::AddGlobalCommand( "quit", Command_Quit );
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 	m_live = false;
-	Finish();
+	Finish( true );
+
 	g_instance = nullptr;
 }
 
+//-----------------------------------------------------------------------------
 void Instance::PostSystem( std::function<void()> handler, 
 						   bool main, int delay ) {
 
@@ -152,6 +173,12 @@ void Instance::PostSystem( std::function<void()> handler,
 	} else {
 		Post( handler, delay );
 	}
+}
+
+//-----------------------------------------------------------------------------
+void Instance::Shutdown() {
+	m_live = false;
+	Finish( false );
 }
 
 }
