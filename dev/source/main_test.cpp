@@ -9,7 +9,7 @@
 #include "system/console.h"
 #include "net/network_all.h"
 
-class MyControl : public Net::Control {
+class MyStream : public Net::Stream {
 
 };
 
@@ -19,8 +19,8 @@ class TestProgram : public System::Program {
 
 		TestProgram &m_parent;
 
-		void Accepted( Net::Stream &stream ) {
-			auto mc = static_cast<MyControl>(ctrl);
+		void Accepted( Net::Stream &stream ) override {
+			auto mc = static_cast<MyControl>(stream);
 
 		}
 		
@@ -30,12 +30,20 @@ class TestProgram : public System::Program {
 		}
 	};
 
-	Net::Listener<MyControl> m_listener;
-	NetEventHandler m_events;
+	Net::Listener m_listener;
+	std::shared_ptr<NetEventHandler> m_events;
 public:
 
-	TestProgram() : m_events(*this), m_listener( m_events ) {
+	Stream::ptr myfactory() {
+		return new mystream;
+	}
 
+	TestProgram() : m_events(*this), m_listener( m_events, myfactory, m_events ) {
+
+	}
+
+	~TestProgram() {
+		m_events.Disable();
 	}
 
 	void OnStart() {
