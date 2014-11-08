@@ -29,6 +29,8 @@
 #include <boost/thread.hpp>
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include <mysql_driver.h>	
 #include <mysql_connection.h>	

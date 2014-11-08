@@ -30,7 +30,7 @@ struct Packet {
 		va_list args;
 		va_start( args, fmt );
 		int size = vsnprintf( buffer, sizeof buffer, fmt, args );
-
+		va_end(args);
 		Packet *p = Create( size +1 );
 	
 		memcpy( p->data, buffer, size+1 );

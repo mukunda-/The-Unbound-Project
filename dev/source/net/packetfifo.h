@@ -3,8 +3,7 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #pragma once
-
-#include <boost/thread.hpp>
+ 
 #include "packet.h"
 
 namespace Net {
@@ -13,8 +12,8 @@ class PacketFIFO {
 
 	Packet *first;
 	Packet *last;
-	boost::mutex mut;
-	boost::condition_variable cv_new_data;
+	std::mutex mut;
+	std::condition_variable cv_new_data;
 
 	volatile int count;
 public:
@@ -24,7 +23,7 @@ public:
 	}
 
 	~PacketFIFO() {
-		boost::lock_guard<boost::mutex> lock(mut);
+		std::lock_guard<std::mutex> lock(mut);
 		Packet *p = first;
 		while(p) {
 			Packet *next = p->next;
@@ -34,7 +33,7 @@ public:
 	}
 	
 	void Push( Packet *p ) {
-		boost::lock_guard<boost::mutex> lock(mut);
+		std::lock_guard<std::mutex> lock(mut);
 		if( last ) {
 			last->next = p;
 			last = p;
@@ -47,7 +46,7 @@ public:
 	}
 
 	Packet *Pop() {
-		boost::lock_guard<boost::mutex> lock(mut);
+		std::lock_guard<std::mutex> lock(mut);
 		if( first ) {
 			Packet *p = first;
 			first = first->next;
@@ -59,7 +58,7 @@ public:
 	}
 
 	void WaitForData() {
-		boost::unique_lock<boost::mutex> lock(mut);
+		std::unique_lock<std::mutex> lock(mut);
 		while( !first ) {
 			cv_new_data.wait( lock );
 		}
