@@ -8,6 +8,10 @@
 #  error "Missing <mutex>."
 #endif
 
+#ifndef _MEMORY_
+#  error "Missing <memory>."
+#endif
+
 #include "stream.h"
 #include "packet.h"
  
@@ -72,7 +76,7 @@ namespace Net { namespace Event {
 		/// @param stream The stream associated with the event.
 		/// @param error  The error code.
 		///
-		virtual void DisconnectedError( 
+		virtual void SendFailed( 
 				Stream::ptr &stream,
 				const boost::system::error_code &error ) {}
 
@@ -92,6 +96,13 @@ namespace Net { namespace Event {
 			return false; 
 		}
 	};
+	
+	/// -----------------------------------------------------------------------
+	/// A source generates events to be passed to handlers.
+	///
+	class Source : public Interface {
+
+	}
 	
 	/// -----------------------------------------------------------------------
 	/// An interface implementation that has a mechanism for safe handling.
@@ -118,6 +129,8 @@ namespace Net { namespace Event {
 
 		Handler();
 		~Handler();
+
+		typedef std::shared_ptr<Handler> ptr;
 	};
 	 
 	/// -------------------------------------------------------------------
@@ -136,11 +149,13 @@ namespace Net { namespace Event {
 		/// Lock an event handler.
 		///
 		Lock( Handler &parent );
+		Lock( Handler::ptr &parent );
 			
 		/// ---------------------------------------------------------------
 		/// @returns the locked event interface.
 		///
 		Interface &operator ()() { return m_interface; }
+		Interface *operator ->() { return &m_interface; }
 	};
 
 }}

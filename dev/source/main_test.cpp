@@ -7,7 +7,7 @@
 #include "system/system.h" 
 #include "system/server/serverconsole.h"
 #include "system/console.h"
-#include "net/network_all.h"
+#include "net/listener.h"
 
 class MyStream : public Net::Stream {
 
@@ -15,13 +15,12 @@ class MyStream : public Net::Stream {
 
 class TestProgram : public System::Program {
 	
-	class NetEventHandler : public Net::EventHandler {
+	class NetEventHandler : public Net::Event::Handler {
 
 		TestProgram &m_parent;
 
-		void Accepted( Net::Stream &stream ) override {
-			auto mc = static_cast<MyControl>(stream);
-
+		void Accepted( Net::Stream::ptr &stream ) override {
+			 
 		}
 		
 	public:
@@ -33,17 +32,18 @@ class TestProgram : public System::Program {
 	Net::Listener m_listener;
 	std::shared_ptr<NetEventHandler> m_events;
 public:
-
-	Stream::ptr myfactory() {
-		return new mystream;
+	
+	static Net::Stream::ptr myfactory() {
+		return std::make_shared<MyStream>();
 	}
 
-	TestProgram() : m_events(*this), m_listener( m_events, myfactory, m_events ) {
+	TestProgram() : m_events(*this), 
+			m_listener( 32791, myfactory, m_events ) {
 
 	}
 
 	~TestProgram() {
-		m_events.Disable();
+		m_events->Disable();
 	}
 
 	void OnStart() {
@@ -59,7 +59,7 @@ void Test() {
 
 void RunProgram() {
 
-	Listener<MyControl> m_listener;
+	Listener m_listener;
 
 	System::RunProgram( TestProgram() );
 	//std::thread

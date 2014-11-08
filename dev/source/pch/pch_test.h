@@ -31,6 +31,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 #include <mysql_driver.h>	
 #include <mysql_connection.h>	
