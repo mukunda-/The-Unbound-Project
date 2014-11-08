@@ -11,15 +11,13 @@
 namespace Net {
 
 Instance *g_instance;
-	
-//Service *g_default_service = nullptr;
-
 
 //-------------------------------------------------------------------------------------------------
 Instance::Instance( int threads ) {
 
-	if( threads > 0 )
+	if( threads > 0 ) {
 		m_service.Run( threads );
+	}
 	g_instance = this;
 }
 

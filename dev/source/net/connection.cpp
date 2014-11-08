@@ -8,51 +8,49 @@
 
 namespace Net {
 
- //-------------------------------------------------------------------------------------------------
+ //------------------------------------------------------------------------------------------------
 Connection::Stream::EventLatch::EventLatch( Stream &stream ) : 
 		m_lock( stream.m_handler_mutex ),
 		m_stream( stream ) {
 }
 
+#define EVENT_LATCH_CHECK_PARENT \
+	if( !m_stream.m_parent ) return; \
+	if( !m_stream.m_parent->m_event_handler ) return;
+
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::EventLatch::AcceptedConnection() {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
+	EVENT_LATCH_CHECK_PARENT;
 	m_stream.m_parent->m_event_handler->AcceptedConnection( *m_stream.m_parent );
 }
 
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::EventLatch::AcceptError( const boost::system::error_code &error ) {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
+	EVENT_LATCH_CHECK_PARENT;
 	m_stream.m_parent->m_event_handler->AcceptError( *m_stream.m_parent, error );
 }
  
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::EventLatch::ConnectError( const boost::system::error_code &error ) {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
+	EVENT_LATCH_CHECK_PARENT;
 	m_stream.m_parent->m_event_handler->ConnectError( *m_stream.m_parent, error );
 }
 
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::EventLatch::Connected() {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
+	EVENT_LATCH_CHECK_PARENT;
 	m_stream.m_parent->m_event_handler->Connected( *m_stream.m_parent );
 }
 
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::EventLatch::Disconnected( const boost::system::error_code &error ) {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
+	EVENT_LATCH_CHECK_PARENT;
 	m_stream.m_parent->m_event_handler->Disconnected( *m_stream.m_parent, error );
 }
 
 //-------------------------------------------------------------------------------------------------
 void Connection::Stream::EventLatch::DisconnectedError( const boost::system::error_code &error ) {
-	if( !m_stream.m_parent ) return;
-	if( !m_stream.m_parent->m_event_handler ) return;
+	EVENT_LATCH_CHECK_PARENT;
 	m_stream.m_parent->m_event_handler->DisconnectedError( *m_stream.m_parent, error );
 }
 
