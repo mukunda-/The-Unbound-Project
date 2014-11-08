@@ -8,8 +8,7 @@
 
 namespace Net {
 
-	System::Service &DefaultService();
-
+	System::Service &DefaultService(); 
 	void Run( int threads );
 
 	struct Instance {

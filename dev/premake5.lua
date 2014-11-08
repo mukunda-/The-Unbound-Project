@@ -153,9 +153,7 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp" )
 		"source/main_auth.cpp",
 		
 		"protocol/compiled/**.cc",
-		
-		
-		
+		 
 		"source/**.h"
 	}
 
@@ -172,5 +170,6 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp" )
 		"source/mem/*.cpp",
 		"source/main_test.cpp",
 		
-		"protocol/compiled/**.cc"
+		"protocol/compiled/**.cc",
+		"source/**.h"
 	}

@@ -7,21 +7,60 @@
 #include "system/system.h" 
 #include "system/server/serverconsole.h"
 #include "system/console.h"
- 
+#include "net/network_all.h"
+
+class MyControl : public Net::Control {
+
+};
+
+class TestProgram : public System::Program {
+	
+	class NetEventHandler : public Net::EventHandler {
+
+		TestProgram &m_parent;
+
+		void Accepted( Net::Stream &stream ) {
+			auto mc = static_cast<MyControl>(ctrl);
+
+		}
+		
+	public:
+		NetEventHandler( TestProgram &parent ) {
+			m_parent = parent;
+		}
+	};
+
+	Net::Listener<MyControl> m_listener;
+	NetEventHandler m_events;
+public:
+
+	TestProgram() : m_events(*this), m_listener( m_events ) {
+
+	}
+
+	void OnStart() {
+		m_listener.Start();
+	}
+};
 
 void Test() {
 	
 }
 
+
+
 void RunProgram() {
-	
+
+	Listener<MyControl> m_listener;
+
+	System::RunProgram( TestProgram() );
 	//std::thread
 //	char buffer[25];
 	//fgets(buffer,25,stdin);
 	//System::ServerConsole::GetInput( buffer, sizeof buffer );
 //	boost::this_thread::sleep_for( boost::chrono::seconds(15));
 
-	System::Join();
+	//System::Join();
 }
 
 	 

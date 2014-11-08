@@ -3,24 +3,12 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include <stdafx.h>
-#include "listener.h"
+#include "stream.h"
 
 namespace Net {
 
-
-Listener::Listener( unsigned short port, 
-				    std::function<*Stream()> factory, 
-				    EventHandler handler )
-
-		: BasicListener(port) {
-
-
-	 
-}
-
-void Listener::Start() {
+class Stream : public std::enable_shared_from_this<Stream> {
 
 }
-
 
 }

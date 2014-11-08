@@ -20,94 +20,7 @@ class Connection {
 
 public:
 
-	class EventHandler {
-
-	public:
-		/// -------------------------------------------------------------------
-		/// Called when an incoming connection is successful.
-		///
-		/// @param connection The connection associated with the event.
-		///
-		virtual void AcceptedConnection( Connection &connection ) {}
-
-		/// -------------------------------------------------------------------
-		/// Called from a listening connection when an error occurs when
-		/// trying to accept an incoming connection.
-		///
-		/// @param connection The connection associated with the event.
-		/// @param error The error code.
-		///
-		virtual void AcceptError( 
-				Connection &connection,
-				const boost::system::error_code &error ) {}
-
-		/// -------------------------------------------------------------------
-		/// Called during an asynchronous connection when the resolver
-		/// fails to resolve a host name.
-		///
-		/// @param connection The connection associated with the event.
-		/// @param error The error code.
-		///
-		virtual void CantResolve( 
-				Connection &connection,
-				const boost::system::error_code &error ) {}
-
-		/// -------------------------------------------------------------------
-		/// Called during an asynchronous connection when the connection
-		/// fails.
-		///
-		/// @param connection The connection associated with the event.
-		/// @param error The error code.
-		///
-		virtual void ConnectError( 
-				Connection &connection,
-				const boost::system::error_code &error ) {}
-
-		/// -------------------------------------------------------------------
-		/// Called when an outgoing connection is successful.
-		///
-		/// @param connection The connection associated with the event.
-		///
-		virtual void Connected( Connection &connection ) {}
-
-		/// -------------------------------------------------------------------
-		/// Called when the connection is closed.
-		///
-		/// @param connection The connection associated with the event.
-		/// @param error The error code, to see if the disconnection
-		///              was a problem or a normal socket closure.
-		///
-		virtual void Disconnected( 
-				Connection &connection,
-				const boost::system::error_code &error ) {}
-
-		/// -------------------------------------------------------------------
-		/// Called when the connection fails during an outgoing operation.
-		///
-		/// @param connection The connection associated with the event.
-		/// @param error The error code.
-		///
-		virtual void DisconnectedError( 
-				Connection &connection,
-				const boost::system::error_code &error ) {}
-
-		/// -------------------------------------------------------------------
-		/// Called when the connection receives a packet.
-		///
-		/// @param connection The connection associated with the event.
-		/// @param packet The packet that was received.
-		/// @return       Return true to not buffer the packet (handled)
-		///               Return false to buffer the packet (not handled)
-		///               Buffered packets are obtained from Connection::Read()
-		///
-		virtual bool Receive( 
-				Connection &connection,
-				Packet &packet ) { 
-
-			return false; 
-		}
-
-	};
+	
 
 private:
 
@@ -140,7 +53,7 @@ private:
 			EventLatch( Stream &stream );
 
 			// Event wrappers
-			void AcceptedConnection();
+			void Accepted();
 			void AcceptError( const boost::system::error_code &error ); 
 			void ConnectError( const boost::system::error_code &error );
 			void Connected();
@@ -219,7 +132,7 @@ private:
 
 	// where this connection is coming from/going to
 	std::string m_hostname;
-	  
+	
 	EventHandler *m_event_handler; 
 	  
 	//int FireEvent( EventType type, void *data=0 );
@@ -233,21 +146,7 @@ public:
 	//-------------------------------------------------------------------------
 	Connection(); 
 	~Connection();
-
-	/// -----------------------------------------------------------------------
-	/// Enter listening mode.
-	///
-	/// This starts an asynchronous task that waits for incoming connections.
-	/// When something connects, either EVENT_ACCEPTEDCONNECTION or
-	/// EVENT_ACCEPTERROR will be triggered, and this listening connection
-	/// will become an active connection or a closed connection
-	/// respectively.
-	///
-	/// @param listener Network listener which describes what port to listen
-	///                 on.
-	///
-	void Listen( Listener &listener );
-
+	 
 	/// -----------------------------------------------------------------------
 	/// Make a remote connection.
 	///

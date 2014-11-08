@@ -3,24 +3,13 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include <stdafx.h>
-#include "listener.h"
+#include "eventlatch.h"
 
 namespace Net {
 
-
-Listener::Listener( unsigned short port, 
-				    std::function<*Stream()> factory, 
-				    EventHandler handler )
-
-		: BasicListener(port) {
-
-
-	 
+EventLatch::EventLatch( EventHandler &handler ) 
+	: std::lock_guard( handler.m_latch ) {
+	
 }
-
-void Listener::Start() {
-
-}
-
 
 }

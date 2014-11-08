@@ -5,7 +5,7 @@
 #pragma once
 
 #include "connection.h"
-#include "listener.h"
+#include "basiclistener.h"
 #include "nwcore.h"
 #include "packet.h"
 #include "packetfifo.h"
