@@ -18,8 +18,8 @@ namespace {
 	///
 	template <typename T>
 	bool ListContains( std::vector<T> list, T item ) {
-		for( Handler *h : list ) {
-			if( h == &item ) return true;
+		for( auto &h : list ) {
+			if( h == item ) return true;
 		}
 		return false;
 	}
@@ -34,7 +34,7 @@ namespace {
 	template <typename T>
 	bool RemoveFromList( std::vector<T> list, T item ) {
 		for( auto i = list.begin(); i != list.end(); i++ ) {
-			if( *i == &item ) {
+			if( *i == item ) {
 				list.erase(i);
 				return true;
 			}

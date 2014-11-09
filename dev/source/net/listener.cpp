@@ -9,19 +9,17 @@
 namespace Net {
 	 
 	Listener::Listener( unsigned short port, 
-						std::function<StreamPtr()> &factory, 
-						Events::Stream::Handler &handler ) 
-			: BasicListener(port) {
-
-		m_factory = factory;
-		m_event_handler = handler;
+						std::function<StreamPtr()> factory, 
+						Events::Stream::Handler *handler ) :
+			BasicListener(port), 
+			m_factory( factory ), 
+			m_event_handler(handler) {
+		
 	}
 
 	void Listener::Start() {
 		Stream::ptr stream = m_factory();
-		stream->AsevSubscribe( m_event_handler );
-		
-
+		if( m_event_handler ) stream->AsevSubscribe( *m_event_handler );
 	}
 
 

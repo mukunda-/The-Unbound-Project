@@ -6,15 +6,9 @@
 
 #pragma once 
 
-#ifndef _MUTEX_
-#  error "Missing <mutex>."
+#if !defined(_MUTEX_) || !defined(_MEMORY_) || !defined(_TYPEINFO_)
+#  error "Requires <mutex>, <memory>, <typeinfo>"
 #endif
-
-#ifndef _MEMORY_
-#  error "Missing <memory>."
-#endif
-
-#include <typeinfo>
 
 namespace Asev {
 	
@@ -24,7 +18,7 @@ namespace Asev {
 	class Event { 
 		
 	public:
-		virtual type_info Info() { 
+		virtual const type_info &Info() { 
 			return typeid( Event ); 
 		}
 	};
@@ -39,7 +33,7 @@ namespace Asev {
 		/// -------------------------------------------------------------------
 		/// Handle an event.
 		///
-		virtual int Handle( Event &e ) {}
+		virtual int Handle( Event &e ) { return 0; }
 	};
 
 	/// -----------------------------------------------------------------------
@@ -130,9 +124,7 @@ namespace Asev {
 		// subscribed handlers
 		std::vector<std::shared_ptr<Handler::Pipe>> m_pipes;
 		 
-	public:
-		Source();
-		~Source();
+	public: 
 
 		/// -------------------------------------------------------------------
 		/// Add an event handler to this source.

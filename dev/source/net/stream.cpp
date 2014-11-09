@@ -3,6 +3,7 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include <stdafx.h>
+#include "nwcore.h"
 #include "stream.h"
 #include "util/minmax.h"
 
@@ -232,10 +233,7 @@ void Stream::ContinueSend() {
 	m_cv_send_complete.notify_all();
 }
 
-//-------------------------------------------------------------------------------------------------
-Stream::Stream( System::Service &service ) : 
-			m_service(service), m_socket( m_service() ) {
-	 
+void Stream::Init() {
 	m_recv_packet = 0;
 	m_send_packet = 0;
 	m_recv_write = 0;
@@ -246,12 +244,25 @@ Stream::Stream( System::Service &service ) :
 	m_userdata = nullptr;
 
 	m_shutdown = false; 
-
+	
 	// this doesn't work:
 	// allow lingering for 30 seconds to finish unsent sending data on shutdown
 //	boost::system::error_code ec; //ignore error, maybe log message
 //	boost::asio::socket_base::linger option(true, 30);
 //	socket.set_option(option,ec);
+}
+
+//-------------------------------------------------------------------------------------------------
+Stream::Stream( System::Service &service ) : 
+			m_service(service), m_socket( m_service() ) {
+	 
+	Init();
+}
+
+//-------------------------------------------------------------------------------------------------
+Stream::Stream() : m_service(Net::DefaultService()), m_socket( m_service() ) {
+	
+	Init();
 }
 
 //-----------------------------------------------------------------------------

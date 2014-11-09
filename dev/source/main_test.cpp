@@ -37,8 +37,9 @@ public:
 		return std::make_shared<MyStream>();
 	}
 
-	TestProgram() : m_events(*this), 
-			m_listener( 32791, std::bind(myfactory), m_events ) {
+	TestProgram() : 
+			m_events(*this), 
+			m_listener( 32791, myfactory, &m_events ) {
 
 	}
 
@@ -47,7 +48,7 @@ public:
 	}
 
 	void OnStart() {
-		m_listener.Start();
+		//m_listener.Start();
 	}
 };
 

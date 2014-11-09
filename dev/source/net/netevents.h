@@ -54,7 +54,7 @@ namespace Net { namespace Events {
 			class SendFailed;
 			class Receive;
 
-			type_info Info() override {
+			const type_info &Info() override {
 				return typeid( Event );
 			}
 		};
