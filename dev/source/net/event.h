@@ -18,14 +18,12 @@
 //-----------------------------------------------------------------------------
 namespace Net { namespace Event {
 
-	class Event {
-	};
 
 	class StreamEvent : public Event {
 
 	protected:
 		
-		enum {
+		enum Classes {
 			ACCEPTED,
 			ACCEPTERROR,
 			CONNECTERROR,
@@ -36,9 +34,9 @@ namespace Net { namespace Event {
 		};
 
 		Stream &m_stream;
-		int    m_class;
+		Classes m_class;
 
-		StreamEvent( int event_class );
+		StreamEvent( Classes event_class );
 
 	public:
 		class Accepted;
@@ -81,6 +79,7 @@ namespace Net { namespace Event {
 	class StreamEvent::Receive : public StreamEvent {
 		Receive();
 	};
+
 
 	/// -----------------------------------------------------------------------
 	/// The interface for network events.
@@ -161,120 +160,8 @@ namespace Net { namespace Event {
 		}
 	};
 	
-	/// -----------------------------------------------------------------------
-	/// A source generates events to be passed to handlers.
-	///
-	class Source {
-		friend class Dispatcher;
-
-		std::mutex m_mutex;
-
-		// subscribed handlers
-		std::vector<Handler> m_handlers;
-		 
-	public:
-		Source();
-		~Source();
-
-		/// -------------------------------------------------------------------
-		/// Add an event handler to this source.
-		///
-		/// @param handler Event handler instance.
-		/// @param check_for_duplicates If true, this function will check
-		///        for a duplicate of the handler first and exit if it's found.
-		///        Otherwise, the handler may be added multiple times and will
-		///        be called multiple times when an event dispatches.
-		///
-		void RegisterEventHandler( Handler &handler, 
-								   bool check_for_duplicates = false );
-
-		/// -------------------------------------------------------------------
-		/// Remove an event handler from this source.
-		///
-		/// @param handler              Event handler instance.
-		/// @param check_for_duplicates If false, assume there is only up to
-		///        one copy of the handler in the list, i.e. only remove one
-		///        copy of the handler.
-		///
-		void UnregisterEventHandler( Handler &handler, 
-									 bool check_for_duplicates = false );
-	};
 	
-	/// -----------------------------------------------------------------------
-	/// A handler listens to an event source.
-	///
-	class Handler : public Interface { 
-		friend class Dispatcher;
-
-		std::mutex m_mutex;
-		bool m_disabled;
-		
-	public:
-		/// -------------------------------------------------------------------
-		/// Subscribe to an event source.
-		///
-		/// @param source Source to listen to.
-		///
-		virtual void Subscribe( Source &source );
-
-		/// -------------------------------------------------------------------
-		/// Unsubscribe from an event source.
-		/// 
-		/// @param source Source to stop listening to.
-		///
-		virtual void Unsubscribe( Source &source );
-
-		/// -------------------------------------------------------------------
-		/// Disable the event handler.
-		///
-		/// This should be called when you are no longer expecting events
-		/// to trigger. After this is called, the callbacks will not be
-		/// triggered.
-		///
-		/// This MUST be called before the handler is destructed. This is 
-		/// a safety measure to catch cases where Disable is not used.
-		///
-		virtual void Disable();
-
-		Handler();
-		~Handler();
-
-		typedef std::shared_ptr<Handler> ptr;
-	};
-	 
-	/// -----------------------------------------------------------------------
-	/// Class to lock an EventHandler for sending events. 
-	/// 
-	/// The event handler must not be used directly to send events.
-	/// Instead, use the interface returned from this class via operator()
-	///
-	class Dispatcher : public Interface {
 	
-		std::lock_guard<std::mutex> m_lock; 
-	public:
-
-		/// -------------------------------------------------------------------
-		/// Lock an event handler.
-		///
-		Dispatcher( Source &parent );
-		
-		/// -------------------------------------------------------------------
-		/// Event wrappers
-		///
-		virtual void Accepted( Stream::ptr &stream );
-		virtual void AcceptError( Stream::ptr &stream,
-				const boost::system::error_code &error );
-		virtual void ConnectError( 
-				Stream::ptr &stream,
-				const boost::system::error_code &error );
-		virtual void Connected( Stream::ptr &stream );
-		virtual void Disconnected( Stream::ptr &stream,
-				const boost::system::error_code &error );
-		virtual void SendFailed( Stream::ptr &stream,
-				const boost::system::error_code &error );
-		virtual bool Receive( Stream::ptr &stream,
-				Packet &packet );
-	};
 	
 	/// -----------------------------------------------------------------------
 	/// Dispatcher simplified for a stream.

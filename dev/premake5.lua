@@ -164,6 +164,7 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp" )
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
 		"source/net/*.cpp",
+		"source/asev/*.cpp",
 		"source/system/*.cpp",
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
