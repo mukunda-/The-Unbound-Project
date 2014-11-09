@@ -2,15 +2,13 @@
 //                                                                           //
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
-#pragma once
+#include <stdafx.h>
+#include "netevents.h"
 
-namespace Net {
-	 
-class EventLatch : public std::lock_guard<std::mutex> {
+namespace Net { namespace Events {
 
-public:
-	EventLatch( EventHandler &handler );
-
-};
+namespace Stream {
 
 }
+
+}}

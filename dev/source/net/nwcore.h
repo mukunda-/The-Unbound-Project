@@ -36,7 +36,7 @@ namespace Net {
 	///
 	void ConnectAsync( const std::string &host, 
 					   const std::string &service, 
-					   Event::Handler &handler );
+					   Asev::Handler &handler );
 
 	struct Instance {
 	 

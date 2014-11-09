@@ -13,7 +13,7 @@
 #endif
 
 #include "packetfifo.h"
-#include "event.h"
+#include "netevents.h"
 #include "system/system.h"
 
 namespace Net {
@@ -139,14 +139,7 @@ public:
 	/// @param p Packet to queue.
 	///
 	void Write( Packet *p );
-
-	/// -----------------------------------------------------------------------
-	/// Set the event handler for this stream.
-	///
-	/// @param handler Event handler to use.
-	///
-	void SetEventHandler( Event::Handler::ptr &handler );
-		
+	
 	/// -----------------------------------------------------------------------
 	/// Remove/disable the event handler for this stream.
 	///

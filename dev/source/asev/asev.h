@@ -14,6 +14,8 @@
 #  error "Missing <memory>."
 #endif
 
+#include <typeinfo>
+
 namespace Asev {
 	
 	/// -----------------------------------------------------------------------

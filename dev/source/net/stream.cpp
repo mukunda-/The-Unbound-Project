@@ -44,10 +44,9 @@ int Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) {
 			bool handled = false;
 			// pass to event
 			// only push into fifo if not handled.
-			{
-				Event::Lock( m_event_handler )->Receive( 
-						shared_from_this, *m_recv_packet );
-			}
+
+			handled = Events::Stream::Dispatcher( shared_from_this() )
+					  .Receive( *m_recv_packet );
 			
 			if( !handled ) {
 				m_recv_fifo.Push( m_recv_packet );
@@ -74,11 +73,10 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	if( error ) {
 		// receive error: the remote has disconnected or an error occurred.
 		m_connected = false; 
-		{
-			// send event
-			Event::Lock( m_event_handler )->Disconnected(
-					shared_from_this(), error );
-		}
+		
+		// send event
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Disconnected( error );
 		
 		// shutdown stream.
 		StopReceive();
@@ -144,9 +142,9 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 		m_connected = false;
 		{
 			// disconnect with error status
-			Event::Lock ev( m_event_handler );
-			ev->SendFailed(	shared_from_this(), error );
-			ev->Disconnected( shared_from_this(), error );
+			Events::Stream::Dispatcher ev( shared_from_this() );
+			ev.SendFailed( error );
+			ev.Disconnected( error ); 
 		}
 
 		// shutdown.
@@ -260,7 +258,8 @@ Stream::Stream( System::Service &service ) :
 void Stream::Close() {
 	using namespace boost::asio::ip;
 
-	Event::Lock lock( m_event_handler );
+	// TODO: how do async events handle this shit?
+//	Event::Lock lock( m_event_handler );
 	
 	int shutdown = m_shutdown.exchange( true );
 	if( shutdown ) return; // we have already shut down. 
@@ -311,13 +310,16 @@ void Stream::CloseAfterSend() {
 void Stream::OnAccept( const boost::system::error_code &error ) {
 	if( !error ) {
 		m_connected = true;
-		Event::Lock( m_event_handler )->Accepted( shared_from_this() );
+
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Accepted();
+
 		StartReceive( true ); 
 		
 	} else { 
 
-		Event::Lock( m_event_handler )->AcceptError( 
-				shared_from_this(), error );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.AcceptError( error );
 		
 	}
 }
@@ -329,8 +331,9 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 void Stream::OnResolve( const boost::system::error_code &error_code, 
 					boost::asio::ip::tcp::resolver::iterator endpoints ) {
 	if( error_code ) {
-		Event::Lock( m_event_handler )->ConnectError(
-				shared_from_this(), error_code );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.ConnectError( error_code );
+
 	} else {
 		// resolve OK, do connect.
 		boost::asio::async_connect( m_socket, endpoints, 
@@ -345,14 +348,14 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 ///
 void Stream::OnConnect( const boost::system::error_code &error ) {
 	if( error ) {
-		Event::Lock( m_event_handler )->ConnectError(
-				shared_from_this(), error );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.ConnectError( error );
 		return;
 	}
 	
 	m_connected = true;
 
-	Event::Lock( m_event_handler )->Connected( shared_from_this() ); 
+	Events::Stream::Dispatcher( shared_from_this() ).Connected();
 
 	StartReceive( true );
 }

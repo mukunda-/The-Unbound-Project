@@ -7,6 +7,7 @@
 #include "system/system.h" 
 #include "system/server/serverconsole.h"
 #include "system/console.h"
+#include "net/stream.h"
 #include "net/listener.h"
 
 class MyStream : public Net::Stream {
@@ -15,7 +16,7 @@ class MyStream : public Net::Stream {
 
 class TestProgram : public System::Program {
 	
-	class NetEventHandler : public Net::Event::Handler {
+	class NetEventHandler : public Net::Events::Stream::Handler {
 
 		TestProgram &m_parent;
 
@@ -24,13 +25,12 @@ class TestProgram : public System::Program {
 		}
 		
 	public:
-		NetEventHandler( TestProgram &parent ) {
-			m_parent = parent;
+		NetEventHandler( TestProgram &parent ) : m_parent(parent) {
 		}
 	};
 
 	Net::Listener m_listener;
-	std::shared_ptr<NetEventHandler> m_events;
+	NetEventHandler m_events;
 public:
 	
 	static Net::Stream::ptr myfactory() {
@@ -38,12 +38,12 @@ public:
 	}
 
 	TestProgram() : m_events(*this), 
-			m_listener( 32791, myfactory, m_events ) {
+			m_listener( 32791, std::bind(myfactory), m_events ) {
 
 	}
 
 	~TestProgram() {
-		m_events->Disable();
+		m_events.Disable();
 	}
 
 	void OnStart() {
@@ -58,9 +58,7 @@ void Test() {
 
 
 void RunProgram() {
-
-	Listener m_listener;
-
+	  
 	System::RunProgram( TestProgram() );
 	//std::thread
 //	char buffer[25];

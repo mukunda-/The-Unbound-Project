@@ -3,19 +3,23 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include "basiclistener.h"
-#include "event.h"
+#include "netevents.h"
 
 namespace Net {
 
+	class Stream;
+	typedef std::shared_ptr<Stream> StreamPtr;
+
 	class Listener : public BasicListener {
 
-		std::function<Stream::ptr()> m_factory;
-		Event::Handler m_event_handler;
-		//Stream::ptr m_new_stream;
+		std::function<StreamPtr()> m_factory;
+
+		Events::Stream::Handler m_event_handler;
+		
 	public:
 		Listener( unsigned short port, 
-				  std::function<*Stream()> &factory, 
-				  Event::Handler::ptr &handler );
+				  std::function<StreamPtr()> &factory, 
+				  Events::Stream::Handler &handler );
 
 		void Start();
 		void Stop();
