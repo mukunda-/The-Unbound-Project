@@ -10,7 +10,7 @@ namespace Net {
 	class Listener : public BasicListener {
 
 		std::function<Stream::ptr()> m_factory;
-		Event::Handler::ptr m_event_handler;
+		Event::Handler m_event_handler;
 		//Stream::ptr m_new_stream;
 	public:
 		Listener( unsigned short port, 

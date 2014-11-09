@@ -54,21 +54,7 @@ void Connection::ConnectAsync( const std::string &host, const std::string &servi
 
   
 
-
-//-------------------------------------------------------------------------------------------------
-void Connection::Stream::Write( Packet *p ) {
-	m_send_fifo.Push(p);
-	{
-		boost::lock_guard<boost::mutex> lock(m_send_lock);
-		if( m_sending ) return;
-		m_send_read = 0;
-		m_send_write = 0;
-		m_send_packet = 0;
-		m_sending = true;
-		ContinueSend();
-	}
-}
-
+	/*
 //-------------------------------------------------------------------------------------------------
 void Connection::Write( Packet *p ) { 
 
@@ -79,10 +65,6 @@ void Connection::Write( Packet *p ) {
 void Connection::SetEventHandler( EventHandler *handler ) {
 	m_event_handler = handler;
 }
-
-//-------------------------------------------------------------------------------------------------
-const std::string &Connection::GetHostname() const {
-	return m_hostname;
-}
+*/
 
 }

@@ -100,30 +100,75 @@ namespace Net { namespace Event {
 	/// -----------------------------------------------------------------------
 	/// A source generates events to be passed to handlers.
 	///
-	class Source : public Interface {
+	class Source {
 
-	}
+		std::mutex m_mutex;
+
+		// subscribed handlers
+		std::vector<Handler> m_handlers;
+		 
+	public:
+		Source();
+		~Source();
+
+		/// -------------------------------------------------------------------
+		/// Add an event handler to this source.
+		///
+		/// @param handler Event handler instance.
+		/// @param check_for_duplicates If true, this function will check
+		///        for a duplicate of the handler first and exit if it's found.
+		///        Otherwise, the handler may be added multiple times and will
+		///        be called multiple times when an event dispatches.
+		///
+		void RegisterEventHandler( Handler &handler, 
+								   bool check_for_duplicates = false );
+
+		/// -------------------------------------------------------------------
+		/// Remove an event handler from this source.
+		///
+		/// @param handler              Event handler instance.
+		/// @param check_for_duplicates If false, assume there is only up to
+		///        one copy of the handler in the list, i.e. only remove one
+		///        copy of the handler.
+		///
+		void UnregisterEventHandler( Handler &handler, 
+									 bool check_for_duplicates = false );
+	};
 	
 	/// -----------------------------------------------------------------------
-	/// An interface implementation that has a mechanism for safe handling.
+	/// A handler listens to an event source.
 	///
-	class Handler : public Interface {
+	class Handler : public Interface { 
+		friend class Dispatcher;
 
-		friend class Lock;
-		std::mutex m_lock; // mutex to trap the parent object while an
-							// event is being executed.
+		std::mutex m_mutex; // lock for dispatching events, the source's
+							// mutex is used for sub/unsub
 		bool m_disabled;
 		
 	public:
 		/// -------------------------------------------------------------------
+		/// Subscribe to an event source.
+		///
+		/// @param source Source to listen to.
+		///
+		virtual void Subscribe( Source &source );
+
+		/// -------------------------------------------------------------------
+		/// Unsubscribe from an event source.
+		/// 
+		/// @param source Source to stop listening to.
+		///
+		virtual void Unsubscribe( Source &source );
+
+		/// -------------------------------------------------------------------
 		/// Disable the event handler.
 		///
 		/// This should be called when you are no longer expecting events
-		/// to trigger. After this is called, the callbacks will never be
+		/// to trigger. After this is called, the callbacks will not be
 		/// triggered.
 		///
 		/// This MUST be called before the handler is destructed. This is 
-		/// a safety measure to catch errors if Disable is forgotten.
+		/// a safety measure to catch cases where Disable is not used.
 		///
 		virtual void Disable();
 
@@ -133,25 +178,25 @@ namespace Net { namespace Event {
 		typedef std::shared_ptr<Handler> ptr;
 	};
 	 
-	/// -------------------------------------------------------------------
+	/// -----------------------------------------------------------------------
 	/// Class to lock an EventHandler for sending events. 
 	/// 
 	/// The event handler must not be used directly to send events.
 	/// Instead, use the interface returned from this class via operator()
 	///
-	class Lock {
+	class Dispatcher : public Interface {
 	
 		std::lock_guard<std::mutex> m_lock;
 		Interface &m_interface;
 	public:
 
-		/// ---------------------------------------------------------------
+		/// -------------------------------------------------------------------
 		/// Lock an event handler.
 		///
 		Lock( Handler &parent );
 		Lock( Handler::ptr &parent );
 			
-		/// ---------------------------------------------------------------
+		/// -------------------------------------------------------------------
 		/// @returns the locked event interface.
 		///
 		Interface &operator ()() { return m_interface; }

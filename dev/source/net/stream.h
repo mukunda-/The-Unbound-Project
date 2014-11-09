@@ -21,7 +21,9 @@ namespace Net {
 /// -----------------------------------------------------------------------
 /// A Stream is a network connection. 
 ///
-class Stream : public std::enable_shared_from_this<Stream> {
+class Stream : 
+		public std::enable_shared_from_this<Stream>, 
+		public Event::Source {
 private:
 	void *m_userdata; 
 
@@ -69,8 +71,7 @@ private:
 	// shutdown is FALSE upon construction
 	// and TRUE after Close is called.
 	std::atomic_bool m_shutdown;
-
-	Event::Handler::ptr m_event_handler;
+	 
 		
 	int ProcessDataRecv( const uint8_t *data, int size );
 	void OnReceive( const boost::system::error_code& error, 

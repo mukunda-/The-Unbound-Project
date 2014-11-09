@@ -19,7 +19,9 @@ Listener::Listener( unsigned short port,
 }
 
 void Listener::Start() {
-	Stream::ptr stream = factory
+	Stream::ptr stream = m_factory();
+	m_event_handler.Subscribe( *stream );
+
 }
 
 

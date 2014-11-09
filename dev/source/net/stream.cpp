@@ -376,4 +376,23 @@ void Stream::WaitSend() {
 	}
 }
 
+//-------------------------------------------------------------------------------------------------
+void Stream::Write( Packet *p ) {
+	m_send_fifo.Push(p);
+	{
+		std::lock_guard<std::mutex> lock(m_send_lock);
+		if( m_sending ) return;
+		m_send_read = 0;
+		m_send_write = 0;
+		m_send_packet = 0;
+		m_sending = true;
+		ContinueSend();
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+const std::string &Stream::GetHostname() const {
+	return m_hostname;
+}
+
 }
