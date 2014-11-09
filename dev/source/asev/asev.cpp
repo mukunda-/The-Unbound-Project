@@ -14,12 +14,12 @@ namespace {
 	///
 	/// @param list Vector to test.
 	/// @param item Element to look for.
-	/// @returns true if the vector contains the element.
+	/// @returns    true if the vector contains the element.
 	///
 	template <typename T>
 	bool ListContains( std::vector<T> list, T item ) {
-		for( Handler *h : m_handlers ) {
-			if( h == &handler ) return true;
+		for( Handler *h : list ) {
+			if( h == &item ) return true;
 		}
 		return false;
 	}
@@ -29,13 +29,13 @@ namespace {
 	///
 	/// @param list std::vector to modify.
 	/// @param item Element to look for.
-	/// @returns true if an element was removed.
+	/// @returns    true if an element was removed.
 	///
 	template <typename T>
 	bool RemoveFromList( std::vector<T> list, T item ) {
-		for( auto i = m_handlers.begin(); i != m_handlers.end(); i++ ) {
-			if( *i == &handler ) {
-				m_handlers.erase(i);
+		for( auto i = list.begin(); i != list.end(); i++ ) {
+			if( *i == &item ) {
+				list.erase(i);
 				return true;
 			}
 		}
@@ -45,37 +45,36 @@ namespace {
 
 //-----------------------------------------------------------------------------
 Handler::Handler() {
-	m_disabled = false;
+	m_pipe = std::make_shared<Pipe>( *this );
 }
 
 //-----------------------------------------------------------------------------
 Handler::~Handler() {
-	if( !m_disabled ) {
+	if( !Lock(*m_pipe).IsClosed() ) {
 		throw std::runtime_error( "Attempt to destruct live event handler." );
 	}
 }
 
 //-----------------------------------------------------------------------------
 void Handler::Disable() {
-	std::lock_guard<std::mutex> lock( m_mutex );
-	m_disabled = true;
+	Lock(*m_pipe).Close();
 }
 
 //-----------------------------------------------------------------------------
 void Source::Subscribe( Handler &handler ) {
 	std::lock_guard<std::mutex> lock( m_mutex );
-	std::lock_guard<std::mutex> lock2( handler.pipe->GetLock() );
+	std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
 	
-	if( ListContains( m_pipes, handler.pipe ) ) return; 
-	m_pipes.push_back( handler.pipe ); 
+	if( ListContains( m_pipes, handler.m_pipe ) ) return; 
+	m_pipes.push_back( handler.m_pipe ); 
 }
 
 //-----------------------------------------------------------------------------
 void Source::Unsubscribe( Handler &handler ) {
 	std::lock_guard<std::mutex> lock( m_mutex );
-	std::lock_guard<std::mutex> lock2( handler.pipe->GetLock() );
+	std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
 
-	RemoveFromList( m_pipes, handler.pipe );
+	RemoveFromList( m_pipes, handler.m_pipe );
 }
 
 //-----------------------------------------------------------------------------
@@ -87,11 +86,14 @@ Dispatcher::Dispatcher( Source &source ) :
 }
 
 //-----------------------------------------------------------------------------
-Dispatcher::Send( Event &e ) {
+void Dispatcher::Send( Event &e ) {
 	for( auto pipe = m_source.m_pipes.begin(); 
 			pipe != m_source.m_pipes.end(); pipe++ ) {
 
-		
+		Handler::Lock lock( *pipe );
+		if( lock() == nullptr ) {
+			m_source.m_pipes.erase(
+		}
 
 		std::lock_guard<std::mutex> lock( handler.m_mutex );
 		if( handler.m_disabled ) continue;

@@ -48,30 +48,42 @@ namespace Asev {
 		///
 		class Pipe {
 			friend class Lock;
+			friend class Handler;
 			Handler    *m_handler;
 			std::mutex m_mutex; 
 
 		public:
 			Pipe( Handler &parent );
-			Handler &GetHandler();
-
 			std::mutex &GetLock() { return m_mutex; }
 		};
 		
 		/// -------------------------------------------------------------------
-		/// A handler lock secures a handler pipe for thread safe access.
+		/// A handler Lock secures a handler pipe for thread safe access.
 		///
 		class Lock {
 			std::lock_guard<std::mutex> m_lock;
 		public:
 			Lock( Pipe &pipe );
 			Handler *operator()();
+
+			/// ---------------------------------------------------------------
+			/// Close the pipe.
+			///
+			void Close();
+			
+			/// ---------------------------------------------------------------
+			/// Check if the pipe is closed.
+			///
+			/// @returns true if the locked pipe is closed, i.e. it doesn't
+			///          have a live handler pointer.
+			///
+			bool IsClosed();
 		};
 
 		friend class Source;
 		friend class Dispatcher;
 		 
-		std::shared_ptr<Pipe> pipe;
+		std::shared_ptr<Pipe> m_pipe;
 		 
 	public:
 
@@ -135,7 +147,7 @@ namespace Asev {
 
 	public:
 		/// -------------------------------------------------------------------
-		/// Lock an event source to send events.
+		/// Capture an event source to send events.
 		///
 		Dispatcher( Source &parent );
 		
