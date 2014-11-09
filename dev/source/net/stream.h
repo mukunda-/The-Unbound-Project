@@ -23,7 +23,7 @@ namespace Net {
 ///
 class Stream : 
 		public std::enable_shared_from_this<Stream>, 
-		public Event::Source {
+		public Asev::Source {
 private:
 	void *m_userdata; 
 

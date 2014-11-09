@@ -14,12 +14,12 @@
 
 #include "stream.h"
 #include "packet.h"
+#include "asev/asev.h"
  
 //-----------------------------------------------------------------------------
-namespace Net { namespace Event {
+namespace Net { namespace Events {
 
-
-	class StreamEvent : public Event {
+	class StreamEvent : public Asev::Event {
 
 	protected:
 		
@@ -46,6 +46,10 @@ namespace Net { namespace Event {
 		class Disconnected;
 		class SendFailed;
 		class Receive;
+
+		type_info Info() override {
+			return typeid( StreamEvent );
+		}
 	};
 
 	class StreamErrorEvent : public StreamEvent {
@@ -84,7 +88,7 @@ namespace Net { namespace Event {
 	/// -----------------------------------------------------------------------
 	/// The interface for network events.
 	///
-	class Interface {
+	class StreamHandler : public Asev::Handler {
 
 	public:
 		/// -------------------------------------------------------------------
@@ -159,14 +163,11 @@ namespace Net { namespace Event {
 			return false; 
 		}
 	};
-	
-	
-	
-	
+	 
 	/// -----------------------------------------------------------------------
 	/// Dispatcher simplified for a stream.
 	/// 
-	class StreamDispatcher : public Dispatcher {
+	class StreamDispatcher : public Asev::Dispatcher {
 
 		Stream &m_stream;
 	public:

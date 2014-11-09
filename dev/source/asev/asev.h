@@ -4,7 +4,7 @@
 
 // Asynchronous Events
 
-#pragma once
+#pragma once 
 
 #ifndef _MUTEX_
 #  error "Missing <mutex>."
@@ -19,17 +19,20 @@ namespace Asev {
 	/// -----------------------------------------------------------------------
 	/// Represents an event.
 	///
-	class Event {
+	class Event { 
+		
+	public:
+		virtual type_info Info() { 
+			return typeid( Event ); 
+		}
 	};
 	
 	/// -----------------------------------------------------------------------
-	/// Events are passed to interfaces.
-	///
-	/// Ideally an interface is extended to split the event into friendly
-	/// handlers
+	/// Events are passed to interfaces. 
 	///
 	class Interface {
-	public:
+
+	protected:
 		
 		/// -------------------------------------------------------------------
 		/// Handle an event.
@@ -38,7 +41,7 @@ namespace Asev {
 	};
 
 	/// -----------------------------------------------------------------------
-	/// A handler listens to an event source.
+	/// A handler implements the base interface and listens to event sources.
 	///
 	class Handler : public Interface { 
 		
@@ -62,8 +65,14 @@ namespace Asev {
 		///
 		class Lock {
 			std::lock_guard<std::mutex> m_lock;
+			Pipe &m_pipe;
 		public:
 			Lock( Pipe &pipe );
+
+			/// ---------------------------------------------------------------
+			/// @returns The handler for the locked pipe, or nullptr if the
+			///          pipe is closed.
+			///
 			Handler *operator()();
 
 			/// ---------------------------------------------------------------
@@ -128,14 +137,14 @@ namespace Asev {
 		///
 		/// @param handler Event handler instance.
 		///
-		void Subscribe( Handler &handler );
+		virtual void AsevSubscribe( Handler &handler );
 		
 		/// -------------------------------------------------------------------
 		/// Remove an event handler from this source.
 		///
 		/// @param handler Event handler instance.
 		///
-		void Unsubscribe( Handler &handler );
+		virtual void AsevUnsubscribe( Handler &handler );
 	};
 	 
 	/// -----------------------------------------------------------------------
@@ -156,6 +165,6 @@ namespace Asev {
 		///
 		/// @param e Event to forward to all registered handlers.
 		///
-		void Send( Event &e );
+		virtual void Send( Event &e );
 	};
 }

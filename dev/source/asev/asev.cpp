@@ -61,7 +61,32 @@ void Handler::Disable() {
 }
 
 //-----------------------------------------------------------------------------
-void Source::Subscribe( Handler &handler ) {
+Handler::Pipe::Pipe( Handler &parent ) {
+	m_handler = &parent;
+}
+
+//-----------------------------------------------------------------------------
+Handler::Lock::Lock( Pipe &pipe ) : m_pipe(pipe), m_lock(pipe.m_mutex) {
+	
+}
+
+//-----------------------------------------------------------------------------
+Handler *Handler::Lock::operator()() {
+	return m_pipe.m_handler;
+}
+
+//-----------------------------------------------------------------------------
+void Handler::Lock::Close() {
+	m_pipe.m_handler = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+bool Handler::Lock::IsClosed() {
+	return m_pipe.m_handler == nullptr;
+}
+
+//-----------------------------------------------------------------------------
+void Source::AsevSubscribe( Handler &handler ) {
 	std::lock_guard<std::mutex> lock( m_mutex );
 	std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
 	
@@ -70,7 +95,7 @@ void Source::Subscribe( Handler &handler ) {
 }
 
 //-----------------------------------------------------------------------------
-void Source::Unsubscribe( Handler &handler ) {
+void Source::AsevUnsubscribe( Handler &handler ) {
 	std::lock_guard<std::mutex> lock( m_mutex );
 	std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
 
@@ -88,16 +113,19 @@ Dispatcher::Dispatcher( Source &source ) :
 //-----------------------------------------------------------------------------
 void Dispatcher::Send( Event &e ) {
 	for( auto pipe = m_source.m_pipes.begin(); 
-			pipe != m_source.m_pipes.end(); pipe++ ) {
+			pipe != m_source.m_pipes.end(); ) {
 
-		Handler::Lock lock( *pipe );
-		if( lock() == nullptr ) {
-			m_source.m_pipes.erase(
+		Handler::Lock lock( **pipe );
+
+		Handler *handler = lock();
+		if( handler == nullptr ) {
+			// this pipe is closed, remove it.
+			m_source.m_pipes.erase( pipe );
+			continue;
 		}
 
-		std::lock_guard<std::mutex> lock( handler.m_mutex );
-		if( handler.m_disabled ) continue;
-		handler.Handle( e );
+		handler->Handle( e );
+		pipe++;
 	}
 }
 
