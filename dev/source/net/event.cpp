@@ -32,18 +32,11 @@ namespace Net {
 		}
 
 		//---------------------------------------------------------------------
-		Lock::Lock( Handler &handler ) :
-				m_lock( handler.m_lock ),
-				m_interface( handler.m_disabled ? g_null_interface : handler ) {
-
+		Dispatcher::Dispatcher( Source &source ) :
+				m_lock( source.m_mutex ) {
+			
 		}
-
-		//---------------------------------------------------------------------
-		Lock::Lock( Handler::ptr &handler ) :
-				m_lock( handler->m_lock ),
-				m_interface( handler->m_disabled ? g_null_interface : *handler ) {
-
-		}
+		 
 
 	}
 

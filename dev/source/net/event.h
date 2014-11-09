@@ -18,6 +18,70 @@
 //-----------------------------------------------------------------------------
 namespace Net { namespace Event {
 
+	class Event {
+	};
+
+	class StreamEvent : public Event {
+
+	protected:
+		
+		enum {
+			ACCEPTED,
+			ACCEPTERROR,
+			CONNECTERROR,
+			CONNECTED,
+			DISCONNECTED,
+			SENDFAILED,
+			RECEIVE
+		};
+
+		Stream &m_stream;
+		int    m_class;
+
+		StreamEvent( int event_class );
+
+	public:
+		class Accepted;
+		class AcceptError;
+		class ConnectError;
+		class Connected;
+		class Disconnected;
+		class SendFailed;
+		class Receive;
+	};
+
+	class StreamErrorEvent : public StreamEvent {
+
+		const boost::system::error_code &m_error;
+	public:
+		StreamErrorEvent( const boost::system::error_code &error );
+		const boost::system::error_code &GetError() { return m_error; }
+	};
+
+	class StreamEvent::Accepted : public StreamEvent {
+		Accepted();
+	};
+
+	class StreamEvent::AcceptError : public StreamErrorEvent {
+		AcceptError();
+	};
+
+	class StreamEvent::ConnectError : public StreamErrorEvent {
+		ConnectError();
+	};
+
+	class StreamEvent::Connected : public StreamEvent {
+		Connected();
+	};
+
+	class StreamEvent::SendFailed : public StreamErrorEvent {
+		SendFailed();
+	};
+
+	class StreamEvent::Receive : public StreamEvent {
+		Receive();
+	};
+
 	/// -----------------------------------------------------------------------
 	/// The interface for network events.
 	///
@@ -101,6 +165,7 @@ namespace Net { namespace Event {
 	/// A source generates events to be passed to handlers.
 	///
 	class Source {
+		friend class Dispatcher;
 
 		std::mutex m_mutex;
 
@@ -141,8 +206,7 @@ namespace Net { namespace Event {
 	class Handler : public Interface { 
 		friend class Dispatcher;
 
-		std::mutex m_mutex; // lock for dispatching events, the source's
-							// mutex is used for sub/unsub
+		std::mutex m_mutex;
 		bool m_disabled;
 		
 	public:
@@ -186,21 +250,48 @@ namespace Net { namespace Event {
 	///
 	class Dispatcher : public Interface {
 	
-		std::lock_guard<std::mutex> m_lock;
-		Interface &m_interface;
+		std::lock_guard<std::mutex> m_lock; 
 	public:
 
 		/// -------------------------------------------------------------------
 		/// Lock an event handler.
 		///
-		Lock( Handler &parent );
-		Lock( Handler::ptr &parent );
-			
+		Dispatcher( Source &parent );
+		
 		/// -------------------------------------------------------------------
-		/// @returns the locked event interface.
+		/// Event wrappers
 		///
-		Interface &operator ()() { return m_interface; }
-		Interface *operator ->() { return &m_interface; }
+		virtual void Accepted( Stream::ptr &stream );
+		virtual void AcceptError( Stream::ptr &stream,
+				const boost::system::error_code &error );
+		virtual void ConnectError( 
+				Stream::ptr &stream,
+				const boost::system::error_code &error );
+		virtual void Connected( Stream::ptr &stream );
+		virtual void Disconnected( Stream::ptr &stream,
+				const boost::system::error_code &error );
+		virtual void SendFailed( Stream::ptr &stream,
+				const boost::system::error_code &error );
+		virtual bool Receive( Stream::ptr &stream,
+				Packet &packet );
+	};
+	
+	/// -----------------------------------------------------------------------
+	/// Dispatcher simplified for a stream.
+	/// 
+	class StreamDispatcher : public Dispatcher {
+
+		Stream &m_stream;
+	public:
+		StreamDispatcher( Stream &parent );
+
+		void Accepted();
+		void AcceptError( const boost::system::error_code &error );
+		void ConnectError( const boost::system::error_code &error );
+		void Connected();
+		void Disconnected( const boost::system::error_code &error );
+		void SendFailed( const boost::system::error_code &error );
+		bool Receive( Packet &packet );
 	};
 
 }}
