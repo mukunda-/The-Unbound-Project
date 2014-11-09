@@ -7,6 +7,42 @@
 
 namespace Asev {
 
+namespace {
+	
+	/// -----------------------------------------------------------------------
+	/// Check if a vector contains an element.
+	///
+	/// @param list Vector to test.
+	/// @param item Element to look for.
+	/// @returns true if the vector contains the element.
+	///
+	template <typename T>
+	bool ListContains( std::vector<T> list, T item ) {
+		for( Handler *h : m_handlers ) {
+			if( h == &handler ) return true;
+		}
+		return false;
+	}
+	
+	/// -----------------------------------------------------------------------
+	/// Remove an element from a vector. (once)
+	///
+	/// @param list std::vector to modify.
+	/// @param item Element to look for.
+	/// @returns true if an element was removed.
+	///
+	template <typename T>
+	bool RemoveFromList( std::vector<T> list, T item ) {
+		for( auto i = m_handlers.begin(); i != m_handlers.end(); i++ ) {
+			if( *i == &handler ) {
+				m_handlers.erase(i);
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
 //-----------------------------------------------------------------------------
 Handler::Handler() {
 	m_disabled = false;
@@ -28,18 +64,18 @@ void Handler::Disable() {
 //-----------------------------------------------------------------------------
 void Source::Subscribe( Handler &handler ) {
 	std::lock_guard<std::mutex> lock( m_mutex );
-	std::lock_guard<std::mutex> lock2( handler.m_mutex );
+	std::lock_guard<std::mutex> lock2( handler.pipe->GetLock() );
 	
-	for( Handler *h : handler.m_sources ) {
-		if( h == this ) return;
-	}
-
-
+	if( ListContains( m_pipes, handler.pipe ) ) return; 
+	m_pipes.push_back( handler.pipe ); 
 }
 
 //-----------------------------------------------------------------------------
 void Source::Unsubscribe( Handler &handler ) {
+	std::lock_guard<std::mutex> lock( m_mutex );
+	std::lock_guard<std::mutex> lock2( handler.pipe->GetLock() );
 
+	RemoveFromList( m_pipes, handler.pipe );
 }
 
 //-----------------------------------------------------------------------------
@@ -52,7 +88,11 @@ Dispatcher::Dispatcher( Source &source ) :
 
 //-----------------------------------------------------------------------------
 Dispatcher::Send( Event &e ) {
-	for( Handler &handler : m_source.m_handlers ) {
+	for( auto pipe = m_source.m_pipes.begin(); 
+			pipe != m_source.m_pipes.end(); pipe++ ) {
+
+		
+
 		std::lock_guard<std::mutex> lock( handler.m_mutex );
 		if( handler.m_disabled ) continue;
 		handler.Handle( e );

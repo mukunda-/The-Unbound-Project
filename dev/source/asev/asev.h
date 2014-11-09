@@ -29,22 +29,50 @@ namespace Asev {
 	/// handlers
 	///
 	class Interface {
-	public: 
-		virtual void Handle( Event &e ) {}
+	public:
+		
+		/// -------------------------------------------------------------------
+		/// Handle an event.
+		///
+		virtual int Handle( Event &e ) {}
 	};
 
 	/// -----------------------------------------------------------------------
 	/// A handler listens to an event source.
 	///
 	class Handler : public Interface { 
+		
+		/// -------------------------------------------------------------------
+		/// A pipe is a medium between a handler and a source. It provides
+		/// safe access to the handler.
+		///
+		class Pipe {
+			friend class Lock;
+			Handler    *m_handler;
+			std::mutex m_mutex; 
+
+		public:
+			Pipe( Handler &parent );
+			Handler &GetHandler();
+
+			std::mutex &GetLock() { return m_mutex; }
+		};
+		
+		/// -------------------------------------------------------------------
+		/// A handler lock secures a handler pipe for thread safe access.
+		///
+		class Lock {
+			std::lock_guard<std::mutex> m_lock;
+		public:
+			Lock( Pipe &pipe );
+			Handler *operator()();
+		};
+
 		friend class Source;
 		friend class Dispatcher;
-
-		std::mutex       m_mutex;
-		std::atomic_bool m_disabled;
-
-		std::vector<Source*> m_sources;
-		
+		 
+		std::shared_ptr<Pipe> pipe;
+		 
 	public:
 
 		/// -------------------------------------------------------------------
@@ -72,11 +100,12 @@ namespace Asev {
 	///
 	class Source {
 		friend class Dispatcher;
+		friend class Handler;
 
 		std::mutex m_mutex;
 
 		// subscribed handlers
-		std::vector<Handler*> m_handlers;
+		std::vector<std::shared_ptr<Handler::Pipe>> m_pipes;
 		 
 	public:
 		Source();
@@ -113,7 +142,8 @@ namespace Asev {
 		/// -------------------------------------------------------------------
 		/// Dispatch an event.
 		///
-		/// @param e Event to forward to all regsitered handlers.
+		/// @param e Event to forward to all registered handlers.
+		///
 		void Send( Event &e );
 	};
 }
