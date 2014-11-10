@@ -130,7 +130,7 @@ Dispatcher::Dispatcher( Source &source ) :
 int Dispatcher::Send( Event &e ) {
 	int result = 0; 
 
-	if( m_source.m_disabled ) return;
+	if( m_source.m_disabled ) return 0;
 
 	for( auto pipe = m_source.m_pipes.begin(); 
 			pipe != m_source.m_pipes.end(); ) {

@@ -82,7 +82,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		
 		// shutdown stream.
 		StopReceive();
-		Close();
+		DoClose();
 		return;
 	}
 
@@ -104,7 +104,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		// send event
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Disconnected( boost::system::error_code() );
-		
+		return;
 	}
 }
 
@@ -126,16 +126,15 @@ void Stream::StopReceive() {
 ///        receive call.
 ///  
 void Stream::StartReceive( bool first ) {
-//	std::lock_guard<std::mutex> lock(m_recv_lock);
 
 	if( first ) assert( m_receiving==false );
 	m_receiving = true;
 	m_socket.async_receive( 
 		boost::asio::buffer( m_recv_buffer ), 
-		boost::bind( 
+		m_strand.wrap( boost::bind( 
 			&Stream::OnReceive, shared_from_this(), 
 			boost::asio::placeholders::error, 
-			boost::asio::placeholders::bytes_transferred ) );
+			boost::asio::placeholders::bytes_transferred )));
 }
 
 /// ---------------------------------------------------------------------------
@@ -147,7 +146,6 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 	if( error ) {
 		// error during send, this is an "unexpected" error.
 
-		m_connected = false;
 		{
 			// disconnect with error status
 			Events::Stream::Dispatcher ev( shared_from_this() );
@@ -156,15 +154,20 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 		}
 
 		// shutdown.
-		std::lock_guard<std::mutex> lock(m_send_lock);
-		m_sending = false;
-		m_cv_send_complete.notify_all();
-		Close();
+		{
+			std::lock_guard<std::mutex> lock( m_lock );
+			m_sending = false;
+			m_connected = false;
+			m_cv_send_complete.notify_all();
+		}
+		
+		DoClose();
 		return;
 	}
 
 	if( (int)bytes_transferred < m_send_write ) {
-		memcpy( m_send_buffer, m_send_buffer+bytes_transferred, m_send_write-bytes_transferred );
+		memcpy( m_send_buffer, m_send_buffer+bytes_transferred,
+				m_send_write-bytes_transferred );
 		m_send_write -= bytes_transferred;
 	} else {
 		m_send_write = 0;
@@ -222,13 +225,14 @@ void Stream::ContinueSend() {
 			// send some data
 			m_socket.async_send( 
 				boost::asio::buffer( m_send_buffer, m_send_write ), 
-				boost::bind( &Stream::OnDataSent, this, 
+				m_strand.wrap(
+					boost::bind( &Stream::OnDataSent, this, 
 							 boost::asio::placeholders::error, 
-							 boost::asio::placeholders::bytes_transferred ));
+							 boost::asio::placeholders::bytes_transferred )));
 
 			return;
 		} else {
-			std::lock_guard<std::mutex> lock(m_send_lock);
+			std::lock_guard<std::mutex> lock( m_lock );
 			if( m_send_fifo.Count() > 0 ) {
 				continue;
 			} else {
@@ -246,7 +250,7 @@ void Stream::Init() {
 	m_recv_write = 0;
 	m_receiving = false;
 	m_sending = false;
-	m_connected = false; 
+	m_connected = false;
 	 
 	m_userdata = nullptr; 
 	m_shutdown = false; 
@@ -260,51 +264,37 @@ void Stream::Init() {
 
 //-----------------------------------------------------------------------------
 Stream::Stream( System::Service &service ) : 
-			m_service(service), m_socket( m_service() ) {
+			m_service(service), m_socket( m_service() ), 
+			m_strand( m_service() ) {
 	 
 	Init();
 }
 
 //-----------------------------------------------------------------------------
-Stream::Stream() : m_service(Net::DefaultService()), m_socket( m_service() ) {
+Stream::Stream() : 
+			m_service(Net::DefaultService()), m_socket( m_service() ),
+			m_strand( m_service() ) {
 	
 	Init();
 }
 
 //-----------------------------------------------------------------------------
 void Stream::Close() {
-	using namespace boost::asio::ip;
 
-	std::lock_guard<std::mutex> lock(m_main_lock);
-
-	///////////////////////////////////////////////////Events::Stream::Dispatcher( shared_from_this() );
-	// TODO: how do async events handle this shit?
-//	Event::Lock lock( m_event_handler );
-	
-	int shutdown = m_shutdown.exchange( true );
-	if( shutdown ) return; // we have already shut down. 
-
-	boost::system::error_code ec;
-
-	if( m_connected ) {
-		m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
-	}
-
-	m_service.Post(
-		boost::bind( &Stream::CloseAfterSend, 
-					 shared_from_this() ) ); 
+	m_service.Post( m_strand.wrap( 
+		boost::bind( &Stream::DoClose, shared_from_this() )));
 }
 
 //-----------------------------------------------------------------------------
 Stream::~Stream() {
 
-	// destructor should not be called while operations are in progress.
+	// these operations keep the stream alive, if the destructor is called
+	// when they are active something is wrong.
 	assert( m_sending == false ); 
 	assert( m_receiving == false );
-	
-	boost::system::error_code ec; 
-	m_socket.shutdown( m_socket.shutdown_both, ec );
-	m_socket.close(); //   this cancels any async operations
+	 
+	// the socket should not be open when the destructor is called.
+	//m_socket.close();	
 	 
 	// free memory TODO smart packet pointers
 	if( m_recv_packet ) Packet::Delete( m_recv_packet );
@@ -312,16 +302,40 @@ Stream::~Stream() {
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Wait until the send buffer is empty and then close the socket.
+/// [PRIVATE] Cleanly close the socket.
 ///
-void Stream::CloseAfterSend() {
-	
-	std::unique_lock<std::mutex> lock(m_send_lock);
-	while( m_sending ) {
-		m_cv_send_complete.wait( lock );
+void Stream::DoClose() {
+	using namespace boost::asio::ip; 
+
+	std::unique_lock<std::mutex> lock( m_lock ); 
+	m_shutdown = true;
+
+	boost::system::error_code ec;
+	m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
+
+	if( m_connected ) {
+		m_connected = false; 
+
+		// wait until any sending is complete.
+		while( m_sending ) {
+			m_cv_send_complete.wait( lock );
+		}
+
+		// TODO: do we need to linger here for the data to be sent?
+	} else {
+
 	}
 
 	m_socket.close();
+}
+
+//-----------------------------------------------------------------------------
+void Stream::SetConnected() {
+	if( m_shutdown ) return;
+
+	m_connected = true; 
+	StartReceive( true );  
+	CheckStartWrite();
 }
 
 /// ---------------------------------------------------------------------------
@@ -329,15 +343,12 @@ void Stream::CloseAfterSend() {
 ///
 void Stream::OnAccept( const boost::system::error_code &error ) {
 
-	std::lock_guard<std::mutex> lock(m_main_lock);
 	if( !error ) {
-		m_connected = true;
 
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Accepted();
-
-		StartReceive( true ); 
 		
+		SetConnected();
 	} else { 
 
 		Events::Stream::Dispatcher( shared_from_this() )
@@ -352,8 +363,7 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 ///
 void Stream::OnResolve( const boost::system::error_code &error_code, 
 					boost::asio::ip::tcp::resolver::iterator endpoints ) {
-
-	std::lock_guard<std::mutex> lock(m_main_lock);
+	
 	if( error_code ) {
 		Events::Stream::Dispatcher( shared_from_this() )
 			.ConnectError( error_code );
@@ -361,9 +371,10 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 	} else {
 		// resolve OK, do connect.
 		boost::asio::async_connect( m_socket, endpoints, 
-			boost::bind( &Stream::OnConnect, 
+			m_strand.wrap( 
+				boost::bind( &Stream::OnConnect, 
 						shared_from_this(), 
-						boost::asio::placeholders::error ) );
+						boost::asio::placeholders::error )));
 	}
 }
 
@@ -371,25 +382,22 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 /// [PRIVATE] Callback for boost::asio::async_connect
 ///
 void Stream::OnConnect( const boost::system::error_code &error ) {
-	
-	std::lock_guard<std::mutex> lock(m_main_lock);
+	 
 	if( error ) {
 		Events::Stream::Dispatcher( shared_from_this() )
 			.ConnectError( error );
 		return;
 	}
 	
-	m_connected = true;
+	Events::Stream::Dispatcher( shared_from_this() ).Connected(); 
 
-	Events::Stream::Dispatcher( shared_from_this() ).Connected();
-
-	StartReceive( true );
+	SetConnected();
 }
 
 //-----------------------------------------------------------------------------
 Packet *Stream::Read() {
 	return m_recv_fifo.Pop();
-} 
+}
 
 //-----------------------------------------------------------------------------
 void Stream::WaitForData() {
@@ -399,24 +407,46 @@ void Stream::WaitForData() {
 //-----------------------------------------------------------------------------
 void Stream::WaitSend() {
 	
-	std::unique_lock<std::mutex> lock(m_send_lock);
+	std::unique_lock<std::mutex> lock( m_lock );
 	while( m_sending ) {
 		m_cv_send_complete.wait( lock );
 	}
 }
-
+		
 //-------------------------------------------------------------------------------------------------
 void Stream::Write( Packet *p ) {
 	m_send_fifo.Push(p);
 	{
-		std::lock_guard<std::mutex> lock(m_send_lock);
+		std::lock_guard<std::mutex> lock( m_lock );
+		if( !m_connected ) return;
 		if( m_sending ) return;
-		m_send_read = 0;
-		m_send_write = 0;
-		m_send_packet = 0;
 		m_sending = true;
-		ContinueSend();
 	}
+
+	m_service.Post( 
+		m_strand.wrap( boost::bind(
+			&Stream::StartWrite, shared_from_this() ))); 
+}
+
+//-------------------------------------------------------------------------------------------------
+void Stream::CheckStartWrite() {
+	// check if there is data and start the write process.
+	std::lock_guard<std::mutex> lock( m_lock );
+	if( m_send_fifo.Count() > 0 ) {
+		StartWrite();
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+// [PRIVATE] [STRANDED] Start the packet writing service.
+//
+void Stream::StartWrite() {
+	m_send_read = 0;
+	m_send_write = 0;
+	m_send_packet = 0;
+	m_sending = true;
+
+	ContinueSend();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -426,23 +456,42 @@ const std::string &Stream::GetHostname() const {
 
 //-------------------------------------------------------------------------------------------------
 void Stream::Connect( const std::string &host, const std::string &service ) {
+	assert( !m_shutdown );
 	assert( !m_connected );
+
 	Resolver resolver;
 	m_hostname = host + ":" + service; 
 	boost::asio::connect( m_socket, resolver.Resolve( host, service ) );
-	m_connected = true;
+
 	Events::Stream::Dispatcher( shared_from_this() )
 		.Connected();
+
+	m_service.Post( m_strand.wrap( 
+		boost::bind( &Stream::SetConnected, this )));
+}
+
+//-------------------------------------------------------------------------------------------------
+void Stream::ConnectAsync( const std::string &host, const std::string &service ) {
+	assert( !m_shutdown );
+	assert( !m_connected );
+
+	m_hostname = host + ":" + service;
+	Resolver::CreateThreaded( host, service, 
+		m_strand.wrap( 
+			boost::bind( 
+				&Stream::OnResolve, shared_from_this(), _1, _2 )));
 }
 
 //-------------------------------------------------------------------------------------------------
 void Stream::Listen( BasicListener &listener ) {
+	assert( !m_shutdown );
 	assert( !m_connected );
+
 	listener.AsyncAccept(
 		m_socket, 
-		boost::bind(
+		m_strand.wrap( boost::bind(
 			&Stream::OnAccept, shared_from_this(),
-			boost::asio::placeholders::error ));
+			boost::asio::placeholders::error )));
 }
 
 }

@@ -26,12 +26,15 @@ class Stream :
 		public std::enable_shared_from_this<Stream>, 
 		public Asev::Source {
 private:
-	void *m_userdata; 
+	std::atomic<void*> m_userdata; 
 
 	// where this connection is coming from/going to
 	std::string m_hostname;
 
 	System::Service &m_service;
+	
+	// strand used to synchronize operations
+	boost::asio::strand m_strand;
 		
 	// tcp socket
 	boost::asio::ip::tcp::socket m_socket;
@@ -58,10 +61,14 @@ private:
 	int m_send_read; // position in packet; >=2 is data, 0,1 is header (size)
 	int m_send_write; // position in send buffer
 	bool m_sending;
-	std::mutex m_send_lock;
-	std::condition_variable m_cv_send_complete;
+ 
+	//std::mutex m_send_lock;
 
-	std::mutex m_main_lock;
+	//std::mutex m_main_lock;
+
+	// for safe outside access.
+	std::mutex m_lock;
+	std::condition_variable m_cv_send_complete;
 
 	// connected is FALSE upon construction
 	// TRUE upon connection
@@ -69,11 +76,11 @@ private:
 	//
 	// that is the lifetime of the object,
 	// and it should not be revived.
-	std::atomic_bool m_connected; 
+	bool m_connected; 
 
 	// shutdown is FALSE upon construction
 	// and TRUE after Close is called.
-	std::atomic_bool m_shutdown;
+	bool m_shutdown;
 	 
 	int ProcessDataRecv( const uint8_t *data, int size );
 	void OnReceive( const boost::system::error_code& error, 
@@ -89,8 +96,11 @@ private:
 		 
 	void StartReceive( bool first ); 
 	void StopReceive(); 
+	void CheckStartWrite();
+	void StartWrite();
+	void SetConnected();
 
-	void CloseAfterSend();
+	void DoClose();
 
 public:
 	Stream( System::Service &service );
@@ -143,6 +153,11 @@ public:
 	/// @return TCP socket.
 	///
 	boost::asio::ip::tcp::socket &Socket() { return m_socket; }
+	
+	/// -----------------------------------------------------------------------
+	/// @returns The service object for this stream.
+	/// 
+	System::Service &GetService() { return m_service; }
 		
 	/// -----------------------------------------------------------------------
 	/// Block until data is received.
@@ -173,12 +188,7 @@ public:
 	/// @param p Packet to queue.
 	///
 	void Write( Packet *p );
-	
-	/// -----------------------------------------------------------------------
-	/// Remove/disable the event handler for this stream.
-	///
-	void RemoveEventHandler();
-
+	 
 	/// -----------------------------------------------------------------------
 	/// Get hostname of last connect operation
 	///

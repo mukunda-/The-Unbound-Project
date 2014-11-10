@@ -9,6 +9,7 @@
 #include "system/console.h"
 #include "net/stream.h"
 #include "net/listener.h"
+#include "net/nwcore.h"
 
 class MyStream : public Net::Stream {
 
@@ -21,7 +22,7 @@ class TestProgram : public System::Program {
 		TestProgram &m_parent;
 
 		void Accepted( Net::Stream::ptr &stream ) override {
-			 
+			System::Console::Print( "Something connected." );
 		}
 		
 	public:
@@ -48,7 +49,7 @@ public:
 	}
 
 	void OnStart() {
-		//m_listener.Start();
+		m_listener.Start();
 	}
 };
 
@@ -75,6 +76,7 @@ void RunProgram() {
 //-------------------------------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) { 
 	System::Instance i_system(2); 
+	Net::Instance i_net(2);
 	{
 	//	setvbuf(stdin, NULL, _IONBF, 0); //turn off buffering
 	//	getchar();

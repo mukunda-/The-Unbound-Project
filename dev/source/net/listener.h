@@ -18,10 +18,10 @@ namespace Net {
 			Listener &m_parent;
 
 		public:
-			void Accepted( StreamPtr &stream );
+			void Accepted( StreamPtr &stream ) override;
 
 			void AcceptError( StreamPtr &stream, 
-							  const boost::system::error_code &error );
+							  const boost::system::error_code &error ) override;
 
 			EventHandler( Listener &parent );
 		};
@@ -30,12 +30,13 @@ namespace Net {
 		std::function<StreamPtr()> m_factory;
 
 		Events::Stream::Handler *m_user_handler;
-
 		EventHandler m_accept_handler;
-
 		StreamPtr m_current_stream;
-
 		std::mutex m_mutex;
+		bool m_started;
+
+		void Accept();
+		void OnCompleted();
 		
 	public:
 		
