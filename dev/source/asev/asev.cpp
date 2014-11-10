@@ -86,6 +86,10 @@ bool Handler::Lock::IsClosed() {
 }
 
 //-----------------------------------------------------------------------------
+Source::Source() : m_disabled(false) {
+}
+
+//-----------------------------------------------------------------------------
 void Source::AsevSubscribe( Handler &handler ) {
 	std::lock_guard<std::mutex> lock( m_mutex );
 	std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
@@ -103,8 +107,20 @@ void Source::AsevUnsubscribe( Handler &handler ) {
 }
 
 //-----------------------------------------------------------------------------
+void Source::AsevDisable() {
+	std::lock_guard<std::mutex> lock( m_mutex );
+	m_disabled = true;
+}
+
+//-----------------------------------------------------------------------------
+void Source::AsevEnable() {
+	std::lock_guard<std::mutex> lock( m_mutex );
+	m_disabled = false;
+}
+
+//-----------------------------------------------------------------------------
 Dispatcher::Dispatcher( Source &source ) :
-	m_source(source), 
+	m_source( source ), 
 	m_lock( m_source.m_mutex )
 {
 
@@ -113,6 +129,9 @@ Dispatcher::Dispatcher( Source &source ) :
 //-----------------------------------------------------------------------------
 int Dispatcher::Send( Event &e ) {
 	int result = 0; 
+
+	if( m_source.m_disabled ) return;
+
 	for( auto pipe = m_source.m_pipes.begin(); 
 			pipe != m_source.m_pipes.end(); ) {
 

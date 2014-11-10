@@ -15,6 +15,7 @@
 #include "packetfifo.h"
 #include "netevents.h"
 #include "system/system.h"
+#include "basiclistener.h"
 
 namespace Net {
 
@@ -48,8 +49,8 @@ private:
 	int m_recv_size;
 	int m_recv_write;
 	bool m_receiving;
-	std::mutex m_recv_lock;
-	std::condition_variable m_cv_recv_complete;
+	//std::mutex m_recv_lock;
+	//std::condition_variable m_cv_recv_complete;
 		
 	PacketFIFO m_send_fifo; // packets waiting to be sent
 	Packet *m_send_packet; // packet currently being transmitted
@@ -59,6 +60,8 @@ private:
 	bool m_sending;
 	std::mutex m_send_lock;
 	std::condition_variable m_cv_send_complete;
+
+	std::mutex m_main_lock;
 
 	// connected is FALSE upon construction
 	// TRUE upon connection
@@ -72,7 +75,6 @@ private:
 	// and TRUE after Close is called.
 	std::atomic_bool m_shutdown;
 	 
-		
 	int ProcessDataRecv( const uint8_t *data, int size );
 	void OnReceive( const boost::system::error_code& error, 
 					size_t bytes_transferred );
@@ -104,6 +106,36 @@ public:
 	/// delete itself after all pending send data is put out on the line.
 	///
 	void Close();
+	  
+	/// -----------------------------------------------------------------------
+	/// Listen and accept an incoming connection.
+	///
+	/// This does not block, and will send an Accepted or AcceptError
+	/// event.
+	///
+	/// @param listener Active listener to wait on.
+	///
+	void Listen( BasicListener &listener );
+
+	/// -----------------------------------------------------------------------
+	/// Try to connect to a remote point.
+	///
+	/// @param host    Remote host address.
+	/// @param service Service/port number.
+	///
+	/// @throws boost::system::system_error on failure.
+	///
+	void Connect( const std::string &host, const std::string &service );
+	
+	/// -----------------------------------------------------------------------
+	/// Make a remote connection asynchronously.
+	///
+	/// Will emit a Connected or ConnectError event.
+	///
+	/// @param host    Remote address.
+	/// @param service Service/port number to connect to. 
+	///
+	void ConnectAsync( const std::string &host, const std::string &service );
 
 	/// -----------------------------------------------------------------------
 	/// Get the underlying boost asio socket object

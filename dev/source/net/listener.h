@@ -9,13 +9,33 @@ namespace Net {
 
 	class Stream;
 	typedef std::shared_ptr<Stream> StreamPtr;
-
+	 
 	class Listener : public BasicListener {
+
+		//---------------------------------------------------------------------------
+		class EventHandler : public Events::Stream::Handler {
+
+			Listener &m_parent;
+
+		public:
+			void Accepted( StreamPtr &stream );
+
+			void AcceptError( StreamPtr &stream, 
+							  const boost::system::error_code &error );
+
+			EventHandler( Listener &parent );
+		};
 
 		// factory to create a desired stream object
 		std::function<StreamPtr()> m_factory;
 
-		Events::Stream::Handler *m_event_handler;
+		Events::Stream::Handler *m_user_handler;
+
+		EventHandler m_accept_handler;
+
+		StreamPtr m_current_stream;
+
+		std::mutex m_mutex;
 		
 	public:
 		

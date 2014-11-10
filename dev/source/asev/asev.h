@@ -123,8 +123,11 @@ namespace Asev {
 
 		// subscribed handlers
 		std::vector<std::shared_ptr<Handler::Pipe>> m_pipes;
+
+		bool m_disabled;
 		 
 	public: 
+		Source();
 
 		/// -------------------------------------------------------------------
 		/// Add an event handler to this source.
@@ -139,6 +142,16 @@ namespace Asev {
 		/// @param handler Event handler instance.
 		///
 		virtual void AsevUnsubscribe( Handler &handler );
+
+		/// -------------------------------------------------------------------
+		/// Stop any further events from being dispatched.
+		///
+		virtual void AsevDisable();
+
+		/// -------------------------------------------------------------------
+		/// Allow events to be dispatched again.
+		///
+		virtual void AsevEnable();
 	};
 	 
 	/// -----------------------------------------------------------------------

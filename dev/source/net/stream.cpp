@@ -5,6 +5,7 @@
 #include <stdafx.h>
 #include "nwcore.h"
 #include "stream.h"
+#include "resolver.h"
 #include "util/minmax.h"
 
 namespace Net {
@@ -88,7 +89,8 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	// parse packets from data stream
 	size_t read = 0;
 	while( read < bytes_transferred ) {
-		int processed = ProcessDataRecv( m_recv_buffer + read, bytes_transferred-read );
+		int processed = ProcessDataRecv( m_recv_buffer + read, 
+										 bytes_transferred-read );
 		read += processed;
 	}
 	 
@@ -98,6 +100,11 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	} else {
 		// shutdown.
 		StopReceive();
+
+		// send event
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Disconnected( boost::system::error_code() );
+		
 	}
 }
 
@@ -106,9 +113,9 @@ void Stream::OnReceive( const boost::system::error_code& error,
 ///  
 void Stream::StopReceive() {
 	
-	std::lock_guard<std::mutex> lock(m_recv_lock); 
+	//std::lock_guard<std::mutex> lock(m_recv_lock); 
 	m_receiving = false;
-	m_cv_recv_complete.notify_all();
+	//m_cv_recv_complete.notify_all();
 }
 
 /// ---------------------------------------------------------------------------
@@ -119,7 +126,7 @@ void Stream::StopReceive() {
 ///        receive call.
 ///  
 void Stream::StartReceive( bool first ) {
-	std::lock_guard<std::mutex> lock(m_recv_lock);
+//	std::lock_guard<std::mutex> lock(m_recv_lock);
 
 	if( first ) assert( m_receiving==false );
 	m_receiving = true;
@@ -145,7 +152,7 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 			// disconnect with error status
 			Events::Stream::Dispatcher ev( shared_from_this() );
 			ev.SendFailed( error );
-			ev.Disconnected( error ); 
+			//ev.Disconnected( error );  this is called by the receive handler.
 		}
 
 		// shutdown.
@@ -239,10 +246,9 @@ void Stream::Init() {
 	m_recv_write = 0;
 	m_receiving = false;
 	m_sending = false;
-	m_connected = false;
+	m_connected = false; 
 	 
-	m_userdata = nullptr;
-
+	m_userdata = nullptr; 
 	m_shutdown = false; 
 	
 	// this doesn't work:
@@ -252,14 +258,14 @@ void Stream::Init() {
 //	socket.set_option(option,ec);
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Stream::Stream( System::Service &service ) : 
 			m_service(service), m_socket( m_service() ) {
 	 
 	Init();
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Stream::Stream() : m_service(Net::DefaultService()), m_socket( m_service() ) {
 	
 	Init();
@@ -269,6 +275,9 @@ Stream::Stream() : m_service(Net::DefaultService()), m_socket( m_service() ) {
 void Stream::Close() {
 	using namespace boost::asio::ip;
 
+	std::lock_guard<std::mutex> lock(m_main_lock);
+
+	///////////////////////////////////////////////////Events::Stream::Dispatcher( shared_from_this() );
 	// TODO: how do async events handle this shit?
 //	Event::Lock lock( m_event_handler );
 	
@@ -319,6 +328,8 @@ void Stream::CloseAfterSend() {
 /// [PRIVATE] Callback for when a connection is accepted.
 ///
 void Stream::OnAccept( const boost::system::error_code &error ) {
+
+	std::lock_guard<std::mutex> lock(m_main_lock);
 	if( !error ) {
 		m_connected = true;
 
@@ -341,6 +352,8 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 ///
 void Stream::OnResolve( const boost::system::error_code &error_code, 
 					boost::asio::ip::tcp::resolver::iterator endpoints ) {
+
+	std::lock_guard<std::mutex> lock(m_main_lock);
 	if( error_code ) {
 		Events::Stream::Dispatcher( shared_from_this() )
 			.ConnectError( error_code );
@@ -358,6 +371,8 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 /// [PRIVATE] Callback for boost::asio::async_connect
 ///
 void Stream::OnConnect( const boost::system::error_code &error ) {
+	
+	std::lock_guard<std::mutex> lock(m_main_lock);
 	if( error ) {
 		Events::Stream::Dispatcher( shared_from_this() )
 			.ConnectError( error );
@@ -407,6 +422,27 @@ void Stream::Write( Packet *p ) {
 //-------------------------------------------------------------------------------------------------
 const std::string &Stream::GetHostname() const {
 	return m_hostname;
+}
+
+//-------------------------------------------------------------------------------------------------
+void Stream::Connect( const std::string &host, const std::string &service ) {
+	assert( !m_connected );
+	Resolver resolver;
+	m_hostname = host + ":" + service; 
+	boost::asio::connect( m_socket, resolver.Resolve( host, service ) );
+	m_connected = true;
+	Events::Stream::Dispatcher( shared_from_this() )
+		.Connected();
+}
+
+//-------------------------------------------------------------------------------------------------
+void Stream::Listen( BasicListener &listener ) {
+	assert( !m_connected );
+	listener.AsyncAccept(
+		m_socket, 
+		boost::bind(
+			&Stream::OnAccept, shared_from_this(),
+			boost::asio::placeholders::error ));
 }
 
 }
