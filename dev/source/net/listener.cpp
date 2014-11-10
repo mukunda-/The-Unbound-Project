@@ -20,7 +20,8 @@ namespace Net {
 	void Listener::Start() {
 		Stream::ptr stream = m_factory();
 		if( m_event_handler ) stream->AsevSubscribe( *m_event_handler );
-	}
 
+		
+	}
 
 }

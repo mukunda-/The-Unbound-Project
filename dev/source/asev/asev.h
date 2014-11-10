@@ -159,6 +159,6 @@ namespace Asev {
 		///
 		/// @param e Event to forward to all registered handlers.
 		///
-		virtual void Send( Event &e );
+		virtual int Send( Event &e );
 	};
 }

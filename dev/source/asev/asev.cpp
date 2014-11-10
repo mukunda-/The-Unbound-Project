@@ -111,7 +111,8 @@ Dispatcher::Dispatcher( Source &source ) :
 }
 
 //-----------------------------------------------------------------------------
-void Dispatcher::Send( Event &e ) {
+int Dispatcher::Send( Event &e ) {
+	int result = 0; 
 	for( auto pipe = m_source.m_pipes.begin(); 
 			pipe != m_source.m_pipes.end(); ) {
 
@@ -124,9 +125,11 @@ void Dispatcher::Send( Event &e ) {
 			continue;
 		}
 
-		handler->Handle( e );
+		
+		result = handler->Handle( e );
 		pipe++;
 	}
+	return result;
 }
 
 //-----------------------------------------------------------------------------

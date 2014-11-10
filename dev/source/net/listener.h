@@ -27,8 +27,7 @@ namespace Net {
 		/// @param handler Event handler to associate with the stream object. 
 		///                You can also hook your event handler in the 
 		///                factory and/or leave this omitted.
-		Listener( unsigned short port, 
-				  std::function<StreamPtr()> factory, 
+		Listener( unsigned short port, std::function<StreamPtr()> factory, 
 				  Events::Stream::Handler *handler = nullptr );
 
 		/// -------------------------------------------------------------------

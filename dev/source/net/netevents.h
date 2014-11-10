@@ -24,11 +24,14 @@ namespace Net {
 namespace Net { namespace Events { 
 	
 	namespace Stream { 
+
 		typedef std::shared_ptr<Net::Stream> StreamPtr;
 
+		//-------------------------------------------------------------------------
 		class Event : public Asev::Event {
 
 		protected:
+			friend class Handler;
 		
 			enum Classes {
 				ACCEPTED,
@@ -43,7 +46,7 @@ namespace Net { namespace Events {
 			StreamPtr m_stream;
 			Classes m_class;
 
-			Event( Classes event_class );
+			Event( StreamPtr &stream, Classes event_class );
 
 		public:
 			class Accepted;
@@ -59,45 +62,77 @@ namespace Net { namespace Events {
 			}
 		};
 
+		//-------------------------------------------------------------------------
 		class ErrorEvent : public Event {
 
 			const boost::system::error_code &m_error;
+		protected:
+			ErrorEvent( StreamPtr &stream, 
+						const boost::system::error_code &error, 
+						Classes event_class );
 		public:
-			ErrorEvent( const boost::system::error_code &error );
-			const boost::system::error_code &GetError() { return m_error; }
+			const boost::system::error_code &GetError() { 
+				return m_error; 
+			}
 		};
 
+		//-------------------------------------------------------------------------
 		class Event::Accepted : public Event {
-			Accepted();
+		public:
+			Accepted( StreamPtr &stream );
 		};
 
+		//-------------------------------------------------------------------------
 		class Event::AcceptError : public ErrorEvent {
-			AcceptError();
+		public:
+			AcceptError( StreamPtr &stream, 
+						 const boost::system::error_code &error );
 		};
 
+		//-------------------------------------------------------------------------
 		class Event::ConnectError : public ErrorEvent {
-			ConnectError();
+		public:
+			ConnectError( StreamPtr &stream, 
+						  const boost::system::error_code &error );
 		};
 
+		//-------------------------------------------------------------------------
 		class Event::Connected : public Event {
-			Connected();
+		public:
+			Connected( StreamPtr &stream );
 		};
 
+		//-------------------------------------------------------------------------
+		class Event::Disconnected : public ErrorEvent {
+		public:
+			Disconnected( StreamPtr &stream,
+						  const boost::system::error_code &error );
+		};
+
+		//-------------------------------------------------------------------------
 		class Event::SendFailed : public ErrorEvent {
-			SendFailed();
+		public:
+			SendFailed( StreamPtr &stream, 
+						const boost::system::error_code &error );
 		};
 
+		//-------------------------------------------------------------------------
 		class Event::Receive : public Event {
-			Receive();
+			Packet &m_packet;
+		public:
+			Receive( StreamPtr &stream, Packet &packet );
+
+			Packet &GetPacket() {
+				return m_packet;
+			}
 		};
-
-
+		 
 		/// -----------------------------------------------------------------------
 		/// The interface for network events.
 		///
 		class Handler : public Asev::Handler {
 
-		public:
+		protected:
 			/// -------------------------------------------------------------------
 			/// Called when a new stream is accepted/created.
 			///
@@ -169,6 +204,8 @@ namespace Net { namespace Events {
 			
 				return false; 
 			}
+		public:
+			virtual int Handle( Asev::Event &e ) override;
 		};
 	 
 		/// -----------------------------------------------------------------------
@@ -178,8 +215,15 @@ namespace Net { namespace Events {
 
 			StreamPtr &m_stream;
 		public:
+
+			/// -------------------------------------------------------------------
+			/// Lock a stream source to dispatch events.
+			///
+			/// @param parent Stream source to lock.
+			///
 			Dispatcher( StreamPtr &parent );
 
+			// see Handler.
 			void Accepted();
 			void AcceptError( const boost::system::error_code &error );
 			void ConnectError( const boost::system::error_code &error );
