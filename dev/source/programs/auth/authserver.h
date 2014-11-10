@@ -7,58 +7,57 @@
 #include "system/program.h"
 
 #include "system/console.h"
-#include "net/network_all.h"
+#include "net/stream.h"
+#include "net/listener.h"
+#include "net/netevents.h"
 
 namespace User {
 
+class AuthStream : public Net::Stream {
+
+	enum {
+		STATE_LOGIN,
+		STATE_DONE,
+	};
+
+	int m_state;
+
+public:
+	AuthStream();
+};
+
 class AuthServer : public System::Program {
 	 
-	class NetEventHandler : public Net::Connection::EventHandler {
+	class NetEventHandler : public Net::Events::Stream::Handler {
 
 		AuthServer &m_parent;
 		 
-		void AcceptError( Net::Connection &connection, 
+		void AcceptError( Net::Stream::ptr &stream, 
 						  const boost::system::error_code &error  ) override {
 			
-			System::Log( "Connection failed to accept." );
-			m_parent.AcceptConnection();
+			System::Log( "A connection failed to accept." );
 		}
 
-		void AcceptedConnection( Net::Connection &connection ) override {
+		void Accepted( Net::Stream::ptr &stream ) override {
 
 		}
 
 	public:
 		
-		NetEventHandler( AuthServer &parent ) : m_parent(parent) {}
+		NetEventHandler( AuthServer &parent );
 	};
 
 	NetEventHandler m_event_handler;
-
 	Net::Listener m_listener; 
 	
 public:
-	AuthServer() : m_event_handler(*this), 
-				   m_listener( 32791, m_event_handler )
-	{
-
-	}
+	AuthServer();
 
 protected:
-	void OnStart() override {
-		AcceptConnection();
-	}
+	void OnStart() override;
 
 private:
-	void AcceptConnection() {
-		auto connection = 
-			std::shared_ptr<Net::Connection>( 
-					new Net::Connection());
-
-	 
-		connection->Listen( m_listener );
-		System::Log( "Listening." );
-	}
+	static Net::StreamPtr StreamFactory();
 };
 
 }

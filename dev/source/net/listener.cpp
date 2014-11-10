@@ -66,14 +66,18 @@ namespace Net {
 
 	//-------------------------------------------------------------------------
 	void Listener::EventHandler::Accepted( StreamPtr &stream ) {
-		stream->GetService().Post( &Listener::OnCompleted, &m_parent );
+		stream->GetService().Post( 
+				boost::bind( 
+					&Listener::OnCompleted, &m_parent ) );
 	}
 
 	//-------------------------------------------------------------------------
 	void Listener::EventHandler::AcceptError( 
 					StreamPtr &stream, 
 					const boost::system::error_code &error ) {
-		m_parent.OnCompleted();
+		stream->GetService().Post( 
+				boost::bind( 
+					&Listener::OnCompleted, &m_parent ) );
 	}
 								
 }

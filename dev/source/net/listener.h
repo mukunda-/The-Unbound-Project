@@ -50,6 +50,7 @@ namespace Net {
 		///                factory and/or leave this omitted.
 		Listener( unsigned short port, std::function<StreamPtr()> factory, 
 				  Events::Stream::Handler *handler = nullptr );
+		~Listener();
 
 		/// -------------------------------------------------------------------
 		/// Start listening for connections.

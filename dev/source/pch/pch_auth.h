@@ -23,3 +23,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/thread.hpp>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <memory>
+#include <atomic>
+#include <typeinfo>
