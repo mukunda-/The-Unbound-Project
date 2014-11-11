@@ -5,7 +5,7 @@
 // Asynchronous Events
 
 #pragma once 
- 
+
 #if !defined(_MUTEX_) || !defined(_MEMORY_) || !defined(_TYPEINFO_)
 #  error "Requires <mutex>, <memory>, <typeinfo>"
 #endif
@@ -124,7 +124,7 @@ namespace Asev {
 		// subscribed handlers
 		std::vector<std::shared_ptr<Handler::Pipe>> m_pipes;
 
-		bool m_disabled;
+		bool m_disabled = false;
 		 
 	public: 
 		Source();

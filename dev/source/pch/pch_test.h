@@ -47,3 +47,7 @@
 #else
 #include <unistd.h>
 #endif
+
+//- --- ----
+
+#include "google_protobuf.h"

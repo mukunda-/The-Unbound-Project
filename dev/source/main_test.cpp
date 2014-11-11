@@ -57,8 +57,8 @@ public:
 
 		{
 			Net::Proto::Test::Test test;
-			test.
-			::google::protobuf::MessageLite msg(test);
+//			test.
+//			::google::protobuf::MessageLite msg(test);
 			test.set_test_int( 5 );
 			test.set_test_string( "testes" );
 			test.SerializeToString( &str );

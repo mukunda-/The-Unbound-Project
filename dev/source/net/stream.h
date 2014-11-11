@@ -16,6 +16,7 @@
 #include "netevents.h"
 #include "system/system.h"
 #include "basiclistener.h"
+#include "message.h"
 
 namespace Net {
 
