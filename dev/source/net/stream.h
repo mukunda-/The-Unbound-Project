@@ -52,23 +52,19 @@ private:
 	int m_recv_size;
 	int m_recv_write;
 	bool m_receiving;
-	//std::mutex m_recv_lock;
-	//std::condition_variable m_cv_recv_complete;
-		
+			
 	PacketFIFO m_send_fifo; // packets waiting to be sent
 	Packet *m_send_packet; // packet currently being transmitted
 	uint8_t m_send_buffer[BUFFER_SIZE]; 
 	int m_send_read; // position in packet; >=2 is data, 0,1 is header (size)
 	int m_send_write; // position in send buffer
 	bool m_sending;
-
-	boost::asio::streambuf m_send_buffers[2];
-	int m_send_buffer_index;
 	
-	//std::mutex m_send_lock;
-
-	//std::mutex m_main_lock;
-
+	// new:
+//	boost::asio::streambuf m_read_buffer;
+//	boost::asio::streambuf m_send_buffers[2];
+//	int m_send_buffer_index;
+	 
 	// for safe outside access.
 	std::mutex m_lock;
 	std::condition_variable m_cv_send_complete;

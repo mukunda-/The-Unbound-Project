@@ -8,11 +8,27 @@ namespace Net {
 
 	class Message {
 
-		uint16_t header;
-		::google::protobuff::MessageLite data;
+		// the header determines the type of message.
+		uint32_t m_header;
 
 	public:
-		uint16_t Header() { return header; }
-		template <typename T> Get
+		Message( uint32_t header );
+		uint32_t Header() { return header; }	
+		template <typename T> operator()() {
+			return static_cast<T>(this);
+		}
+	};
+
+	/// -----------------------------------------------------------------------
+	/// PBWrapper is a protobuf wrapper that does not copy the source.
+	/// It represents a source that is used immediately and not stored.
+	///
+	class PBWrapper : public Message {
+
+		google::protobuf::MessageLite &m_msg;
+
+	public:
+		PBWrapper( uint32_t header, google::protobuf::MessageLite &msg );
+
 	};
 }

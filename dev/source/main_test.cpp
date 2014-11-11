@@ -53,9 +53,23 @@ public:
 	void OnStart() {
 		m_listener.Start();
 
-		Net::Proto::Test::Test test;
-		test.set_test( 5 );
-		System::Console::Print( "%s", test.DebugString().c_str() );
+		std::string str;
+
+		{
+			Net::Proto::Test::Test test;
+			test.
+			::google::protobuf::MessageLite msg(test);
+			test.set_test_int( 5 );
+			test.set_test_string( "testes" );
+			test.SerializeToString( &str );
+			
+		}
+		
+		//google::protobuf::MessageLite msg;
+		//msg.ParseFromString( str );
+		//Net::Proto::Test::Test &test = 
+		
+		System::Console::Print( "%s", str.c_str() );
 	}
 };
 
