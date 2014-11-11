@@ -5,7 +5,7 @@
 // Asynchronous Events
 
 #pragma once 
-
+ 
 #if !defined(_MUTEX_) || !defined(_MEMORY_) || !defined(_TYPEINFO_)
 #  error "Requires <mutex>, <memory>, <typeinfo>"
 #endif
