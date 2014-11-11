@@ -281,6 +281,7 @@ Stream::Stream() :
 //-----------------------------------------------------------------------------
 void Stream::Close() {
 
+
 	m_service.Post( m_strand.wrap( 
 		boost::bind( &Stream::DoClose, shared_from_this() )));
 }

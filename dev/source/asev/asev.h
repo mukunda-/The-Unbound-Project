@@ -171,6 +171,7 @@ namespace Asev {
 		/// Dispatch an event.
 		///
 		/// @param e Event to forward to all registered handlers.
+		/// @returns Return value of the last handler executed.
 		///
 		virtual int Send( Event &e );
 	};

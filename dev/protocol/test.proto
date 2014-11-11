@@ -2,7 +2,7 @@
 //                                                                             //
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
-package Protocol.Basic;
+package Net.Proto.Test; 
 
 message Test {
 	optional int32 test = 1;

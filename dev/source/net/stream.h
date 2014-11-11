@@ -61,7 +61,10 @@ private:
 	int m_send_read; // position in packet; >=2 is data, 0,1 is header (size)
 	int m_send_write; // position in send buffer
 	bool m_sending;
- 
+
+	boost::asio::streambuf m_send_buffers[2];
+	int m_send_buffer_index;
+	
 	//std::mutex m_send_lock;
 
 	//std::mutex m_main_lock;

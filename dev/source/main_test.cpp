@@ -11,6 +11,8 @@
 #include "net/listener.h"
 #include "net/nwcore.h"
 
+#include "test.pb.h"
+
 class MyStream : public Net::Stream {
 
 };
@@ -50,6 +52,10 @@ public:
 
 	void OnStart() {
 		m_listener.Start();
+
+		Net::Proto::Test::Test test;
+		test.set_test( 5 );
+		System::Console::Print( "%s", test.DebugString().c_str() );
 	}
 };
 
