@@ -4,7 +4,7 @@
 
 #include <stdafx.h>
 #include "stream.h"
-#include "netevents.h"
+#include "events.h"
 
 namespace Net { namespace Events {
 
@@ -62,8 +62,8 @@ namespace Stream {
 	}
 
 	//-------------------------------------------------------------------------
-	Event::Receive::Receive( StreamPtr &stream, Packet &packet ) :
-			Event( stream, RECEIVE ), m_packet(packet) {
+	Event::Receive::Receive( StreamPtr &stream, Remsg &msg ) :
+			Event( stream, RECEIVE ), m_msg(msg) {
 		
 	}
 
@@ -92,8 +92,8 @@ namespace Stream {
 			Disconnected( stream_event.m_stream, GETERROR );
 			break;
 		case Event::RECEIVE:
-			result = Receive( stream_event.m_stream, 
-							  static_cast<Event::Receive&>(e).GetPacket() );
+			Receive( stream_event.m_stream, 
+					static_cast<Event::Receive&>(e).GetMessage() );
 			break;
 		case Event::SENDFAILED:
 			SendFailed( stream_event.m_stream, GETERROR );
@@ -140,8 +140,8 @@ namespace Stream {
 	}
 
 	//-------------------------------------------------------------------------
-	bool Dispatcher::Receive( Packet &packet ) {
-		return Send( Event::Receive( m_stream, packet ) ) != 0;
+	void Dispatcher::Receive( Remsg &msg ) {
+		Send( Event::Receive( m_stream, msg ) );
 	}
 }
 

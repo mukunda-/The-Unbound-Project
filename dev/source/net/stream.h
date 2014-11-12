@@ -13,7 +13,7 @@
 #endif
 
 #include "packetfifo.h"
-#include "netevents.h"
+#include "events.h"
 #include "system/system.h"
 #include "basiclistener.h"
 #include "message.h"
@@ -42,6 +42,7 @@ private:
 		
 	// tcp socket
 	boost::asio::ip::tcp::socket m_socket;
+
 
 	// internal buffer size for storing data to be sent
 	static const int BUFFER_SIZE = 8*1024;
@@ -91,7 +92,7 @@ private:
 	// and TRUE after Close is called.
 	bool m_shutdown = false;
 	 
-	int ProcessDataRecv( const uint8_t *data, int size );
+//	int ProcessDataRecv( const uint8_t *data, int size );
 	void OnReceive( const boost::system::error_code& error, 
 					size_t bytes_transferred );
 	void OnDataSent( const boost::system::error_code& error,
@@ -103,11 +104,9 @@ private:
 	void OnResolve( const boost::system::error_code& ec, 
 			boost::asio::ip::tcp::resolver::iterator it );
 		 
-	void StartReceive( bool first ); 
-	void ParseMessage(  std::istream &is  );
-	void StopReceive(); 
-	void CheckStartWrite();
-	void StartWrite();
+	void StartReceive(); 
+	bool ParseMessage(  std::istream &is  );
+	void StopReceive();  
 	void SetConnected();
 
 	void DoClose();
@@ -177,7 +176,7 @@ public:
 	/// @throws RemoteDisconnected if the socket is disconnected while it is
 	///         waiting.
 	///
-	void WaitForData();
+	//void WaitForData();
 
 	/// -----------------------------------------------------------------------
 	/// Wait until all data in the output queue is put out on the line.
@@ -190,7 +189,7 @@ public:
 	/// @returns A packet, or nullptr if the receive queue was empty. The
 	///          packet must be deleted with Packet::Delete()
 	///
-	Packet *Read();
+	//Packet *Read();
 
 	/// -----------------------------------------------------------------------
 	/// Place a packet in the output queue.

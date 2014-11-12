@@ -16,15 +16,29 @@ namespace Net {
 	public:
 		Message( uint32_t header );
 		uint32_t Header() { return m_header; }
-		template <typename T> T operator()() {
-			return static_cast<T>(this);
-		}
-		
+
 		/// -------------------------------------------------------------------
 		/// Write the message contents to a stream.
 		///
-		virtual void Write( std::ostream &stream ) {};
+		virtual void Write( std::ostream &stream );
+	};
+
+	/// an intermediate received message
+	class Remsg : public Message {
+
+		std::istream &m_stream; // source stream
+		int m_length; // length of message data
+		bool m_parsed = false; // if the message was parsed.
+
+	public:
+		Remsg( uint32_t header, std::istream &stream, int length );
 		
+		/// -------------------------------------------------------------------
+		/// Parse a protobuf message from this.
+		///
+		/// @throws Net::ParseError on failure.
+		///
+		void Parse( google::protobuf::MessageLite &msg );
 	};
 
 	/// -----------------------------------------------------------------------

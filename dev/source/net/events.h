@@ -18,6 +18,7 @@
 namespace Net {
 
 	class Stream;  
+	class Remsg;
 }
  
 //-----------------------------------------------------------------------------
@@ -118,13 +119,11 @@ namespace Net { namespace Events {
 
 		//-------------------------------------------------------------------------
 		class Event::Receive : public Event {
-			Packet &m_packet;
+			Remsg &m_msg;
 		public:
-			Receive( StreamPtr &stream, Packet &packet );
+			Receive( StreamPtr &stream, Remsg &msg );
 
-			Packet &GetPacket() {
-				return m_packet;
-			}
+			Remsg &GetMessage() { return m_msg; }
 		};
 		 
 		/// -----------------------------------------------------------------------
@@ -190,19 +189,15 @@ namespace Net { namespace Events {
 					const boost::system::error_code &error ) {}
 
 			/// ------------------------------------------------------------------
-			/// Called when a stream receives a packet.
+			/// Called when a stream receives a message.
 			///
-			/// @param stream The stream associated with the event.
-			/// @param packet The packet that was received.
-			/// @return       Return true to not buffer the packet (handled)
-			///               Return false to buffer the packet (not handled)
-			///               Buffered packets are obtained from Stream::Read()
+			/// @param stream  The stream associated with the event.
+			/// @param msg     The message that was received.
 			///
-			virtual bool Receive( 
+			virtual void Receive( 
 					StreamPtr &stream,
-					Packet &packet ) { 
-			
-				return false; 
+					Remsg &msg ) { 
+			 
 			}
 		public:
 			virtual int Handle( Asev::Event &e ) override;
@@ -230,7 +225,7 @@ namespace Net { namespace Events {
 			void Connected();
 			void Disconnected( const boost::system::error_code &error );
 			void SendFailed( const boost::system::error_code &error );
-			bool Receive( Packet &packet );
+			void Receive( Remsg &msg );
 		};
 	}
 }}

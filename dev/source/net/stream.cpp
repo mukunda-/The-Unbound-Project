@@ -7,29 +7,45 @@
 #include "stream.h"
 #include "resolver.h"
 #include "util/minmax.h"
+#include "error.h"
 
 namespace Net {
 
 	namespace {
+		const int READ_BUFFER_SIZE = 4096;
+
 		/// -------------------------------------------------------------------
-		/// function to read a VarInt32 from a stream
-		/// needed because stupid protobuf needs us to do this shit
-		/// to get a delimited message.
+		/// Read a Varint from a stream. Max 28 bits.
 		///
 		/// @param stream Stream to read from.
-		/// @param avail How many bytes are available in the stream. Will be
-		///              subtracted if the value is read successfully.
-		/// @param value Where to store the value.
-		/// @returns true if the value was read, false if the stream didn't
-		///          contain enough data.
-		///          If it failed, the stream position will be left 
-		///          unmodified.
+		/// @param avail  How many bytes are available in the stream.
+		/// @param value  Where to store the value.
+		/// @returns Amount of bytes read from the stream. 
+		///          0 means there wasn't sufficient data
+		///          and the operation was cancelled.
+		/// @throws ParseError when the data is errornous (too long).
 		///
-		bool ReadCodedInt( std::istream &stream, int &avail, int &value ) {
-			if( avail == 0 ) return;
-			char value;
-			stream.get( value );
-			
+		int ReadVarint( std::istream &stream, int avail, int &value ) {
+			if( avail == 0 ) return 0;
+			int result = 0;
+
+			// 28 bits max.
+			for( int i = 0; i < 4; i++ ) {
+				uint8_t data;
+				stream.get( (char&)data );
+				result |= (data & 127) << (i*7);
+				if( data & 128 ) {
+					if( avail < (i+2) ) {
+						// not enough data. rewind and fail.
+						stream.seekg( -(i+1), std::ios_base::cur );
+						return 0;
+					}
+				} else {
+					value = result;
+					return i+1;
+				}
+			}
+			throw ParseError();
 		}
 	}
 	 
@@ -40,7 +56,7 @@ namespace Net {
 /// @param size Size of data in bytes
 /// @returns    Number of bytes that were used from the data.
 ///
-int Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) {
+//int Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) {
 	/*
 	if( m_recv_write < 2 ) {
 		if( m_recv_write==0 ) {
@@ -88,37 +104,36 @@ int Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) {
 		}
 		return copy_amount;
 	}*/
-}
+//}
  
 
-void Stream::ParseMessage( std::istream &is ) {
-	if( m_read_avail == 0 ) return;
+bool Stream::ParseMessage( std::istream &is ) {
+	if( m_read_avail == 0 ) return false;
 
 	if( m_read_length == 0 ) {
-		int avail = m_read_buffer.in_avail();
-		if( avail == 0 ) return;
+		int avail = (int)m_read_buffer.in_avail();
+		if( avail == 0 ) return false;
 
-		if( ReadCodedInt( is, m_read_avail, m_read_length ) ) {
-			ParseMessage( is );
-		} else {
-			return;
+		int bytesread = ReadVarint( is, m_read_avail, m_read_length );
+		if( bytesread ) {
+			m_read_avail -= bytesread;
+			return true;
 		}
-		 
+		return false;
 		
 	} else {
-		if( m_read_avail < m_read_length ) return; // need more data.
-		google::protobuf::io::IstreamInputStream raw_input(&is);
-		google::protobuf::io::CodedInputStream input( &raw_input );
-		
-		if( m_read_avail >= m_read_length ) {
-			uint32_t header;
-			google::protobuf::io::CodedInputStream::Limit limit = 
-				input.PushLimit( m_read_length );
-			if( !input.ReadVarint32( &header ) ) {
-				throw ReadError();
-			}
+		if( m_read_avail < m_read_length ) return false; // need more data.
+		int header;
+		int bytesread = ReadVarint( is, m_read_avail, header );
+		if( bytesread == 0 ) throw ParseError();
+		m_read_length -= bytesread;
 
-		}
+		Remsg msg( header, is, m_read_length );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Receive( msg );
+		
+		m_read_length = 0;
+		return true;
 	}
 }
 
@@ -146,21 +161,13 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	m_read_avail += bytes_transferred;
 
 	std::istream is( &m_read_buffer );
-	ParseMessage( is );
-	
-	/* ///[old]///
-	// parse packets from data stream
-	size_t read = 0;
-	while( read < bytes_transferred ) {
-		int processed = ProcessDataRecv( m_recv_buffer + read, 
-										 bytes_transferred-read );
-		read += processed;
+	while( ParseMessage( is ) ) {
+		// loop and parse messages.
 	}
-	 */
 
 	if( !m_shutdown ) {
 		// receive next data chunk
-		StartReceive( false );
+		StartReceive();
 	} else {
 		// shutdown.
 		StopReceive();
@@ -190,16 +197,20 @@ void Stream::StopReceive() {
 ///        the connection is established. FALSE if it is a continued 
 ///        receive call.
 ///  
-void Stream::StartReceive( bool first ) {
+void Stream::StartReceive() {
 
-	if( first ) assert( m_receiving==false );
 	m_receiving = true;
+	
+	boost::asio::streambuf::mutable_buffers_type buffers = 
+		m_read_buffer.prepare( READ_BUFFER_SIZE );
+	
 	m_socket.async_receive( 
-		boost::asio::buffer( m_recv_buffer ), 
+		buffers, 
 		m_strand.wrap( boost::bind( 
 			&Stream::OnReceive, shared_from_this(), 
 			boost::asio::placeholders::error, 
 			boost::asio::placeholders::bytes_transferred )));
+			
 }
 
 /// ---------------------------------------------------------------------------
@@ -254,12 +265,13 @@ void Stream::ContinueSend() {
 		// swap buffers.
 		m_send_buffer_index = 1-m_send_buffer_index;
 	}
-
+	
 	m_socket.async_write_some( 
-		m_send_buffers[1-m_send_buffer_index], m_strand.wrap(
+		m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
 			boost::bind( &Stream::OnDataSent, this, 
-							 boost::asio::placeholders::error, 
-							 boost::asio::placeholders::bytes_transferred )));
+						 boost::asio::placeholders::error, 
+						 boost::asio::placeholders::bytes_transferred )));
+							
 }
 
 void Stream::Init() {
@@ -309,15 +321,15 @@ Stream::~Stream() {
 
 	// these operations keep the stream alive, if the destructor is called
 	// when they are active something is wrong.
-	assert( m_sending == false ); 
+	assert( m_writing == false ); 
 	assert( m_receiving == false );
 	 
 	// the socket should not be open when the destructor is called.
 	//m_socket.close();	
 	 
 	// free memory TODO smart packet pointers
-	if( m_recv_packet ) Packet::Delete( m_recv_packet );
-	if( m_send_packet ) Packet::Delete( m_send_packet ); 
+//	if( m_recv_packet ) Packet::Delete( m_recv_packet );
+//	if( m_send_packet ) Packet::Delete( m_send_packet ); 
 }
 
 /// ---------------------------------------------------------------------------
@@ -336,7 +348,7 @@ void Stream::DoClose() {
 		m_connected = false; 
 
 		// wait until any sending is complete.
-		while( m_sending ) {
+		while( m_writing ) {
 			m_cv_send_complete.wait( lock );
 		}
 
@@ -350,11 +362,15 @@ void Stream::DoClose() {
 
 //-----------------------------------------------------------------------------
 void Stream::SetConnected() {
-	if( m_shutdown ) return;
+	{
+		std::lock_guard<std::mutex> lock(m_lock);
+		if( m_shutdown ) return;
 
-	m_connected = true; 
-	StartReceive( true );  
-	CheckStartWrite();
+		m_connected = true; 
+		StartReceive();  
+		m_writing = true;
+	}
+	ContinueSend();
 }
 
 /// ---------------------------------------------------------------------------
@@ -414,20 +430,20 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 }
 
 //-----------------------------------------------------------------------------
-Packet *Stream::Read() {
-	return m_recv_fifo.Pop();
-}
+//Packet *Stream::Read() {
+//	return m_recv_fifo.Pop();
+//}
 
 //-----------------------------------------------------------------------------
-void Stream::WaitForData() {
-	m_recv_fifo.WaitForData();
-}
+//void Stream::WaitForData() {
+//	m_recv_fifo.WaitForData();
+//}
 
 //-----------------------------------------------------------------------------
 void Stream::WaitSend() {
 	
 	std::unique_lock<std::mutex> lock( m_lock );
-	while( m_sending ) {
+	while( m_writing ) {
 		m_cv_send_complete.wait( lock );
 	}
 }
@@ -442,29 +458,9 @@ void Stream::Write( Message &msg ) {
 	if( !m_connected ) return;
 	if( m_writing ) return;
 	m_writing = true; 
-	m_strand.post( boost::bind(	&Stream::StartWrite, shared_from_this() ));
+	m_strand.post( boost::bind(	&Stream::ContinueSend, shared_from_this() ));
 }
 
-//-------------------------------------------------------------------------------------------------
-void Stream::CheckStartWrite() {
-	// check if there is data and start the write process.
-	std::lock_guard<std::mutex> lock( m_lock );
-	if( m_send_fifo.Count() > 0 ) {
-		StartWrite();
-	}
-}
-
-//-------------------------------------------------------------------------------------------------
-// [PRIVATE] [STRAND] Start the packet writing service.
-//
-void Stream::StartWrite() {
-//	m_send_read = 0;
-//	m_send_write = 0;
-///	m_send_packet = 0;
-//	m_sending = true;
-
-	ContinueSend();
-}
 
 //-------------------------------------------------------------------------------------------------
 const std::string &Stream::GetHostname() const {
