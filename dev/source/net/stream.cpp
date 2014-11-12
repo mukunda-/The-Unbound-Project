@@ -9,6 +9,29 @@
 #include "util/minmax.h"
 
 namespace Net {
+
+	namespace {
+		/// -------------------------------------------------------------------
+		/// function to read a VarInt32 from a stream
+		/// needed because stupid protobuf needs us to do this shit
+		/// to get a delimited message.
+		///
+		/// @param stream Stream to read from.
+		/// @param avail How many bytes are available in the stream. Will be
+		///              subtracted if the value is read successfully.
+		/// @param value Where to store the value.
+		/// @returns true if the value was read, false if the stream didn't
+		///          contain enough data.
+		///          If it failed, the stream position will be left 
+		///          unmodified.
+		///
+		bool ReadCodedInt( std::istream &stream, int &avail, int &value ) {
+			if( avail == 0 ) return;
+			char value;
+			stream.get( value );
+			
+		}
+	}
 	 
 /// ---------------------------------------------------------------------------
 /// [PRIVATE] Processed data that was received
@@ -18,6 +41,7 @@ namespace Net {
 /// @returns    Number of bytes that were used from the data.
 ///
 int Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) {
+	/*
 	if( m_recv_write < 2 ) {
 		if( m_recv_write==0 ) {
 			m_recv_size = data[0];
@@ -63,6 +87,38 @@ int Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) {
 			m_recv_size = 0;
 		}
 		return copy_amount;
+	}*/
+}
+ 
+
+void Stream::ParseMessage( std::istream &is ) {
+	if( m_read_avail == 0 ) return;
+
+	if( m_read_length == 0 ) {
+		int avail = m_read_buffer.in_avail();
+		if( avail == 0 ) return;
+
+		if( ReadCodedInt( is, m_read_avail, m_read_length ) ) {
+			ParseMessage( is );
+		} else {
+			return;
+		}
+		 
+		
+	} else {
+		if( m_read_avail < m_read_length ) return; // need more data.
+		google::protobuf::io::IstreamInputStream raw_input(&is);
+		google::protobuf::io::CodedInputStream input( &raw_input );
+		
+		if( m_read_avail >= m_read_length ) {
+			uint32_t header;
+			google::protobuf::io::CodedInputStream::Limit limit = 
+				input.PushLimit( m_read_length );
+			if( !input.ReadVarint32( &header ) ) {
+				throw ReadError();
+			}
+
+		}
 	}
 }
 
@@ -85,7 +141,14 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		DoClose();
 		return;
 	}
+	
+	m_read_buffer.commit( bytes_transferred );
+	m_read_avail += bytes_transferred;
 
+	std::istream is( &m_read_buffer );
+	ParseMessage( is );
+	
+	/* ///[old]///
 	// parse packets from data stream
 	size_t read = 0;
 	while( read < bytes_transferred ) {
@@ -93,7 +156,8 @@ void Stream::OnReceive( const boost::system::error_code& error,
 										 bytes_transferred-read );
 		read += processed;
 	}
-	 
+	 */
+
 	if( !m_shutdown ) {
 		// receive next data chunk
 		StartReceive( false );
@@ -112,7 +176,8 @@ void Stream::OnReceive( const boost::system::error_code& error,
 /// [PRIVATE] Unset the receiving flag and signal the condition.
 ///  
 void Stream::StopReceive() {
-	
+	// the signal isn't used anymore.
+
 	//std::lock_guard<std::mutex> lock(m_recv_lock); 
 	m_receiving = false;
 	//m_cv_recv_complete.notify_all();
@@ -156,7 +221,7 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 		// shutdown.
 		{
 			std::lock_guard<std::mutex> lock( m_lock );
-			m_sending = false;
+			m_writing = false;
 			m_connected = false;
 			m_cv_send_complete.notify_all();
 		}
@@ -165,14 +230,8 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 		return;
 	}
 
-	if( (int)bytes_transferred < m_send_write ) {
-		memcpy( m_send_buffer, m_send_buffer+bytes_transferred,
-				m_send_write-bytes_transferred );
-		m_send_write -= bytes_transferred;
-	} else {
-		m_send_write = 0;
-	}
-	ContinueSend();
+	m_send_buffers[1-m_send_buffer_index].consume( bytes_transferred );
+	ContinueSend(); 
 }
 
 /// ---------------------------------------------------------------------------
@@ -180,80 +239,39 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 ///           completed.
 ///
 void Stream::ContinueSend() {
-
-	do {
-		// put packets into the send buffer
-		while( m_send_write < BUFFER_SIZE-16 ) {
-			if( !m_send_packet ) {
-				m_send_packet = m_send_fifo.Pop();
-				if( m_send_packet == 0 ) {
-					// no packets to send
-					break;
-				}
-				m_send_read = 0;
-			} 
-
-			if( m_send_read < 2 ) {
-				// first two bytes are the size.
-				m_send_buffer[m_send_write++] = m_send_packet->size & 255;
-				m_send_buffer[m_send_write++] = m_send_packet->size >> 8;
-				m_send_read += 2;
-			} else {
-				// copy the payload
-				int amount = Util::Min( 
-						BUFFER_SIZE - m_send_write, 
-						m_send_packet->size - (m_send_read-2));
-
-				memcpy( m_send_buffer + m_send_write, 
-						m_send_packet->data + m_send_read - 2, 
-						amount  ); 
-
-				m_send_read += amount;
-				m_send_write += amount;
-
-				if( m_send_read >= m_send_packet->size+2) {
-					// delete finished packets
-					Packet::Delete( m_send_packet );
-					m_send_packet = 0;
-					m_send_read = 0;
-				}
-			} 
+	// we own one buffer, but not the other.
+	if( m_send_buffers[1-m_send_buffer_index].size() == 0 ) {
+		
+		// lock for accessing the other buffer and send variables
+		std::lock_guard<std::mutex> lock( m_lock );
+		if( m_send_buffers[m_send_buffer_index].size() == 0 ) {
+			// no more data to send, stop the writing service.
+			m_writing = false;
+			m_cv_send_complete.notify_all();
+			return;
 		}
 
-		if( m_send_write != 0 ) {
+		// swap buffers.
+		m_send_buffer_index = 1-m_send_buffer_index;
+	}
 
-			// send some data
-			m_socket.async_send( 
-				boost::asio::buffer( m_send_buffer, m_send_write ), 
-				m_strand.wrap(
-					boost::bind( &Stream::OnDataSent, this, 
+	m_socket.async_write_some( 
+		m_send_buffers[1-m_send_buffer_index], m_strand.wrap(
+			boost::bind( &Stream::OnDataSent, this, 
 							 boost::asio::placeholders::error, 
 							 boost::asio::placeholders::bytes_transferred )));
-
-			return;
-		} else {
-			std::lock_guard<std::mutex> lock( m_lock );
-			if( m_send_fifo.Count() > 0 ) {
-				continue;
-			} else {
-				m_sending = false;
-				break;
-			}
-		}
-	} while(true);
-	m_cv_send_complete.notify_all();
 }
 
 void Stream::Init() {
-	m_recv_packet = 0;
-	m_send_packet = 0;
-	m_recv_write = 0;
-	m_receiving = false;
-	m_sending = false;
-	m_connected = false;
+//	m_recv_packet = 0;
+//	m_send_packet = 0;
+//	m_recv_write = 0;
+//	m_receiving = false;
+//	m_sending = false;
+	
 	 
-	m_userdata = nullptr; 
-	m_shutdown = false; 
+//	m_userdata = nullptr; 
+//	m_shutdown = false; 
 	
 	// this doesn't work:
 	// allow lingering for 30 seconds to finish unsent sending data on shutdown
@@ -415,18 +433,16 @@ void Stream::WaitSend() {
 }
 		
 //-------------------------------------------------------------------------------------------------
-void Stream::Write( Packet *p ) {
-	m_send_fifo.Push(p);
-	{
-		std::lock_guard<std::mutex> lock( m_lock );
-		if( !m_connected ) return;
-		if( m_sending ) return;
-		m_sending = true;
-	}
+void Stream::Write( Message &msg ) { 
+	std::lock_guard<std::mutex> lock( m_lock );
 
-	m_service.Post( 
-		m_strand.wrap( boost::bind(
-			&Stream::StartWrite, shared_from_this() ))); 
+	std::ostream stream( &m_send_buffers[m_send_buffer_index] );
+	msg.Write( stream );
+	 
+	if( !m_connected ) return;
+	if( m_writing ) return;
+	m_writing = true; 
+	m_strand.post( boost::bind(	&Stream::StartWrite, shared_from_this() ));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -439,13 +455,13 @@ void Stream::CheckStartWrite() {
 }
 
 //-------------------------------------------------------------------------------------------------
-// [PRIVATE] [STRANDED] Start the packet writing service.
+// [PRIVATE] [STRAND] Start the packet writing service.
 //
 void Stream::StartWrite() {
-	m_send_read = 0;
-	m_send_write = 0;
-	m_send_packet = 0;
-	m_sending = true;
+//	m_send_read = 0;
+//	m_send_write = 0;
+///	m_send_packet = 0;
+//	m_sending = true;
 
 	ContinueSend();
 }

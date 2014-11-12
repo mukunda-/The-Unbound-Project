@@ -19,11 +19,11 @@ namespace Net {
 		template <typename T> T operator()() {
 			return static_cast<T>(this);
 		}
-
+		
 		/// -------------------------------------------------------------------
-		/// Write this message to a stream.
+		/// Write the message contents to a stream.
 		///
-		virtual void Write( std::ostream &stream ) = 0;
+		virtual void Write( std::ostream &stream ) {};
 		
 	};
 

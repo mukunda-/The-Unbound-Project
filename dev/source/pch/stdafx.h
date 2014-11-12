@@ -27,10 +27,6 @@
 #elif PROJECT_TEST
 
 #include "pch_test.h"
-
-#else
-
-#error PROJECT IS NOT DEFINED.
-
+ 
 #endif
 

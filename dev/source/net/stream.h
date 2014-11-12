@@ -27,7 +27,10 @@ class Stream :
 		public std::enable_shared_from_this<Stream>, 
 		public Asev::Source {
 private:
-	std::atomic<void*> m_userdata; 
+
+	class ReadError : public std::runtime_error {};
+
+	std::atomic<void*> m_userdata = nullptr; 
 
 	// where this connection is coming from/going to
 	std::string m_hostname;
@@ -42,7 +45,7 @@ private:
 
 	// internal buffer size for storing data to be sent
 	static const int BUFFER_SIZE = 8*1024;
-		
+		/*
 	// complete packets that have been received
 	PacketFIFO m_recv_fifo;
 
@@ -52,19 +55,25 @@ private:
 	uint8_t m_recv_buffer[BUFFER_SIZE]; 
 	int m_recv_size;
 	int m_recv_write;
-	bool m_receiving;
 			
 	PacketFIFO m_send_fifo; // packets waiting to be sent
 	Packet *m_send_packet; // packet currently being transmitted
 	uint8_t m_send_buffer[BUFFER_SIZE]; 
 	int m_send_read; // position in packet; >=2 is data, 0,1 is header (size)
 	int m_send_write; // position in send buffer
-	bool m_sending;
+	bool m_sending;*/
 	
 	// new:
-//	boost::asio::streambuf m_read_buffer;
-//	boost::asio::streambuf m_send_buffers[2];
-//	int m_send_buffer_index;
+	boost::asio::streambuf m_read_buffer;
+	// 0 = next read is length, nonzero = next read is payload.
+	int m_read_length = 0;
+	int m_read_avail = 0;
+	bool m_receiving;
+	
+	std::mutex m_send_lock;
+	boost::asio::streambuf m_send_buffers[2];
+	int m_send_buffer_index = 0; // which buffer the outside writes to
+	bool m_writing = false; // if the write thread is active
 	 
 	// for safe outside access.
 	std::mutex m_lock;
@@ -76,11 +85,11 @@ private:
 	//
 	// that is the lifetime of the object,
 	// and it should not be revived.
-	bool m_connected; 
+	bool m_connected = false; 
 
 	// shutdown is FALSE upon construction
 	// and TRUE after Close is called.
-	bool m_shutdown;
+	bool m_shutdown = false;
 	 
 	int ProcessDataRecv( const uint8_t *data, int size );
 	void OnReceive( const boost::system::error_code& error, 
@@ -95,6 +104,7 @@ private:
 			boost::asio::ip::tcp::resolver::iterator it );
 		 
 	void StartReceive( bool first ); 
+	void ParseMessage(  std::istream &is  );
 	void StopReceive(); 
 	void CheckStartWrite();
 	void StartWrite();
@@ -187,7 +197,14 @@ public:
 	/// 
 	/// @param p Packet to queue.
 	///
-	void Write( Packet *p );
+//	void Write( Packet *p );
+
+	/// -----------------------------------------------------------------------
+	/// Write a message to the output stream.
+	/// 
+	/// @param msg Message to send.
+	///
+	void Write( Message &msg );
 	 
 	/// -----------------------------------------------------------------------
 	/// Get hostname of last connect operation
