@@ -135,18 +135,18 @@ int Dispatcher::Send( Event &e ) {
 	for( auto pipe = m_source.m_pipes.begin(); 
 			pipe != m_source.m_pipes.end(); ) {
 
-		Handler::Lock lock( **pipe );
-
-		Handler *handler = lock();
-		if( handler == nullptr ) {
-			// this pipe is closed, remove it.
-			m_source.m_pipes.erase( pipe );
-			continue;
+		Handler *handler;
+		{
+			Handler::Lock lock( **pipe );
+			handler = lock();
+			if( handler ) {
+				result = handler->Handle( e );
+				pipe++;
+			}
 		}
 
-		
-		result = handler->Handle( e );
-		pipe++;
+		// this pipe is closed. remove it.
+		pipe = m_source.m_pipes.erase( pipe );
 	}
 	return result;
 }

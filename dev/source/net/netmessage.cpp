@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 
 #include <stdafx.h>
@@ -25,6 +25,14 @@ void Message::Write( std::ostream &stream ) {
 Remsg::Remsg( uint32_t header, std::istream &stream, int length ) :
 		Message(header), m_stream(stream), m_length(length)
 {
+}
+
+//-----------------------------------------------------------------------------
+Remsg::~Remsg() {
+	if( !m_parsed ) {
+		// if not parsed, discard the data.
+		m_stream.ignore( m_length );
+	}
 }
 
 //-----------------------------------------------------------------------------

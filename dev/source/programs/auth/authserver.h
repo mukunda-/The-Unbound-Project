@@ -9,7 +9,7 @@
 #include "system/console.h"
 #include "net/stream.h"
 #include "net/listener.h"
-#include "net/netevents.h"
+#include "net/events.h"
 
 namespace User {
 
@@ -33,14 +33,8 @@ class AuthServer : public System::Program {
 		AuthServer &m_parent;
 		 
 		void AcceptError( Net::Stream::ptr &stream, 
-						  const boost::system::error_code &error  ) override {
-			
-			System::Log( "A connection failed to accept." );
-		}
-
-		void Accepted( Net::Stream::ptr &stream ) override {
-
-		}
+						  const boost::system::error_code &error  ) override;
+		void Accepted( Net::Stream::ptr &stream ) override;
 
 	public:
 		
@@ -52,6 +46,7 @@ class AuthServer : public System::Program {
 	
 public:
 	AuthServer();
+	~AuthServer();
 
 protected:
 	void OnStart() override;

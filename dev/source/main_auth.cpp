@@ -22,10 +22,14 @@ void Main( int argc, char *argv[] ) {
 		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE );
 		System::RunProgram( User::AuthServer() );
 	}
+	
+
 }
 
 //-----------------------------------------------------------------------------
 int main( int argc, char *argv[] ) {
+
 	Main( argc, argv );
+	google::protobuf::ShutdownProtobufLibrary();
 	return 0;
 }

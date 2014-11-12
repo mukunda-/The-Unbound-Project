@@ -23,6 +23,7 @@ namespace Net {
 
 	//-------------------------------------------------------------------------
 	Listener::~Listener() {
+		Stop();
 		m_accept_handler.Disable();
 	}
 

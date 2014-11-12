@@ -31,8 +31,10 @@ namespace Net {
 
 			// 28 bits max.
 			for( int i = 0; i < 4; i++ ) {
-				uint8_t data;
-				stream.get( (char&)data );
+				int data = stream.get();
+				if( data == EOF ) throw ParseError();
+				
+				
 				result |= (data & 127) << (i*7);
 				if( data & 128 ) {
 					if( avail < (i+2) ) {
@@ -164,6 +166,8 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	while( ParseMessage( is ) ) {
 		// loop and parse messages.
 	}
+
+	// TODO catch parse error exception and terminate connection.
 
 	if( !m_shutdown ) {
 		// receive next data chunk

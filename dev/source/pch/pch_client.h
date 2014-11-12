@@ -31,16 +31,10 @@
 
 #include <vector>
 #include <fstream>
-#include <boost/shared_array.hpp>
 #include <stdexcept>
 
 #include <io.h>
 #include <fcntl.h>
-#include <Eigen/Dense>
-
-#include <boost/thread.hpp>
 
 #include "ft2build.h"
 #include "freetype/freetype.h"
-
-#include <boost/asio.hpp>

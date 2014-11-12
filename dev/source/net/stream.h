@@ -69,7 +69,7 @@ private:
 	// 0 = next read is length, nonzero = next read is payload.
 	int m_read_length = 0;
 	int m_read_avail = 0;
-	bool m_receiving;
+	bool m_receiving = false;
 	
 	std::mutex m_send_lock;
 	boost::asio::streambuf m_send_buffers[2];

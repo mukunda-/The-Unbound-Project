@@ -32,6 +32,7 @@ namespace Net {
 
 	public:
 		Remsg( uint32_t header, std::istream &stream, int length );
+		~Remsg();
 		
 		/// -------------------------------------------------------------------
 		/// Parse a protobuf message from this.
