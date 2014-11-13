@@ -7,6 +7,7 @@
 namespace Net {
 
 	class Error : public std::exception {};
+	class WriteError : public std::exception {};
 	class ParseError : public Error {};
 
 }

@@ -5,7 +5,7 @@
 #include <stdafx.h>
 #include "authserver.h"
 #include "protocol.h"
-#include "auth_login.pb.h"
+#include "proto/auth/login.pb.h"
 
 namespace User {
 
@@ -42,9 +42,12 @@ namespace User {
 		if( stream.Invalidated() ) return;
 		if( stream.GetState() == AuthStream::STATE_LOGIN ) {
 		
-			if( msg.ID() == Net::Proto::Messages::LOGIN ) {
+			if( msg.ID() == Net::Proto::ID::LOGIN ) {
 				// user wants to log in.
-				Net::Proto::
+				Net::Proto::Auth::Login buffer;
+				msg.Parse( buffer );
+				System::Console::Print( buffer.username().c_str() );
+				System::Console::Print( buffer.password().c_str() );
 			} else {
 				// bad client.
 				stream.SetState( AuthStream::STATE_DONE );

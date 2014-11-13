@@ -11,7 +11,8 @@
 #include "net/listener.h"
 #include "net/nwcore.h"
 
-#include "test.pb.h"
+#include "protocol.h"
+#include "proto/auth/login.pb.h"
 
 class MyStream : public Net::Stream {
 
@@ -22,17 +23,27 @@ class TestProgram : public System::Program {
 	class NetEventHandler : public Net::Events::Stream::Handler {
 
 		TestProgram &m_parent;
-
-		void Accepted( Net::Stream::ptr &stream ) override {
-			System::Console::Print( "Something connected." );
-		}
 		
+			void ConnectError( Net::Stream::ptr &stream,
+							   const boost::system::error_code &error ) {
+				System::Console::Print( "Couldn't connect : %s", error.message().c_str() );
+			}
+			 
+			virtual void Connected( Net::Stream::ptr &stream ) {
+				System::Console::Print( "Connected... Sending login." );
+				Net::Proto::Auth::Login message;
+				message.set_username( "testes" );
+				message.set_password( "password" );
+				stream->Write( Net::PBMsg( Net::Proto::ID::LOGIN, message ) );
+				stream->Close();
+			}
+
+
 	public:
 		NetEventHandler( TestProgram &parent ) : m_parent(parent) {
 		}
 	};
 
-	Net::Listener m_listener;
 	NetEventHandler m_events;
 public:
 	
@@ -41,8 +52,7 @@ public:
 	}
 
 	TestProgram() : 
-			m_events(*this), 
-			m_listener( 32791, myfactory, &m_events ) {
+			m_events(*this) {
 
 	}
 
@@ -51,25 +61,8 @@ public:
 	}
 
 	void OnStart() {
-		m_listener.Start();
 
-		std::string str;
-
-		{
-			Net::Proto::Test::Test test;
-//			test.
-//			::google::protobuf::MessageLite msg(test);
-			test.set_test_int( 5 );
-			test.set_test_string( "testes" );
-			test.SerializeToString( &str );
-			
-		}
-		
-		//google::protobuf::MessageLite msg;
-		//msg.ParseFromString( str );
-		//Net::Proto::Test::Test &test = 
-		
-		System::Console::Print( "%s", str.c_str() );
+		Net::ConnectAsync( "localhost", "32791", m_events );
 	}
 };
 

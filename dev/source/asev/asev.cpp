@@ -142,6 +142,7 @@ int Dispatcher::Send( Event &e ) {
 			if( handler ) {
 				result = handler->Handle( e );
 				pipe++;
+				continue;
 			}
 		}
 

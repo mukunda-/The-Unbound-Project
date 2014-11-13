@@ -49,7 +49,7 @@ namespace Net {
 
 	/// -----------------------------------------------------------------------
 	/// PBMsg is a protobuf wrapper that does not copy the source.
-	/// It represents a source that is used immediately and not stored.
+	/// It's a medium to write a protobuf message to a stream
 	///
 	class PBMsg : public Message {
 

@@ -11,7 +11,7 @@ namespace Net {
 	
 	//-------------------------------------------------------------------------
 	Listener::Listener( unsigned short port, 
-						std::function<StreamPtr()> factory, 
+						StreamFactory factory, 
 						Events::Stream::Handler *handler ) :
 			BasicListener(port), 
 			m_factory( factory ), 

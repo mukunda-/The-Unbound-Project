@@ -8,7 +8,7 @@
 
 namespace Net { namespace Proto { 
 	
-	namespace Messages {
+	namespace ID {
 
 		namespace Groups {
 			namespace {

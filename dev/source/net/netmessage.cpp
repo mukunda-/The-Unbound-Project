@@ -9,6 +9,16 @@
 
 namespace Net {
 
+namespace {
+	// get size of 28-bit varint
+	int SizeofVarint( int value ) {
+		if( value >= (1<<21) ) return 4;
+		if( value >= (1<<14) ) return 3;
+		if( value >= (1<<7) ) return 2;
+		return 1;
+	}
+}
+
 //-----------------------------------------------------------------------------
 Message::Message( uint32_t header ) : 
 		m_header(header) 
@@ -49,6 +59,34 @@ void Remsg::Parse( google::protobuf::MessageLite &msg ) {
 	input.PopLimit( limit );
 	m_parsed = true;
 	
+}
+
+//-----------------------------------------------------------------------------
+PBMsg::PBMsg( uint32_t header, google::protobuf::MessageLite &msg ) :
+	m_msg(msg), Message(header) {
+}
+
+//-----------------------------------------------------------------------------
+void PBMsg::Write( std::ostream &std_stream ) {
+	google::protobuf::io::OstreamOutputStream stream( &std_stream );
+	google::protobuf::io::CodedOutputStream output( &stream );
+	
+	// Write the size.
+	const int size = m_msg.ByteSize() + SizeofVarint( Header() );
+	output.WriteVarint32( size );
+	output.WriteVarint32( Header() );
+	
+	//http://stackoverflow.com/a/22927149/3264295
+	uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
+	if( buffer != NULL ) {
+		// Optimization:  The message fits in one buffer, so use the faster
+		// direct-to-array serialization path.
+		m_msg.SerializeWithCachedSizesToArray( buffer );
+	} else {
+		// Slightly-slower path when the message is multiple buffers.
+		m_msg.SerializeWithCachedSizes( &output );
+		if( output.HadError() ) throw WriteError();
+	} 
 }
 
 }

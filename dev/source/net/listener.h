@@ -4,11 +4,9 @@
 
 #include "basiclistener.h"
 #include "events.h"
+#include "types.h"
 
 namespace Net {
-
-	class Stream;
-	typedef std::shared_ptr<Stream> StreamPtr;
 	 
 	class Listener : public BasicListener {
 
@@ -27,7 +25,7 @@ namespace Net {
 		};
 
 		// factory to create a desired stream object
-		std::function<StreamPtr()> m_factory;
+		StreamFactory m_factory;
 
 		Events::Stream::Handler *m_user_handler;
 		EventHandler m_accept_handler;
@@ -51,7 +49,7 @@ namespace Net {
 		///                You can also hook your event handler in the 
 		///                factory and/or leave this omitted.
 		///
-		Listener( unsigned short port, std::function<StreamPtr()> factory, 
+		Listener( unsigned short port, StreamFactory factory, 
 				  Events::Stream::Handler *handler = nullptr );
 		~Listener();
 

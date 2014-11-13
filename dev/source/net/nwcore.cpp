@@ -13,6 +13,29 @@ namespace Net {
 Instance *g_instance;
 
 //-------------------------------------------------------------------------------------------------
+Stream::ptr DefaultStreamFactory() {
+	return std::make_shared<Stream>();
+}
+
+//-------------------------------------------------------------------------------------------------
+Stream::ptr Connect( const std::string &host, const std::string &service, 
+					 StreamFactory factory ) {
+
+	Stream::ptr stream = factory();
+	stream->Connect( host, service );
+	return stream;
+}
+
+//-------------------------------------------------------------------------------------------------
+void ConnectAsync( const std::string &host, const std::string &service, Asev::Handler &handler, 
+				   StreamFactory factory ) {
+
+	Stream::ptr stream = factory();
+	stream->AsevSubscribe( handler );
+	stream->ConnectAsync( host, service );
+}
+
+//-------------------------------------------------------------------------------------------------
 Instance::Instance( int threads ) {
 	
 	g_instance = this;
