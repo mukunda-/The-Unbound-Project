@@ -452,12 +452,13 @@ void Stream::WaitSend() {
 	}
 }
 		
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Stream::Write( Message &msg ) { 
 	std::lock_guard<std::mutex> lock( m_lock );
 
 	std::ostream stream( &m_send_buffers[m_send_buffer_index] );
 	msg.Write( stream );
+	// todo: catch write error and terminate stream.
 	 
 	if( !m_connected ) return;
 	if( m_writing ) return;
@@ -466,12 +467,12 @@ void Stream::Write( Message &msg ) {
 }
 
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 const std::string &Stream::GetHostname() const {
 	return m_hostname;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Stream::Connect( const std::string &host, const std::string &service ) {
 	assert( !m_shutdown );
 	assert( !m_connected );
@@ -487,8 +488,9 @@ void Stream::Connect( const std::string &host, const std::string &service ) {
 		boost::bind( &Stream::SetConnected, this )));
 }
 
-//-------------------------------------------------------------------------------------------------
-void Stream::ConnectAsync( const std::string &host, const std::string &service ) {
+//-----------------------------------------------------------------------------
+void Stream::ConnectAsync( const std::string &host, 
+						   const std::string &service ) {
 	assert( !m_shutdown );
 	assert( !m_connected );
 
@@ -499,7 +501,7 @@ void Stream::ConnectAsync( const std::string &host, const std::string &service )
 				&Stream::OnResolve, shared_from_this(), _1, _2 )));
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Stream::Listen( BasicListener &listener ) {
 	assert( !m_shutdown );
 	assert( !m_connected );
