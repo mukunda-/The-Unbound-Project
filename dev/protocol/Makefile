@@ -6,11 +6,8 @@ OUTDIR := compiled/proto
 PROTOFILES := $(shell find src/ -type f -name '*.proto')
 FILES := $(patsubst src/%.proto, %, $(PROTOFILES))
 
-#CCFILES := $(basename $(PROTOFILES))
 CCFILES := $(FILES:=.pb.cc)
 CCFILES := $(addprefix $(OUTDIR)/,$(CCFILES))
-#$(error $(FILES))
-#$(error $(CCFILES))
 
 all: folder $(CCFILES)
 .PHONY: folder clean
