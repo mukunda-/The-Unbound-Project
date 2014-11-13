@@ -33,10 +33,12 @@ namespace Net {
 		EventHandler m_accept_handler;
 		StreamPtr m_current_stream;
 		std::mutex m_mutex;
-		bool m_started;
+		bool m_started = false;
+		bool m_ignore_errors = false;
 
 		void Accept();
 		void OnCompleted();
+		void OnError();
 		
 	public:
 		
@@ -48,6 +50,7 @@ namespace Net {
 		/// @param handler Event handler to associate with the stream object. 
 		///                You can also hook your event handler in the 
 		///                factory and/or leave this omitted.
+		///
 		Listener( unsigned short port, std::function<StreamPtr()> factory, 
 				  Events::Stream::Handler *handler = nullptr );
 		~Listener();
@@ -61,12 +64,27 @@ namespace Net {
 		/// Stop listening.
 		///
 		void Stop();
+		
+		/// -------------------------------------------------------------------
+		/// Set the option to ignore errors.
+		///
+		/// Ignore errors means that when an AcceptError occurs, it will
+		/// ignore it and start listening for another connection. Otherwise
+		/// it will Stop()
+		///
+		/// @param ignore Ignore errors option.
+		///
+		void SetIgnoreErrors( bool ignore );
 
 		// The listener works like this:
 		//   - Create a new stream using the factory provided.
 		//   - Start listening for a connection with that stream.
 		//   - The stream triggers an Accept or AcceptError events.
 		//   - Repeat.
+		//
+		// Both the listener and the parent class that registered its event
+		// handler with the listener (or manually in the factory) will
+		// receive Accept and AcceptError events.
 	};
 
 }

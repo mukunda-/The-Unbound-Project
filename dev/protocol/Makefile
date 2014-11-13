@@ -1,23 +1,28 @@
 #------------------------------------------------------------------------------
 # .proto compilation script 
 #------------------------------------------------------------------------------
-OUTDIR := compiled
+OUTDIR := compiled/proto
 
-PROTOFILES := $(notdir $(wildcard $(CURDIR)/*.proto))
-CCFILES := $(basename $(PROTOFILES))
-CCFILES := $(addprefix $(OUTDIR)/,$(CCFILES:=.pb.cc))
+PROTOFILES := $(shell find src/ -type f -name '*.proto')
+FILES := $(patsubst src/%.proto, %, $(PROTOFILES))
+
+#CCFILES := $(basename $(PROTOFILES))
+CCFILES := $(FILES:=.pb.cc)
+CCFILES := $(addprefix $(OUTDIR)/,$(CCFILES))
+#$(error $(FILES))
+#$(error $(CCFILES))
 
 all: folder $(CCFILES)
-
 .PHONY: folder clean
 
 folder:
-	@mkdir -p $(OUTDIR)
 
 clean:
 	@echo Cleaning...
 	@rm -fr compiled
 
-$(CCFILES) : $(OUTDIR)/%.pb.cc : %.proto
+$(OUTDIR)/%.pb.cc: src/%.proto
+	@mkdir -p "$(@D)"
 	@echo - $(notdir $<)
-	@protoc --cpp_out=$(OUTDIR) $<
+	@cd src;\
+	protoc --cpp_out=../$(OUTDIR) $(patsubst src/%,%,$<)

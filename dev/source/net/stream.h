@@ -46,24 +46,7 @@ private:
 
 	// internal buffer size for storing data to be sent
 	static const int BUFFER_SIZE = 8*1024;
-		/*
-	// complete packets that have been received
-	PacketFIFO m_recv_fifo;
-
-	// partial packet buffer
-	Packet *m_recv_packet; 
-
-	uint8_t m_recv_buffer[BUFFER_SIZE]; 
-	int m_recv_size;
-	int m_recv_write;
-			
-	PacketFIFO m_send_fifo; // packets waiting to be sent
-	Packet *m_send_packet; // packet currently being transmitted
-	uint8_t m_send_buffer[BUFFER_SIZE]; 
-	int m_send_read; // position in packet; >=2 is data, 0,1 is header (size)
-	int m_send_write; // position in send buffer
-	bool m_sending;*/
-	
+	 
 	// new:
 	boost::asio::streambuf m_read_buffer;
 	// 0 = next read is length, nonzero = next read is payload.
@@ -206,9 +189,9 @@ public:
 	void Write( Message &msg );
 	 
 	/// -----------------------------------------------------------------------
-	/// Get hostname of last connect operation
+	/// Get hostname of last connect operation.
 	///
-	/// Returns in format "address:service"
+	/// @returns in format "address:service"
 	///
 	const std::string &GetHostname() const;
 		 
@@ -220,7 +203,7 @@ public:
 	template <class T> void SetUserData( T *data ) { 
 		m_userdata = data;
 	}
-		
+	
 	/// -----------------------------------------------------------------------
 	/// Get arbitrary user-defined data.
 	///

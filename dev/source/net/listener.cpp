@@ -16,9 +16,7 @@ namespace Net {
 			BasicListener(port), 
 			m_factory( factory ), 
 			m_user_handler(handler),
-			m_accept_handler(*this),
-			m_started(false) {
-		
+			m_accept_handler(*this)  { 
 	}
 
 	//-------------------------------------------------------------------------
@@ -42,6 +40,12 @@ namespace Net {
 	}
 
 	//-------------------------------------------------------------------------
+	void Listener::SetIgnoreErrors( bool ignore ) {
+		std::lock_guard<std::mutex> lock(m_mutex);
+		m_ignore_errors = ignore;
+	}
+
+	//-------------------------------------------------------------------------
 	void Listener::Accept() {
 		if( m_current_stream ) return; // already listening.
 		m_current_stream = m_factory();
@@ -50,14 +54,26 @@ namespace Net {
 			m_current_stream->AsevSubscribe( *m_user_handler );
 		}
 		m_current_stream->Listen( *this );
-	}
+	} 
 
 	//-------------------------------------------------------------------------
 	void Listener::OnCompleted() {
 		
-		std::lock_guard<std::mutex> lock( m_mutex );
+		std::lock_guard<std::mutex> lock(m_mutex);
 		m_current_stream = nullptr;
+		if( m_started ) Accept(); 
+	}
+
+	//-------------------------------------------------------------------------
+	void Listener::OnError() {
+		std::lock_guard<std::mutex> lock(m_mutex);
+		m_current_stream = nullptr;
+		if( !m_ignore_errors ) {
+			m_started = false;
+			return;
+		}
 		if( m_started ) Accept();
+
 	}
 
 	//-------------------------------------------------------------------------
@@ -78,7 +94,6 @@ namespace Net {
 					const boost::system::error_code &error ) {
 		stream->GetService().Post( 
 				boost::bind( 
-					&Listener::OnCompleted, &m_parent ) );
+					&Listener::OnError, &m_parent ) );
 	}
-								
 }

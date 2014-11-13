@@ -4,6 +4,8 @@
 
 #include <stdafx.h>
 #include "authserver.h"
+#include "protocol.h"
+#include "auth_login.pb.h"
 
 namespace User {
 
@@ -23,12 +25,31 @@ namespace User {
 							const boost::system::error_code &error ) {
 			
 		System::Log( "A connection failed to accept." );
+		m_parent.m_listener.Start();
 	}
 
 	//-------------------------------------------------------------------------
 	void AuthServer::NetEventHandler::Accepted( 
 			Net::Stream::ptr &stream ) {
+	}
 
+	//-------------------------------------------------------------------------
+	void AuthServer::NetEventHandler::Receive( 
+				Net::Stream::ptr &source, 
+				Net::Remsg &msg ) {
+
+		AuthStream &stream = static_cast<AuthStream&>(*source); 
+		if( stream.Invalidated() ) return;
+		if( stream.GetState() == AuthStream::STATE_LOGIN ) {
+		
+			if( msg.ID() == Net::Proto::Messages::LOGIN ) {
+				// user wants to log in.
+				Net::Proto::
+			} else {
+				// bad client.
+				stream.SetState( AuthStream::STATE_DONE );
+			}
+		}
 	}
 
 	//-------------------------------------------------------------------------

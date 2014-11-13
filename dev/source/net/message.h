@@ -10,12 +10,17 @@ namespace Net {
 
 	class Message {
 
-		// the header determines the type of message.
+		// The header can contain up to 28 bits that
+		// is sent with all messages.
+		// lower 14 bits is the protocol id.
+		// upper 14 bits is extra message data.
 		uint32_t m_header;
 
 	public:
 		Message( uint32_t header );
 		uint32_t Header() { return m_header; }
+		uint16_t ID() { return m_header & 0x3FFF; }
+		uint16_t Extra() { return m_header >> 14; }
 
 		/// -------------------------------------------------------------------
 		/// Write the message contents to a stream.

@@ -15,16 +15,24 @@ namespace User {
 
 class AuthStream : public Net::Stream {
 
-	enum {
+public:
+	enum State{
 		STATE_LOGIN,
 		STATE_DONE,
 	};
 
-	int m_state;
+private:
+	State m_state = STATE_LOGIN;
 
 public:
 	AuthStream();
+
+	State GetState() const { return m_state; }
+	void SetState( State newstate ) { m_state = newstate; } 
+	bool Invalidated() const { return m_state == STATE_DONE; }
 };
+
+using AuthStreamPtr = std::shared_ptr<AuthStream>;
 
 class AuthServer : public System::Program {
 	 
@@ -35,6 +43,7 @@ class AuthServer : public System::Program {
 		void AcceptError( Net::Stream::ptr &stream, 
 						  const boost::system::error_code &error  ) override;
 		void Accepted( Net::Stream::ptr &stream ) override;
+		void Receive( Net::Stream::ptr &stream, Net::Remsg &msg ) override;
 
 	public:
 		
