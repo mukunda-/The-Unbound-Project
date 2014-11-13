@@ -459,7 +459,7 @@ void Stream::Write( Message &msg ) {
 	std::ostream stream( &m_send_buffers[m_send_buffer_index] );
 	msg.Write( stream );
 	// todo: catch write error and terminate stream.
-	 
+	
 	if( !m_connected ) return;
 	if( m_writing ) return;
 	m_writing = true; 
