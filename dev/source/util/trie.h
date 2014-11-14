@@ -3,9 +3,7 @@
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
 // TRIE class
-//
-// associates strings with data
-// words must only use ascii values 32-95 ie SPACE to UNDERSCORE
+// Associates strings with data 
 // 
 
 // todo: optimize:
@@ -14,18 +12,21 @@
 
 #pragma once
 
+
+#pragma warning( disable : 4351 )
+
 #include "mem/memorylib.h"
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 namespace Util {
 
 
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 template <class Type>
 class Trie {
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 private:
 
 	static const int ASCII_BASE = 0;
@@ -33,24 +34,20 @@ private:
 	
 	//-------------------------------------------------------------------------
 	struct Branch : public Memory::FastAllocation {
-		Type data;
-		bool value_set;
-		Branch *branches[BRANCH_ENTRIES]; 
+		Type    m_data; 
+		bool    m_isset = false; 
+		Branch *m_branches[BRANCH_ENTRIES]; 
 
-		Branch() {
-			value_set = false;
-			memset( branches, 0, sizeof branches );
+		//---------------------------------------------------------------------
+		Branch() : m_branches() { 
 		}
 
+		//---------------------------------------------------------------------
 		~Branch() {
-			Clear();
-		}
-		
-		void Clear() {
 			for( uint32_t i = 0; i < BRANCH_ENTRIES; i++ ) {
-				if( branches[i] ) {
-					delete branches[i];
-					branches[i] = nullptr;
+				if( m_branches[i] ) {
+					delete m_branches[i];
+					m_branches[i] = nullptr;
 				}
 			}
 		}
@@ -59,20 +56,19 @@ private:
 	//-------------------------------------------------------------------------
 	Branch trunk;
 
-	
 	//-------------------------------------------------------------------------
 	Branch *FindKey( const char *key ) {
 		Branch *b = &trunk;
 		for( auto k = key; *k; k++ ) {
 			int index = (*k) - ASCII_BASE;
 			assert( index >= 0 && index < BRANCH_ENTRIES );
-			if( b->branches[index] ) {
-				b = b->branches[index];
+			if( b->m_branches[index] ) {
+				b = b->m_branches[index];
 			} else {
 				return nullptr;
 			}
 		}
-		if( !b->value_set ) return nullptr;
+		if( !b->m_isset ) return nullptr;
 		return b;
 	}
 	  
@@ -81,13 +77,8 @@ public:
 	
 	//-------------------------------------------------------------------------
 	Trie() {
-		memset( &trunk, 0, sizeof(Branch) );
-	}
-	
-	//-------------------------------------------------------------------------
-	void Clear() {
-		trunk.Clear();
-	}
+
+	} 
 	
 	//-------------------------------------------------------------------------
 	// set a key
@@ -102,14 +93,14 @@ public:
 		for( auto k = key; *k; k++ ) {
 			int index = (*k) - ASCII_BASE;
 			assert( index >= 0 && index < BRANCH_ENTRIES );
-			if( !b->branches[index] ) {
-				b->branches[index] = new Branch;
+			if( !b->m_branches[index] ) {
+				b->m_branches[index] = new Branch;
 			}
-			b = b->branches[index];
+			b = b->m_branches[index];
 		}
-		if( !replace && b->value_set ) return false;
-		b->data = value;
-		b->value_set = true;
+		if( !replace && b->m_isset ) return false;
+		b->m_data = value;
+		b->m_isset = true;
 		return true;
 	}
 
@@ -124,8 +115,8 @@ public:
 	bool Reset( const char *key, Type value = 0 ) {
 		Branch *b = FindKey(key);
 		if( !b ) return false;
-		b->data = value;
-		b->value_set = false;
+		b->m_data = value;
+		b->m_isset = false;
 		return true;
 	}
 	
@@ -133,7 +124,7 @@ public:
 	bool Get( const char *key, Type &value ) {
 		Branch *b = FindKey(key);
 		if( !b ) return false;
-		value = b->data;
+		value = b->m_data;
 		return true;
 	}
 };

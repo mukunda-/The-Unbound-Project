@@ -14,6 +14,8 @@
 #include "protocol.h"
 #include "proto/auth/login.pb.h"
 
+#include "util/trie.h"
+
 class MyStream : public Net::Stream {
 
 };
@@ -73,8 +75,10 @@ void Test() {
 
 
 void RunProgram() {
-	  
-	System::RunProgram( TestProgram() );
+	Util::Trie<int> test;
+	test.Set( "hello", 5, true );
+	
+	//System::RunProgram( TestProgram() );
 	//std::thread
 //	char buffer[25];
 	//fgets(buffer,25,stdin);

@@ -11,6 +11,7 @@
 
 namespace Net {
 
+//-----------------------------------------------------------------------------
 	namespace {
 		const int READ_BUFFER_SIZE = 4096;
 
@@ -23,6 +24,7 @@ namespace Net {
 		/// @returns Amount of bytes read from the stream. 
 		///          0 means there wasn't sufficient data
 		///          and the operation was cancelled.
+		///
 		/// @throws ParseError when the data is errornous (too long).
 		///
 		int ReadVarint( std::istream &stream, int avail, int &value ) {
@@ -50,7 +52,7 @@ namespace Net {
 			throw ParseError();
 		}
 	}
-	 
+	
 /// ---------------------------------------------------------------------------
 /// [PRIVATE] Processed data that was received
 ///
@@ -108,7 +110,7 @@ namespace Net {
 	}*/
 //}
  
-
+//-----------------------------------------------------------------------------
 bool Stream::ParseMessage( std::istream &is ) {
 	if( m_read_avail == 0 ) return false;
 

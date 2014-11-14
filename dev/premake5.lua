@@ -170,7 +170,9 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp" )
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
 		"source/mem/*.cpp",
+		"source/tests/*.cpp",
 		"source/main_test.cpp",
+		
 		
 		"protocol/compiled/**.cc",
 		"source/**.h"
