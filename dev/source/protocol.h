@@ -16,8 +16,8 @@ namespace Net { namespace Proto {
 			}
 		}
 			
-		namespace {
-			const int LOGIN = Groups::AUTH || 0x01;
+		namespace Auth {
+			const int LOGIN = Groups::AUTH | 0x01;
 		}
 	}
 	 

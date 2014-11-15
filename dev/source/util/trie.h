@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 // TRIE class
 // Associates strings with data 
@@ -11,16 +11,13 @@
 //   a copy of the final branch can be used at that point
 
 #pragma once
-
-
+ 
 #pragma warning( disable : 4351 )
 
 #include "mem/memorylib.h"
 
 //-----------------------------------------------------------------------------
 namespace Util {
-
-
 
 //-----------------------------------------------------------------------------
 template <class Type>
@@ -43,13 +40,18 @@ private:
 		}
 
 		//---------------------------------------------------------------------
-		~Branch() {
+		void Clear() {
 			for( uint32_t i = 0; i < BRANCH_ENTRIES; i++ ) {
 				if( m_branches[i] ) {
 					delete m_branches[i];
 					m_branches[i] = nullptr;
 				}
 			}
+		}
+
+		//---------------------------------------------------------------------
+		~Branch() {
+			Clear();
 		}
 	};
 	
@@ -72,21 +74,33 @@ private:
 		return b;
 	}
 	  
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 public:
 	
 	//-------------------------------------------------------------------------
 	Trie() {
-
+		
 	} 
+
+	/// -----------------------------------------------------------------------
+	/// Clear the trie.
+	///
+	/// Unsets all keys.
+	///
+	void Clear() {
+		trunk.Clear();
+	}
 	
-	//-------------------------------------------------------------------------
-	// set a key
-	//
-	//  key : name of key
-	//  value : stored value
-	//  replace : if key is already set, overwrite it
-	//
+	/// -----------------------------------------------------------------------
+	/// Set a key value.
+	///
+	/// @param key     Key string.
+	/// @param value   Key value.
+	/// @param replace If the key is already set, overwrite it.
+	///
+	/// @returns true if set, false if the key was already set and `replace`
+	///          was false.
+	///
 	bool Set( const char *key, Type value, bool replace=true ) {
 		Branch *b = &trunk;
 
@@ -105,13 +119,20 @@ public:
 	}
 
 	//-------------------------------------------------------------------------
-	// reset a key
-	//
-	//  this checks if a key exists and then resets its 'set' flag and
-	//  fills the data with the value specified (eg to reset a smart pointer)
-	//
-	// returns true if the key was reset, false if the key was not set
-	//
+	bool Set( std::string &key, Type value, bool replace=true ) {
+		return Set( key.c_str(), value, replace );
+	}
+
+	/// -----------------------------------------------------------------------
+	/// Reset a key value.
+	///
+	/// This checks if a key exists and then resets its 'set' flag.
+	///
+	/// @param key   Key string.
+	/// @param value "null" value to assign to the empty slot, e.g. to reset
+	///              a smart pointer.
+	/// @returns true if the key was reset, false if the key was not set.
+	///
 	bool Reset( const char *key, Type value = 0 ) {
 		Branch *b = FindKey(key);
 		if( !b ) return false;
@@ -119,13 +140,30 @@ public:
 		b->m_isset = false;
 		return true;
 	}
-	
+
 	//-------------------------------------------------------------------------
+	bool Reset( std::string &key, Type value = 0 ) {
+		return Reset( key.c_str(), value );
+	}
+	
+	/// -----------------------------------------------------------------------
+	/// Get a key value.
+	///
+	/// @param key   Key string to look up.
+	/// @param value Value return variable.
+	///
+	/// @returns true if the key existed and the value was copied.
+	///
 	bool Get( const char *key, Type &value ) {
 		Branch *b = FindKey(key);
 		if( !b ) return false;
 		value = b->m_data;
 		return true;
+	}
+
+	//-------------------------------------------------------------------------
+	bool Get( std::string &key, Type &value ) {
+		return Get( key.c_str(), value );
 	}
 };
 

@@ -2,21 +2,24 @@
 //                                                                           //
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
-#pragma once
-
-#include "connection.h"
+#include <stdafx.h>
+#include "core.h"
 
 //-----------------------------------------------------------------------------
 namespace DB {
 
-//-----------------------------------------------------------------------------
-class Instance {
-	std::vector<std::unique_ptr<Connection>> m_connections;
-	sql::mysql::MySQL_Driver *m_driver;
+Instance *g_instance;
 
-public:
-	Instance();
-	~Instance();
-};
+//-----------------------------------------------------------------------------
+Instance::Instance() {
+	g_instance = this;
+	m_driver = sql::mysql::get_mysql_driver_instance();
+
+}
+
+//-----------------------------------------------------------------------------
+Instance::~Instance() {
+	g_instance = nullptr;
+}
 
 }

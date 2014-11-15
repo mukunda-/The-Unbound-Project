@@ -16,6 +16,8 @@
 
 #include "util/trie.h"
 
+#include "db/core.h"
+
 class MyStream : public Net::Stream {
 
 };
@@ -32,11 +34,13 @@ class TestProgram : public System::Program {
 			}
 			 
 			virtual void Connected( Net::Stream::ptr &stream ) {
+				namespace PID = Net::Proto::ID;
+				
 				System::Console::Print( "Connected... Sending login." );
 				Net::Proto::Auth::Login message;
 				message.set_username( "testes" );
 				message.set_password( "password" );
-				stream->Write( Net::PBMsg( Net::Proto::ID::LOGIN, message ) );
+				stream->Write( Net::PBMsg( PID::Auth::LOGIN, message ) );
 				stream->Close();
 			}
 
@@ -94,6 +98,7 @@ void RunProgram() {
 void Main( int argc, char *argv[] ) { 
 	System::Instance i_system(2); 
 	Net::Instance i_net(2);
+	DB::Instance i_db;
 	{
 	//	setvbuf(stdin, NULL, _IONBF, 0); //turn off buffering
 	//	getchar();

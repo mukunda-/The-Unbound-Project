@@ -148,5 +148,16 @@ void StringTable::RemoveEntry( int index ) {
 }
 
 //-------------------------------------------------------------------------------------------------
+std::string StringGarbage( int length ) {
+	std::string str;
+	for( int i = 0; i < length; i++ ) {
+		double d = (double)rand();
+		d = d * 94.0;
+		d = d / (double)RAND_MAX;
+		d = floor( d + 0.5 );
+		str += (char)(' ' + (int)d);
+	}
+	return str;
+}
 
 }

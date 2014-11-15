@@ -61,6 +61,8 @@ void StringToUpper( char *str );
 void StringASCIIFilter( char *str );
 void StripASCIIControls( char *str );
 
+std::string StringGarbage( int length );
+
 #ifdef EIGEN_CORE_H
 bool ParseColorString( const char *input, Eigen::Vector4f &output );
 #endif
