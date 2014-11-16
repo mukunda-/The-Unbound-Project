@@ -10,24 +10,24 @@ namespace Util {
 	
 //-------------------------------------------------------------------------------------------------
 int StringToInt( const char *str ) {
-	return atoi( str );
+	return std::atoi( str );
 }
 
 //-------------------------------------------------------------------------------------------------
 double StringToFloat( const char *str ) {
-	return atof( str );
+	return std::atof( str );
 }
 
 //-------------------------------------------------------------------------------------------------
 bool StringToBool( const char *str ) {
 	if( StrEqual(str,"yes",false) ) return true;
-	if( StrEqual(str,"no",false) ) return false;
+	//if( StrEqual(str,"no",false) ) return false;
 
 	if( StrEqual(str,"true",false) ) return true;
-	if( StrEqual(str,"false",false) ) return false;
+	//if( StrEqual(str,"false",false) ) return false;
 
 	if( StrEqual(str,"on",false) ) return true;
-	if( StrEqual(str,"off",false) ) return false;
+	//if( StrEqual(str,"off",false) ) return false;
 
 	return false;
 }
@@ -305,11 +305,7 @@ int ConvertHexByte( const char *str ) {
 //-------------------------------------------------------------------------------------------------
 bool ParseColorString( const char *input, Eigen::Vector4f &output  ) {
 	// parses a color string into a vector
-	// acceptable formats:
-	// "255 255 255 [255]"
-	// "1.0 1.0 1.0 [1.0]"
-	// "999[9]"
-	// "ffffff[ff]"
+	
 	//
 
 	output.setOnes();
@@ -352,11 +348,25 @@ bool ParseColorString( const char *input, Eigen::Vector4f &output  ) {
 }
 #endif
 
+//-------------------------------------------------------------------------------------------------
 std::string RoundDecimal( double input, int digits  ) {
 	double scale = pow(10,digits);
 	input = floor( input * scale + 0.5 );
 	input = input / scale;
 	return std::to_string(input);
+}
+
+//-------------------------------------------------------------------------------------------------
+std::string StringGarbage( int length ) {
+	std::string str;
+	for( int i = 0; i < length; i++ ) {
+		double d = (double)rand();
+		d = d * 94.0;
+		d = d / (double)RAND_MAX;
+		d = floor( d + 0.5 );
+		str += (char)(' ' + (int)d);
+	}
+	return str;
 }
 
 }

@@ -6,10 +6,10 @@
 
 #include "util/stringles.h"
 
+//-----------------------------------------------------------------------------
 namespace Util {
 
-
-
+//-----------------------------------------------------------------------------
 struct ArgString {
 	
 	std::vector<std::string> args;
@@ -23,7 +23,6 @@ struct ArgString {
 			args.push_back( dest );	
 		}
 	}
-	 
 };
 
 }
