@@ -131,7 +131,7 @@ namespace Util {
 	///
 	/// @param str String to modify.
 	///
-	void StringToUpper( char *str, );
+	void StringToUpper( char *str );
 	
 	/// -----------------------------------------------------------------------
 	/// Replace any characters above code 128.

@@ -264,25 +264,24 @@ void StringToUpper( char *str ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-void StringASCIIFilter( char *str ) {
+void StringASCIIFilter( char *str, char replace ) {
 	for( ; *str; str++ ) {
-		if( *str >= 128 ) *str = '_' ;
+		if( *str >= 128 ) *str = replace;
 	}
 }
 
 //-------------------------------------------------------------------------------------------------
-void StripASCIIControls( char *str ) {
+void StripASCIIControls( char *str, char replace ) {
 	for( ; *str; str++ ) {
-		if( *str >= 128 || *str < 32 ) *str = ' ' ;
+		if( *str >= 128 || *str < 32 ) *str = replace;
 	}
 }
 
 //-------------------------------------------------------------------------------------------------
-void StripASCIIControls( std::string &str ) {
-	
-
+void StripASCIIControls( std::string &str, char replace ) {
+	 
 	for( std::string::iterator a = str.begin(); a != std::string::iterator(); a++ ) {
-		if( *a >= 128 || *a < 32 ) *a = ' ';
+		if( *a >= 128 || *a < 32 ) *a = replace;
 	}
 }
 

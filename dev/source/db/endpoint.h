@@ -22,7 +22,8 @@ struct Endpoint {
 	// password to log in with
 	std::string m_password;
 
-	// database to access
+	// database to access 
+	// leave empty to not associate queries with a single database.
 	std::string m_database;
 
 	Endpoint() {}

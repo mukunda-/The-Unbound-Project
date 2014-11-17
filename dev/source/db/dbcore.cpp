@@ -4,6 +4,7 @@
 
 #include <stdafx.h>
 #include "core.h"
+#include "connection.h"
 #include "system/console.h"
 
 //-----------------------------------------------------------------------------
@@ -12,14 +13,15 @@ namespace DB {
 Instance *g_instance = nullptr;
 
 //-----------------------------------------------------------------------------
-void Register( const std::string &name, const Endpoint &info ) {
-	g_instance->RegisterConnection( name, info );
+void Register( ConnectionPtr &&connection ) {
+	g_instance->RegisterConnection( std::move(connection) );
 } 
 
 //-----------------------------------------------------------------------------
-void Instance::RegisterConnection( const std::string &name, 
-								   const Endpoint &info ) {
+void Instance::RegisterConnection( ConnectionPtr &&connection ) {
 
+	m_connections.push_back(connection);
+	m_conmap.Set( connection->Name().c_str(), connection.get() );
 }
 
 //-----------------------------------------------------------------------------
@@ -27,7 +29,7 @@ Instance::Instance( int threads ) {
 	g_instance = this;
 
 	for( int i = 0; i < threads; i++ ) {
-		m_threadpool.push_back( std::thread( std::bind( 
+		//m_threadpool.push_back( std::thread( std::bind( 
 	}
 
 	m_driver = sql::mysql::get_mysql_driver_instance(); 

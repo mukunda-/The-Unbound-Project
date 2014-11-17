@@ -17,6 +17,8 @@
 #include "util/trie.h"
 
 #include "db/core.h"
+#include "db/endpoint.h"
+
 
 class MyStream : public Net::Stream {
 
@@ -78,18 +80,21 @@ void Test() {
 
 
 
-void RunProgram() {
-	Util::Trie<int> test;
-	test.Set( "hello", 5, true );
-	
-	//System::RunProgram( TestProgram() );
-	//std::thread
-//	char buffer[25];
-	//fgets(buffer,25,stdin);
-	//System::ServerConsole::GetInput( buffer, sizeof buffer );
-//	boost::this_thread::sleep_for( boost::chrono::seconds(15));
 
-	//System::Join();
+void RunProgram() {
+
+	
+	YAML::Node config = YAML::LoadFile("private/sql.yaml");
+		
+	DB::Endpoint info;
+	info.m_address = config["address"].as<std::string>();
+	info.m_username = config["user"].as<std::string>();
+	info.m_password = config["password"].as<std::string>();
+	info.m_database = config["database"].as<std::string>();
+
+	//DB::Register( std::make_unique<DB::Connection>( "test", info ) );
+	
+	
 }
 
 	 
@@ -98,7 +103,7 @@ void RunProgram() {
 void Main( int argc, char *argv[] ) { 
 	System::Instance i_system(2); 
 	Net::Instance i_net(2);
-	DB::Instance i_db;
+	DB::Instance i_db(1);
 	{
 	//	setvbuf(stdin, NULL, _IONBF, 0); //turn off buffering
 	//	getchar();

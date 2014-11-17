@@ -2,4 +2,6 @@
 //                                                                             //
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
+#include <stdafx.h>
+
 // moved to header.

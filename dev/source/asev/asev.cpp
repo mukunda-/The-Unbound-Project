@@ -71,7 +71,7 @@ Handler::Lock::Lock( Pipe &pipe ) : m_pipe(pipe), m_lock(pipe.m_mutex) {
 }
 
 //-----------------------------------------------------------------------------
-Handler *Handler::Lock::operator()() {
+Handler *Handler::Lock::operator()() const {
 	return m_pipe.m_handler;
 }
 
@@ -81,7 +81,7 @@ void Handler::Lock::Close() {
 }
 
 //-----------------------------------------------------------------------------
-bool Handler::Lock::IsClosed() {
+bool Handler::Lock::IsClosed() const {
 	return m_pipe.m_handler == nullptr;
 }
 

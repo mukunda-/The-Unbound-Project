@@ -16,23 +16,14 @@ namespace DB {
 /// ---------------------------------------------------------------------------
 /// Register a database connection
 ///
-/// @param name Name to associate with connection.
-/// @param info Database connection information.
-/// @throws std::runtime_error if the connection already exists
+/// @param connection Connection to register. The subsystem will take
+///        ownership of the pointer.
 ///
-void Register( const std::string &name, const Endpoint &info );
+void Register( ConnectionPtr &&connection );
 
 //-----------------------------------------------------------------------------
 class Instance {
-	std::vector<std::unique_ptr<Connection>> m_connections;
-	Util::Trie<Connection*> m_conmap;
-
-	sql::mysql::MySQL_Driver *m_driver;
-
-	std::vector<std::thread> m_threadpool;
-
-	std::list< Transaction > m_pending_xs;
-
+	
 public:
 	/// -----------------------------------------------------------------------
 	/// Start the database subsystem
@@ -43,7 +34,16 @@ public:
 	Instance( int threads );
 	~Instance();
 
-	void RegisterConnection( const std::string &name, const Endpoint &info );
+private:
+	std::vector<ConnectionPtr> m_connections;
+	Util::Trie<Connection*> m_conmap;
+
+	sql::mysql::MySQL_Driver *m_driver;
+	std::vector<std::thread> m_threadpool;
+//	std::list< Transaction > m_pending_xs;
+
+public: // wrapped by global functions.
+	void RegisterConnection( ConnectionPtr &&connection );
 };
 
 }
