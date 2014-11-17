@@ -5,7 +5,7 @@
 #include <stdafx.h>
 #include "stream.h"
 #include "listener.h"
-#include "nwcore.h"
+#include "core.h"
 
 namespace Net {
 	

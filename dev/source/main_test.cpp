@@ -9,7 +9,7 @@
 #include "system/console.h"
 #include "net/stream.h"
 #include "net/listener.h"
-#include "net/nwcore.h"
+#include "net/core.h"
 
 #include "protocol.h"
 #include "proto/auth/login.pb.h"
@@ -18,6 +18,8 @@
 
 #include "db/core.h"
 #include "db/endpoint.h"
+
+#include "mem/arena.h"
 
 
 class MyStream : public Net::Stream {
@@ -82,7 +84,7 @@ void Test() {
 
 
 void RunProgram() {
-
+	//std::allocator<int> poop;
 	
 	YAML::Node config = YAML::LoadFile("private/sql.yaml");
 		

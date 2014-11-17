@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "basiclistener.h"
-#include "nwcore.h"
+#include "core.h"
 
 namespace Net {
 

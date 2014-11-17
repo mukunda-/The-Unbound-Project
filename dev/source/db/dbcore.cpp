@@ -20,7 +20,7 @@ void Register( ConnectionPtr &&connection ) {
 //-----------------------------------------------------------------------------
 void Instance::RegisterConnection( ConnectionPtr &&connection ) {
 
-	m_connections.push_back(connection);
+	m_connections.push_back( std::move(connection) );
 	m_conmap.Set( connection->Name().c_str(), connection.get() );
 }
 

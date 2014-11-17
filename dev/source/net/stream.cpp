@@ -3,7 +3,7 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include <stdafx.h>
-#include "nwcore.h"
+#include "core.h"
 #include "stream.h"
 #include "resolver.h"
 #include "util/minmax.h"

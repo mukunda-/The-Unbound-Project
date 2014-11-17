@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "resolver.h"
-#include "nwcore.h"
+#include "core.h"
 
 namespace Net {
 

@@ -8,8 +8,6 @@
 //-------------------------------------------------------------------------------------------------
 namespace Memory {
 
-
-
 const int list_sizes[] = {
 	64 - sizeof(MemoryHeader),		//64b XX-SMALL
 	256 - sizeof(MemoryHeader),		//256b X-SMALL
