@@ -69,7 +69,7 @@ namespace Asev {
 			/// @returns The handler for the locked pipe, or nullptr if the
 			///          pipe is closed.
 			///
-			Handler *operator()();
+			Handler *operator()() const;
 
 			/// ---------------------------------------------------------------
 			/// Close the pipe.
@@ -82,7 +82,7 @@ namespace Asev {
 			/// @returns true if the locked pipe is closed, i.e. it doesn't
 			///          have a live handler pointer.
 			///
-			bool IsClosed();
+			bool IsClosed() const;
 		};
 
 		friend class Source;

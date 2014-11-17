@@ -4,17 +4,36 @@
 
 #include <stdafx.h>
 #include "core.h"
+#include "system/console.h"
 
 //-----------------------------------------------------------------------------
 namespace DB {
 
-Instance *g_instance;
+Instance *g_instance = nullptr;
 
 //-----------------------------------------------------------------------------
-Instance::Instance() {
-	g_instance = this;
-	m_driver = sql::mysql::get_mysql_driver_instance();
+void Register( const std::string &name, const Endpoint &info ) {
+	g_instance->RegisterConnection( name, info );
+} 
 
+//-----------------------------------------------------------------------------
+void Instance::RegisterConnection( const std::string &name, 
+								   const Endpoint &info ) {
+
+}
+
+//-----------------------------------------------------------------------------
+Instance::Instance( int threads ) {
+	g_instance = this;
+
+	for( int i = 0; i < threads; i++ ) {
+		m_threadpool.push_back( std::thread( std::bind( 
+	}
+
+	m_driver = sql::mysql::get_mysql_driver_instance(); 
+
+	
+	System::Console::Print( "%s", "Database subsystem started." );
 }
 
 //-----------------------------------------------------------------------------
