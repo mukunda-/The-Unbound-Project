@@ -4,21 +4,21 @@
 
 #pragma once
 
-namespace Mem {
+#include "arenamanager.h"
 
-	namespace Arena {
-		/// -------------------------------------------------------------------
-		/// Overrides new and delete to use the arena allocator.
-		///
-		class Use { 
+namespace Mem { namespace Arena {
 
-			void* operator new( size_t size ) { 
-				return ArenaAlloc( sz );
-			} 
+	/// -----------------------------------------------------------------------
+	/// Overrides new and delete to use the arena allocator.
+	///
+	class Use { 
 
-			void operator delete( void* ptr ) {
-				ArenaFree( ptr );
-			}
-		};
-	}
-}
+		void* operator new( size_t size ) { 
+			return Alloc( size );
+		} 
+
+		void operator delete( void* ptr ) {
+			Free( ptr );
+		}
+	};
+}}

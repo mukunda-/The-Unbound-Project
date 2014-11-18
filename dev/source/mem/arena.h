@@ -4,74 +4,78 @@
 
 #pragma once
 
-#include "arenamanager.h"
 
 //-----------------------------------------------------------------------------
-namespace Mem { namespace Arena {
+namespace Mem { namespace Arena { 
 
 	/// -----------------------------------------------------------------------
 	/// Allocated memory header.
 	///
 	struct Header { 
-		uint16_t m_parent_id;
+		uint16_t m_id;
 	};
+
+	class Manager;
 
 	/// -----------------------------------------------------------------------
 	/// An arena.
 	///
-	class Chunk {
-		char m_data[CHUNK_SIZE];
-		int  m_next = 0;
-		int  m_references = 0;
-		bool m_old = false;
+	class Chunk : public Util::LinkedItem<Chunk> {
+		friend class Manager;
+		static const int SIZE = 0x1000000;
+
+		Manager &m_manager;        // parent manager
+		char     m_data[SIZE];     // arena memory block
+		int      m_free = 0;       // next byte position of free data
+		int      m_references = 0; // # of allocated units
+		uint16_t m_id;             // ID in manager
+		bool     m_delete = false; // delete when references reach 0
 
 		/// -------------------------------------------------------------------
-		/// Delete this chunk.
+		/// Get the header for an allocated memory unit.
 		///
-		void Finalize() {
+		/// @param ptr Pointer obtained from Get
+		/// @returns   Pointer to header data.
+		///
+		static Header *GetHeader( void *ptr ) {
+			return (Header*)(
+				((char*)ptr) - sizeof(Header)
+			);
 		}
 
 	public:
-		~Chunk() {
-			assert( m_references == 0 );
-		}
+		Chunk( Manager &manager, uint16_t id );
+		~Chunk();
 
 		/// -------------------------------------------------------------------
 		/// Allocate some memory from this chunk.
 		///
 		/// @param size    Size to allocate.
-		/// @param aligned Align on this boundary. 0 = no alignment.
+		/// @param aligned Align on this boundary. 2 is minimum. 0 = 2
+		///                aligned must be a power of 2.
 		/// @returns Pointer to allocated memory.
 		///
-		void *Get( int size, int aligned = 16 ) {
-			int remaining = CHUNK_SIZE - m_next;
-			if( remaining < (size + sizeof(Header)) ) return nullptr;
-
-			void *ptr = (void*)(m_data + m_next);
-			m_next += size + sizeof(Header);
-		}
+		void *Get( int size, int aligned = 16 );
 
 		/// -------------------------------------------------------------------
 		/// Release one memory pointer.
 		///
-		/// This just decreases the reference counter, the chunk is freed
+		/// This decreases the reference counter, the chunk is freed
 		/// when no more references are made.
 		///
-		void Release() {
-			assert( m_references > 0 );
-			m_references--;
-			if( m_old && m_references == 0 ) {
-				Finalize();
-			}
-		}
+		void Release();
 
 		/// -------------------------------------------------------------------
-		/// Mark this chunk as "old", which means it will delete itself
-		/// when all of its references are done.
+		/// Mark this chunk for deletion, which means it will signal
+		/// the manager to be removed when all references are finished.
 		///
-		void Old() {
-			m_old = true;
-			if( m_references == 0 ) Finalize();
+		void Delete();
+
+		/// -------------------------------------------------------------------
+		/// Returns the max allowable size for allocation.
+		///
+		static const int MaxSize() {
+			return SIZE*3/4;
 		}
 	};
 

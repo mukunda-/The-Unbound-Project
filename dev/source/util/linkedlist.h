@@ -67,6 +67,7 @@ public:
 		}
 	}
 
+	//---------------------------------------------------------------------------------------------
 	void AppendList( LinkedList<Object> list ) {
 		AppendList( list.first, list.last );
 	}
@@ -109,6 +110,7 @@ public:
 		return first;
 	}
 
+	//---------------------------------------------------------------------------------------------
 	const Object *GetFirstC() const {
 		return first;
 	}
