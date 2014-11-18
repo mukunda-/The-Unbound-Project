@@ -9,6 +9,7 @@
 #include "connection.h"
 #include "forwards.h"
 #include "util/trie.h"
+#include "util/stringmap.h"
 
 //-----------------------------------------------------------------------------
 namespace DB {
@@ -34,14 +35,21 @@ public:
 	Instance( int threads );
 	~Instance();
 
+	//-------------------------------------------------------------------------
 private:
-	std::vector<ConnectionPtr> m_connections;
-	Util::Trie<Connection*> m_conmap;
+	std::unordered_map<std::string, ConnectionPtr> m_conmap;
 
 	sql::mysql::MySQL_Driver *m_driver;
 	std::vector<std::thread> m_threadpool;
+	Util::SLinkedItem<Transaction> m_pending_xs;
 //	std::list< Transaction > m_pending_xs;
 
+	std::mutex m_work_mutex;
+	std::condition_variable m_work_signal;
+
+	void ThreadMain();
+
+	//-------------------------------------------------------------------------
 public: // wrapped by global functions.
 	void RegisterConnection( ConnectionPtr &&connection );
 };

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "util/slinkedlist.h"
 #include "forwards.h"
 #include "endpoint.h"
 
@@ -11,18 +12,23 @@
 namespace DB {
 
 //-----------------------------------------------------------------------------
-class Connection {
-
+class Connection : public Util::SLinkedItem<Connection> {
+	
 	std::string m_name;
 	Endpoint    m_endpoint;
+	
+	Util::SLinkedItem<Transaction> m_pending_xs;
 
 	// connection pool, one per thread
-	std::list< std::unique_ptr<sql::Connection> > m_conpool;
+//	Util::SLinkedList<Connection> m_conpool;
+
+private:
+	void ExecuteTransaction( Transaction &t );
 
 public:
 
 	/// -----------------------------------------------------------------------
-	/// Create a new sql connection.
+	/// Create a new database connection.
 	///
 	/// @param name     Name to identify this connection.
 	/// @param endpoint Connection and database information.

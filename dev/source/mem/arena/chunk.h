@@ -20,9 +20,9 @@ namespace Mem { namespace Arena {
 	/// -----------------------------------------------------------------------
 	/// An arena.
 	///
-	class Chunk : public Util::LinkedItem<Chunk> {
+	class Chunk {
 		friend class Manager;
-		static const int SIZE = 0x1000000;
+		static const int SIZE = 1*1024*1024;//1mb
 
 		Manager &m_manager;        // parent manager
 		char     m_data[SIZE];     // arena memory block

@@ -19,9 +19,21 @@ void Register( ConnectionPtr &&connection ) {
 
 //-----------------------------------------------------------------------------
 void Instance::RegisterConnection( ConnectionPtr &&connection ) {
+	if( m_conmap.count( connection->Name() ) ) {
+		throw std::invalid_argument( 
+				"Connection name is already registered." );
+	}
 
-	m_connections.push_back( std::move(connection) );
-	m_conmap.Set( connection->Name().c_str(), connection.get() );
+	//m_connections.push_back( std::move(connection) );
+	m_conmap[connection->Name()] = std::move(connection);
+}
+
+//-----------------------------------------------------------------------------
+void Instance::ThreadMain() {
+	std::unique_lock<std::mutex> lock( m_work_mutex );
+	while( 1 ){ // wait for work ) {
+		m_work_signal.wait( lock );
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -29,7 +41,8 @@ Instance::Instance( int threads ) {
 	g_instance = this;
 
 	for( int i = 0; i < threads; i++ ) {
-		//m_threadpool.push_back( std::thread( std::bind( 
+		m_threadpool.push_back( 
+			std::thread( std::bind( &Instance::ThreadMain, this )));
 	}
 
 	m_driver = sql::mysql::get_mysql_driver_instance(); 

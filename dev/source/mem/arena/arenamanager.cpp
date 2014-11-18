@@ -51,7 +51,7 @@ namespace Mem { namespace Arena {
 	void Manager::Free( void* ptr ) {
 		Lock guard(m_mut);
 		Header *header = Chunk::GetHeader( ptr );
-		Chunk *chunk = m_chunkmap[ header->m_id ];
+		std::unique_ptr<Chunk> &chunk = m_chunkmap[ header->m_id ];
 		chunk->Release();
 	}
 
@@ -59,24 +59,20 @@ namespace Mem { namespace Arena {
 	/// Allocate a memory chunk and register it.
 	///
 	void Manager::AllocateChunk() {
-		m_current_chunk = new Chunk( *this, m_nextid );
-		m_chunks.Add( m_current_chunk );
+		m_current_chunk = new Chunk( *this, m_nextid ); 
 		if( m_chunkmap.count( m_nextid ) ) {
 			throw std::runtime_error( "Too many arenas allocated!?" );
 		}
-		 
-		m_chunkmap[m_nextid] = m_current_chunk;
+		
+		m_chunkmap[m_nextid] = std::unique_ptr<Chunk>(m_current_chunk);
 		m_nextid++;
 	}
-	 
 	
 	/// -----------------------------------------------------------------------
 	/// Called by chunks to remove themselves.
 	///
 	void Manager::Finalize( Chunk *chunk ) {
-		m_chunks.Remove( chunk );
 		m_chunkmap.erase( chunk->m_id );
-		delete chunk;
 	}
 
 	//-------------------------------------------------------------------------
@@ -91,7 +87,7 @@ namespace Mem { namespace Arena {
 
 	//-------------------------------------------------------------------------
 	Manager::~Manager() {
-		// wait for memory to be unused.
+		// wait for memory to be unused.?
 		
 		g_manager = nullptr;
 	}

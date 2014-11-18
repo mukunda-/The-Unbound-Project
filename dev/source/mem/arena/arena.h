@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "util/linkedlist.h" 
 #include "allocator.h"
 
 // Arena allocator
@@ -62,13 +61,12 @@ namespace Mem { namespace Arena {
 	class Manager {
 		friend class Chunk;
 		 
-		std::unordered_map< uint16_t, Chunk* > m_chunkmap;
-		Util::LinkedList<Chunk> m_chunks;
+		std::unordered_map< uint16_t, std::unique_ptr<Chunk> > m_chunkmap;
 		
 		uint16_t   m_nextid = 0;
 		Chunk     *m_current_chunk = nullptr;
 		std::mutex m_mut;
-
+		
 		void AllocateChunk(); 
 		void Finalize( Chunk *chunk );
 

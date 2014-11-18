@@ -4,20 +4,33 @@
 
 #pragma once
 
+#include "util/slinkedlist.h"
+#include "forwards.h"
+
 namespace DB {
 
-class Transaction {
+class Transaction : public Util::SLinkedItem<Transaction> {
+
+	Connection &m_connection;
 
 protected:
+
 	/// -----------------------------------------------------------------------
-	/// (Implementation) Perform the actions for this transaction.
+	/// Perform the actions for this transaction.
 	///
 	/// @return true to commit the transaction, false to rollback the
 	///         transaction.
+	///
 	virtual bool Actions() = 0;
 
 public:
+	Transaction( Connection &connection ) : m_connection(connection) 
+	{
+	}
 
+	/// -----------------------------------------------------------------------
+	/// Execute this transaction.
+	///
 	void Execute();
 };
 
