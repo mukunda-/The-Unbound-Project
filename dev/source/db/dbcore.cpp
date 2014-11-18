@@ -33,9 +33,8 @@ Instance::Instance( int threads ) {
 	}
 
 	m_driver = sql::mysql::get_mysql_driver_instance(); 
-
-	
-	System::Console::Print( "%s", "Database subsystem started." );
+	 
+//	System::Console::Print( "%s", "Database subsystem started." );
 }
 
 //-----------------------------------------------------------------------------

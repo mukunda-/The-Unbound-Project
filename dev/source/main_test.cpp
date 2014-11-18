@@ -19,8 +19,24 @@
 #include "db/core.h"
 #include "db/endpoint.h"
 
-#include "mem/arena.h"
+#include "mem/arena/arena.h"
 
+#include "util/slinkedlist.h"
+
+class Testes : public Util::SLinkedItem<Testes> {
+	int b;
+public:
+	Testes( int a ) {
+		b=a;
+		using System::Console::Print;
+		Print( "hi %d", b );
+	
+	}
+	~Testes() {
+		using System::Console::Print;
+		Print( "bye %d", b );
+	}
+};
 
 class MyStream : public Net::Stream {
 
@@ -72,7 +88,39 @@ public:
 
 	void OnStart() {
 
-		Net::ConnectAsync( "localhost", "32791", m_events );
+		{
+			using poop = std::unique_ptr<Testes>;
+
+			Util::SLinkedList<Testes> list;
+			Util::SLinkedList<Testes> list2;
+
+			list.Push( poop( new Testes(1) ) );
+			list.Push( poop( new Testes(2) ) );
+		
+			list2.Push( poop( new Testes(3) ) );
+			list2.Push( poop( new Testes(4) ) );
+
+			list.Cat( list2 );
+
+			{
+				poop a = list.Pull(list.First()->NextLink());
+			}
+		}
+		//std::unique_ptr a
+
+			/*
+		{
+			std::shared_ptr<Testes> a = Mem::Arena::MakeShared<Testes>();
+		}
+		YAML::Node config = YAML::LoadFile("private/sql.yaml");
+		
+		DB::Endpoint info;
+		info.m_address = config["address"].as<std::string>();
+		info.m_username = config["user"].as<std::string>();
+		info.m_password = config["password"].as<std::string>();
+		info.m_database = config["database"].as<std::string>();
+		*/
+		//Net::ConnectAsync( "localhost", "32791", m_events );
 	}
 };
 
@@ -82,18 +130,11 @@ void Test() {
 
 
 
-
 void RunProgram() {
 	//std::allocator<int> poop;
-	
-	YAML::Node config = YAML::LoadFile("private/sql.yaml");
-		
-	DB::Endpoint info;
-	info.m_address = config["address"].as<std::string>();
-	info.m_username = config["user"].as<std::string>();
-	info.m_password = config["password"].as<std::string>();
-	info.m_database = config["database"].as<std::string>();
 
+	System::RunProgram( TestProgram() );
+	
 	//DB::Register( std::make_unique<DB::Connection>( "test", info ) );
 	
 	
@@ -103,6 +144,7 @@ void RunProgram() {
 
 //-------------------------------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) { 
+	Mem::Arena::Manager i_arenas;
 	System::Instance i_system(2); 
 	Net::Instance i_net(2);
 	DB::Instance i_db(1);

@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include "util/linkedlist.h"
-#include "arena.h"
+#include "util/linkedlist.h" 
+#include "allocator.h"
 
 // Arena allocator
 // for small short lived objects.
 
 namespace Mem { namespace Arena {
+
+	class Chunk;
 	
 	/// -----------------------------------------------------------------------
 	/// Allocate memory from an arena.
@@ -22,6 +24,30 @@ namespace Mem { namespace Arena {
 	/// @param aligned If nonzero, align the memory to this many bytes.
 	///
 	void *Alloc( int size, int aligned = 16 );
+	
+	/// -----------------------------------------------------------------------
+	/// Allocate a shared pointer using the arena.
+	///
+	/// @param T    Object type to allocate and wrap.
+	/// @param args Construction arguments.
+	/// @returns    shared_ptr object.
+	///
+	template< class T, class... Args >
+	std::shared_ptr<T> MakeShared( Args &&...args ) { 
+		return std::allocate_shared<T>( Allocator<T>(), args... );
+	}
+	
+	/// -----------------------------------------------------------------------
+	/// Allocate a unique pointer using the arena.
+	///
+	/// @param T    Object type to allocate and wrap.
+	/// @param args Construction arguments.
+	/// @returns    unique_ptr object.
+	///
+	template< class T, class... Args >
+	std::unique_ptr<T> MakeUnique( Args &&...args ) { 
+		return std::unique_ptr<T>( new T(args...) );
+	}
 
 	/// -----------------------------------------------------------------------
 	/// Free allocated memory.

@@ -5,66 +5,57 @@
 #pragma once 
 
 //
-// STL allocator implementation for arena allocation.
-// idk what im doing here
+// STL allocator for the arena.
+//
 
 #include "arena.h"
+#include "chunk.h"
 
 //-----------------------------------------------------------------------------
 namespace Mem { namespace Arena {
-
-	/*
-	template <> class ArenaAllocator<void> {
-	public:
-		typedef void* pointer;
-		typedef const void* const_pointer;
-		typedef void value_type;
-		template <class U> struct rebind { 
-			typedef ArenaAllocator<U> other; 
-		};
-	};
-	*/
-
+	 
 	//-------------------------------------------------------------------------
-	template< class T > class ArenaAllocator {
+	template< class T > class Allocator {
 	public:
-		typedef std::size_t size_type;
-		typedef ptrdiff_t difference_type;
-		typedef T* pointer;
-		typedef const T* const_pointer;
-		typedef T& reference;
-		typedef const T& const_reference;
-		typedef T value_type;
+		using size_type = size_t;
+		using difference_type = ptrdiff_t;
+		using pointer = T*;
+		using const_pointer = const T*;
+		using reference = T&;
+		using const_reference = const T&;
+		using value_type = T;
+
+		//---------------------------------------------------------------------
 		template <class U> struct rebind { 
-			typedef allocator<U> other; 
+			typedef Allocator<U> other; 
 		};
  
 		//---------------------------------------------------------------------
-		explicit ArenaAllocator() throw() {} 
-		explicit ArenaAllocator( const ArenaAllocator& ) throw() {}
+		Allocator() throw() {} 
+		Allocator( const Allocator& ) throw() {}
 		template< class U > 
-		explicit ArenaAllocator( const ArenaAllocator<U>& ) throw() {}
-		~ArenaAllocator() throw() {}
+		Allocator( const Allocator<U>& ) throw() {}
+		~Allocator() throw() {}
  
 		//---------------------------------------------------------------------
-		pointer address( reference x ) const { return x; }
-		const_pointer address( const_reference x ) const { return x; }
+		pointer address( reference x ) const { return &x; }
+		const_pointer address( const_reference x ) const { return &x; }
  
 		//---------------------------------------------------------------------
 		pointer allocate( size_type count, 
-						  allocator<void>::const_pointer = 0 ) {
-
-			return (pointer)ArenaAlloc( count * sizeof(T) );
+						  const_pointer = 0 ) {
+			if( count == 0 ) return nullptr;
+			return (pointer)Alloc( count * sizeof(T) );
 		}
 
 		//---------------------------------------------------------------------
 		void deallocate( pointer p, size_type n ) {
-			ArenaFree( p );
+			Free( p );
 		}
 
 		//---------------------------------------------------------------------
-		size_type max_size() const throw() {
-			return ARENA_SIZE / sizeof(T);
+		size_type max_size() const {
+			return Chunk::MaxSize() / sizeof(T);
 		}
 
 		//---------------------------------------------------------------------
@@ -85,6 +76,16 @@ namespace Mem { namespace Arena {
 		//---------------------------------------------------------------------
 		inline bool operator==(Allocator const&) { return true; }
 		inline bool operator!=(Allocator const& a) { return !operator==(a); }
+	};
+	
+	template <> class Allocator<void> {
+	public:
+		typedef void* pointer;
+		typedef const void* const_pointer;
+		typedef void value_type;
+		template <class U> struct rebind { 
+			typedef Allocator<U> other; 
+		};
 	};
 
 }} // Mem::Arena

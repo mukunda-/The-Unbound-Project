@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "arenamanager.h"
+#include "arena.h"
 
 namespace Mem { namespace Arena {
 

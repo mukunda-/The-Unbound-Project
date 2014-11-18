@@ -3,8 +3,8 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include <stdafx.h>
-#include "arenamanager.h"
 #include "arena.h"
+#include "chunk.h"
 
 namespace Mem { namespace Arena {
 
