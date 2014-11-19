@@ -20,7 +20,7 @@ namespace DB {
 /// @param connection Connection to register. The subsystem will take
 ///        ownership of the pointer.
 ///
-void Register( ConnectionPtr &&connection );
+void Register( const std::string &name, const Endpoint &endpoint );
 
 //-----------------------------------------------------------------------------
 class Instance {
@@ -37,21 +37,23 @@ public:
 
 	//-------------------------------------------------------------------------
 private:
-	std::unordered_map<std::string, ConnectionPtr> m_conmap;
+	std::unordered_map< std::string, ConnectionPtr > m_conmap;
 
 	sql::mysql::MySQL_Driver *m_driver;
 	std::vector<std::thread> m_threadpool;
-	Util::SLinkedItem<Transaction> m_pending_xs;
-//	std::list< Transaction > m_pending_xs;
 
+	std::deque<std::unique_ptr<Transaction>> m_work_queue; // todo, use arena allocator.
+	bool m_shutdown = false;
 	std::mutex m_work_mutex;
 	std::condition_variable m_work_signal;
 
+	void QueueWork( std::unique_ptr<Transaction> &&work );
 	void ThreadMain();
 
 	//-------------------------------------------------------------------------
 public: // wrapped by global functions.
-	void RegisterConnection( ConnectionPtr &&connection );
+	void RegisterConnection( const std::string &name, 
+							 const Endpoint &endpoint );
 };
 
 }

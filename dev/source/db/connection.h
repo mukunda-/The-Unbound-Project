@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/slinkedlist.h"
+#include "transaction.h"
 #include "forwards.h"
 #include "endpoint.h"
 
@@ -17,13 +18,15 @@ class Connection : public Util::SLinkedItem<Connection> {
 	std::string m_name;
 	Endpoint    m_endpoint;
 	
-	Util::SLinkedItem<Transaction> m_pending_xs;
+	std::mutex  m_mut;
+	std::deque<std::unique_ptr<Transaction>> m_work_queue;
 
+	std::stack<std::unique_ptr<Line>> m_stack;
 	// connection pool, one per thread
-//	Util::SLinkedList<Connection> m_conpool;
+	//Util::SLinkedList<Connection> m_conpool;
 
-private:
-	void ExecuteTransaction( Transaction &t );
+	// this is called from a work thread.
+	void DoTransaction( Transaction &t );
 
 public:
 
@@ -36,8 +39,20 @@ public:
 	///
 	Connection( const std::string &name, const Endpoint &endpoint, 
 				int threads = 1 );
-
+	~Connection();
+	
+	/// -----------------------------------------------------------------------
+	/// @returns the name of this connection.
+	///
 	const std::string &Name() { return m_name; }
+	
+	/// -----------------------------------------------------------------------
+	/// Execute a transaction.
+	///
+	/// @param t Transaction; ownership is given to the connection and is
+	///          no longer accessible outside.
+	///
+	void Execute( std::unique_ptr<Transaction> &t );
 };
 
 }

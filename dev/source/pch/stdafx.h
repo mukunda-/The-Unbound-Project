@@ -29,6 +29,7 @@
 #include <typeinfo>
 #include <istream>
 #include <ostream>
+#include <stack>
 
 #include <mysql_driver.h>	
 #include <mysql_connection.h>

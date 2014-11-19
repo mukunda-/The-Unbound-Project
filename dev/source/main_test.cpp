@@ -88,30 +88,8 @@ public:
 
 	void OnStart() {
 
-		{
-			using poop = std::unique_ptr<Testes>;
-
-			Util::SLinkedList<Testes> list;
-			Util::SLinkedList<Testes> list2;
-
-			list.Push( poop( new Testes(1) ) );
-			list.Push( poop( new Testes(2) ) );
-		
-			list2.Push( poop( new Testes(3) ) );
-			list2.Push( poop( new Testes(4) ) );
-
-			list.Cat( list2 );
-
-			{
-				poop a = list.Pull(list.First()->NextLink());
-			}
-		}
-		//std::unique_ptr a
-
-			/*
-		{
-			std::shared_ptr<Testes> a = Mem::Arena::MakeShared<Testes>();
-		}
+		 
+		  
 		YAML::Node config = YAML::LoadFile("private/sql.yaml");
 		
 		DB::Endpoint info;
@@ -119,7 +97,9 @@ public:
 		info.m_username = config["user"].as<std::string>();
 		info.m_password = config["password"].as<std::string>();
 		info.m_database = config["database"].as<std::string>();
-		*/
+		
+		auto con = DB::ConnectionPtr( new DB::Connection( "test", info ) );
+		DB::Register( "test", info );
 		//Net::ConnectAsync( "localhost", "32791", m_events );
 	}
 };

@@ -9,9 +9,7 @@
 
 namespace DB {
 
-class Transaction : public Util::SLinkedItem<Transaction> {
-
-	Connection &m_connection;
+class Transaction {
 
 protected:
 
@@ -24,14 +22,10 @@ protected:
 	virtual bool Actions() = 0;
 
 public:
-	Transaction( Connection &connection ) : m_connection(connection) 
+	Transaction()
 	{
 	}
-
-	/// -----------------------------------------------------------------------
-	/// Execute this transaction.
-	///
-	void Execute();
+	 
 };
 
 }

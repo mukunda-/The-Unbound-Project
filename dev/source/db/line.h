@@ -4,11 +4,11 @@
 
 #pragma once
 
+//-----------------------------------------------------------------------------
 namespace DB {
-	struct Endpoint;
-	class Connection;
-	class Transaction;
-	class Line;
 
-	using ConnectionPtr = std::unique_ptr<Connection>;
+	class Line {
+
+	};
+
 }

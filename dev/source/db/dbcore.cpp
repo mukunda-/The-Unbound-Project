@@ -7,32 +7,59 @@
 #include "connection.h"
 #include "system/console.h"
 
+using namespace std;
+
 //-----------------------------------------------------------------------------
 namespace DB {
 
 Instance *g_instance = nullptr;
 
 //-----------------------------------------------------------------------------
-void Register( ConnectionPtr &&connection ) {
-	g_instance->RegisterConnection( std::move(connection) );
-} 
+void Register( const string &name, const Endpoint &endpoint ) {
+	g_instance->RegisterConnection( name, endpoint );
+}
 
 //-----------------------------------------------------------------------------
-void Instance::RegisterConnection( ConnectionPtr &&connection ) {
-	if( m_conmap.count( connection->Name() ) ) {
-		throw std::invalid_argument( 
+void Instance::QueueWork( unique_ptr<Transaction> &&transaction ) {
+	{
+		lock_guard<mutex> lock(m_work_mutex);
+		m_work_queue.push_back( std::move(transaction) );
+	}
+	m_work_signal.notify_one();
+}
+
+//-----------------------------------------------------------------------------
+void Instance::RegisterConnection( const string &name, 
+								   const Endpoint &endpoint ) {
+	if( m_conmap.count( name ) ) {
+		throw invalid_argument( 
 				"Connection name is already registered." );
 	}
-
-	//m_connections.push_back( std::move(connection) );
-	m_conmap[connection->Name()] = std::move(connection);
+	 
+	m_conmap[ name ] = ConnectionPtr( 
+			new Connection( name, endpoint ));
 }
 
 //-----------------------------------------------------------------------------
 void Instance::ThreadMain() {
-	std::unique_lock<std::mutex> lock( m_work_mutex );
-	while( 1 ){ // wait for work ) {
-		m_work_signal.wait( lock );
+	unique_lock<mutex> lock( m_work_mutex, std::defer_lock );
+	while( true ) {
+		lock.lock();
+		while( m_work_queue.empty() && !m_shutdown ) {
+			m_work_signal.wait( lock );
+		}
+	
+		if( !m_work_queue.empty() ) {
+			std::unique_ptr<Transaction> transaction = 
+					std::move(m_work_queue.front());
+			m_work_queue.pop_front();
+			lock.unlock();
+
+			// <process>.
+			continue;
+		}
+
+		if( m_shutdown ) return;
 	}
 }
 
@@ -47,11 +74,22 @@ Instance::Instance( int threads ) {
 
 	m_driver = sql::mysql::get_mysql_driver_instance(); 
 	 
-//	System::Console::Print( "%s", "Database subsystem started." );
+	// system.console isn't available yet!
+	//	System::Console::Print( "%s", "Database subsystem started." );
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
+
+	// set shutdown flag, send signal, and wait for work to finish.
+	{
+		lock_guard<mutex> lock(m_work_mutex);
+		m_shutdown = true;
+	}
+
+	m_work_signal.notify_all();
+	for( auto &i : m_threadpool ) i.join();
+
 	g_instance = nullptr;
 }
 
