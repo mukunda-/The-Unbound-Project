@@ -19,7 +19,7 @@ const char *Variable::TYPENAMES[] = {
 
 //---------------------------------------------------------------------------------------
 namespace {
-	std::vector<Variable> variables;
+	std::vector<Variable> variables; // todo, move this into manager!
 	Util::Trie<Variable*> references;
 }
 

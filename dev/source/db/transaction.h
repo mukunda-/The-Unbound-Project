@@ -16,10 +16,11 @@ protected:
 	/// -----------------------------------------------------------------------
 	/// Perform the actions for this transaction.
 	///
+	/// @param con SQL Connection to send queries to.
 	/// @return true to commit the transaction, false to rollback the
 	///         transaction.
 	///
-	virtual bool Actions() = 0;
+	virtual bool Actions( sql::Connection &con ) = 0;
 
 public:
 	Transaction()

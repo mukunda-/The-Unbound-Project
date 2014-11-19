@@ -20,7 +20,7 @@ namespace DB {
 /// @param connection Connection to register. The subsystem will take
 ///        ownership of the pointer.
 ///
-void Register( const std::string &name, const Endpoint &endpoint );
+Connection &Register( const std::string &name, const Endpoint &endpoint );
 
 //-----------------------------------------------------------------------------
 class Manager {
@@ -52,8 +52,8 @@ private:
 
 	//-------------------------------------------------------------------------
 public: // wrapped by global functions.
-	void RegisterConnection( const std::string &name, 
-							 const Endpoint &endpoint );
+	Connection &RegisterConnection( const std::string &name, 
+									const Endpoint &endpoint );
 
 	//-------------------------------------------------------------------------
 private:
