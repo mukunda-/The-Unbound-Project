@@ -19,13 +19,22 @@ Connection::Connection( const std::string &name, const Endpoint &endpoint,
 	
 }
 
+//-----------------------------------------------------------------------------
 Connection::~Connection() {
 }
 
+//-----------------------------------------------------------------------------
+void Connection::Execute( std::unique_ptr<Transaction> &t ) {
+	lock_guard<std::mutex> lock(m_mut);
+	
+	if( m_free_threads > 0 ) {
+		m_free_threads--;
+	} else {
+		m_work_queue.push_back( std::move(t) );
+		return;
+	}
 
-void Execute( std::unique_ptr<Transaction> &t ) {
-//	lock_guard<std::mutex> lock(m_mut);
-
+	
 }
 
 }

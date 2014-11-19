@@ -5,6 +5,7 @@
 #pragma once
 
 #include "system/program.h"
+#include "mem/arena/arena.h"
 
 namespace System {
 
@@ -150,7 +151,7 @@ void Shutdown();
 /// ---------------------------------------------------------------------------
 /// System instance
 ///
-class Instance : public Service {
+class Instance {
 	 
 public:
 	/// -----------------------------------------------------------------------
@@ -161,8 +162,10 @@ public:
 
 private: 
 	bool m_live; 
+	
+	Mem::Arena::Manager i_arenas;
+	Service  m_service;
 	boost::asio::strand m_strand;
-
 	Program *m_program;
 
 public: 
@@ -172,6 +175,7 @@ public:
 	void Shutdown();
 
 	void RunProgram( Program &program );
+	Service &GetService();
 };
 
 } // namespace System

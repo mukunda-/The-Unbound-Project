@@ -12,15 +12,15 @@ using namespace std;
 //-----------------------------------------------------------------------------
 namespace DB {
 
-Instance *g_instance = nullptr;
+Manager *g_manager = nullptr;
 
 //-----------------------------------------------------------------------------
 void Register( const string &name, const Endpoint &endpoint ) {
-	g_instance->RegisterConnection( name, endpoint );
+	g_manager->RegisterConnection( name, endpoint );
 }
 
 //-----------------------------------------------------------------------------
-void Instance::QueueWork( unique_ptr<Transaction> &&transaction ) {
+void Manager::QueueWork( unique_ptr<Transaction> &&transaction ) {
 	{
 		lock_guard<mutex> lock(m_work_mutex);
 		m_work_queue.push_back( std::move(transaction) );
@@ -29,7 +29,7 @@ void Instance::QueueWork( unique_ptr<Transaction> &&transaction ) {
 }
 
 //-----------------------------------------------------------------------------
-void Instance::RegisterConnection( const string &name, 
+void Manager::RegisterConnection( const string &name, 
 								   const Endpoint &endpoint ) {
 	if( m_conmap.count( name ) ) {
 		throw invalid_argument( 
@@ -41,7 +41,7 @@ void Instance::RegisterConnection( const string &name,
 }
 
 //-----------------------------------------------------------------------------
-void Instance::ThreadMain() {
+void Manager::ThreadMain() {
 	unique_lock<mutex> lock( m_work_mutex, std::defer_lock );
 	while( true ) {
 		lock.lock();
@@ -68,7 +68,7 @@ void Instance::ThreadMain() {
 ///
 /// @param endpoint Address and credentials to use.
 ///
-unique_ptr<sql::Connection> Instance::Connect( const Endpoint &endpoint ) {
+unique_ptr<sql::Connection> Manager::Connect( const Endpoint &endpoint ) {
 	return unique_ptr<sql::Connection>(
 		m_driver.connect( endpoint.m_address, 
 						  endpoint.m_username, 
@@ -76,13 +76,13 @@ unique_ptr<sql::Connection> Instance::Connect( const Endpoint &endpoint ) {
 }
 
 //-----------------------------------------------------------------------------
-Instance::Instance( int threads ) : 
+Manager::Manager( int threads ) : 
 			m_driver( *sql::mysql::get_mysql_driver_instance() ) {
-	g_instance = this;
+	g_manager = this;
 
 	for( int i = 0; i < threads; i++ ) {
 		m_threadpool.push_back( 
-			std::thread( std::bind( &Instance::ThreadMain, this )));
+			std::thread( std::bind( &Manager::ThreadMain, this )));
 	}
 	 
 	// system.console isn't available yet!
@@ -90,7 +90,7 @@ Instance::Instance( int threads ) :
 }
 
 //-----------------------------------------------------------------------------
-Instance::~Instance() {
+Manager::~Manager() {
 
 	// set shutdown flag, send signal, and wait for work to finish.
 	{
@@ -101,7 +101,7 @@ Instance::~Instance() {
 	m_work_signal.notify_all();
 	for( auto &i : m_threadpool ) i.join();
 
-	g_instance = nullptr;
+	g_manager = nullptr;
 }
 
 }

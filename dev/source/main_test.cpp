@@ -90,10 +90,10 @@ public:
 
 		 
 		  
-	//	YAML::Node config = YAML::LoadFile("private/sql.yaml");
-		YAML::Node config = YAML::LoadFile("../test/test.yaml");
+		YAML::Node config = YAML::LoadFile("private/sql.yaml");
+	//	YAML::Node config = YAML::LoadFile("../test/test.yaml");
 	//	System::Console::Print( "%s", config["address"].as<std::string>().c_str() );
-		/*
+		
 		DB::Endpoint info;
 		info.m_address = config["address"].as<std::string>();
 		info.m_username = config["user"].as<std::string>();
@@ -101,7 +101,7 @@ public:
 		info.m_database = config["database"].as<std::string>();
 		
 		auto con = DB::ConnectionPtr( new DB::Connection( "test", info ) );
-		DB::Register( "test", info );*/
+		DB::Register( "test", info );
 		//Net::ConnectAsync( "localhost", "32791", m_events );
 	}
 };
@@ -126,17 +126,16 @@ void RunProgram() {
 
 //-------------------------------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) { 
-	Mem::Arena::Manager i_arenas;
 	System::Instance i_system(2); 
+	System::ServerConsole::Instance i_serverconsole( "TESTING" );
 	Net::Instance i_net(2);
-	DB::Instance i_db(1);
+	DB::Manager i_db(1);
 	{
 	//	setvbuf(stdin, NULL, _IONBF, 0); //turn off buffering
 	//	getchar();
 		
 		//boost::asio::windows::stream_handle poop( System::GetService()(), 
 		//			  GetStdHandle(STD_INPUT_HANDLE) );
-		System::ServerConsole::Instance i_serverconsole( "TESTING" );
 		RunProgram(); 
 	} 
 	

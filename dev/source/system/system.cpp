@@ -97,7 +97,7 @@ void Service::PostDelayedHandler(
 //-----------------------------------------------------------------------------
 Service &GetService() {
 	assert(g_instance);
-	return *g_instance;
+	return g_instance->GetService();
 }
 
 //-----------------------------------------------------------------------------
@@ -143,7 +143,7 @@ bool Live() {
 
 //-----------------------------------------------------------------------------
 void Join() {
-	g_instance->Join();
+	g_instance->GetService().Join();
 }
 
 //-----------------------------------------------------------------------------
@@ -152,10 +152,10 @@ void Post( std::function<void()> handler, bool main, int delay ) {
 }
 
 //-----------------------------------------------------------------------------
-Instance::Instance( int threads ) : m_strand( m_io_service ) {
+Instance::Instance( int threads ) : m_strand( m_service() ) {
 	assert( g_instance == nullptr );
 	g_instance = this;
-	Run( threads );
+	m_service.Run( threads );
 	m_live = true;
 
 	System::Console::AddGlobalCommand( "quit", Command_Quit );
@@ -164,7 +164,7 @@ Instance::Instance( int threads ) : m_strand( m_io_service ) {
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 	m_live = false;
-	Finish( true );
+	m_service.Finish( true );
 
 	g_instance = nullptr;
 }
@@ -174,9 +174,9 @@ void Instance::PostSystem( std::function<void()> handler,
 						   bool main, int delay ) {
 
 	if( main ) {
-		Post( m_strand.wrap( handler ), delay );
+		m_service.Post( m_strand.wrap( handler ), delay );
 	} else {
-		Post( handler, delay );
+		m_service.Post( handler, delay );
 	}
 }
 
@@ -188,9 +188,14 @@ void Instance::RunProgram( Program &program ) {
 }
 
 //-----------------------------------------------------------------------------
+Service &Instance::GetService() {
+	return m_service;
+}
+
+//-----------------------------------------------------------------------------
 void Instance::Shutdown() {
 	m_live = false;
-	Finish( false );
+	m_service.Finish( false );
 }
 
 }

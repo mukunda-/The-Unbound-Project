@@ -23,7 +23,7 @@ namespace DB {
 void Register( const std::string &name, const Endpoint &endpoint );
 
 //-----------------------------------------------------------------------------
-class Instance {
+class Manager {
 	
 public:
 	/// -----------------------------------------------------------------------
@@ -32,8 +32,8 @@ public:
 	/// @param threads How many threads to create for the database
 	///        thread pool.
 	///
-	Instance( int threads );
-	~Instance();
+	Manager( int threads );
+	~Manager();
 
 	//-------------------------------------------------------------------------
 private:

@@ -8,9 +8,9 @@
 
 //-----------------------------------------------------------------------------
 namespace DB {
-	extern Instance *g_instance;
+	extern Manager *g_manager;
 
 	Line::Line( const Endpoint &endpoint ) {
-		m_connection = g_instance->Connect( endpoint );
+		m_connection = g_manager->Connect( endpoint );
 	}
 }

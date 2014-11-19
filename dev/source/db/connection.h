@@ -20,8 +20,9 @@ class Connection : public Util::SLinkedItem<Connection> {
 	Endpoint    m_endpoint;
 	
 	std::mutex  m_mut;
+	int         m_free_threads;
 	std::deque<std::unique_ptr<Transaction>> m_work_queue;
-
+	
 	std::stack<std::unique_ptr<Line>> m_stack;
 	// connection pool, one per thread
 	//Util::SLinkedList<Connection> m_conpool;
