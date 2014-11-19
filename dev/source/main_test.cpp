@@ -90,8 +90,10 @@ public:
 
 		 
 		  
-		YAML::Node config = YAML::LoadFile("private/sql.yaml");
-		
+	//	YAML::Node config = YAML::LoadFile("private/sql.yaml");
+		YAML::Node config = YAML::LoadFile("../test/test.yaml");
+	//	System::Console::Print( "%s", config["address"].as<std::string>().c_str() );
+		/*
 		DB::Endpoint info;
 		info.m_address = config["address"].as<std::string>();
 		info.m_username = config["user"].as<std::string>();
@@ -99,7 +101,7 @@ public:
 		info.m_database = config["database"].as<std::string>();
 		
 		auto con = DB::ConnectionPtr( new DB::Connection( "test", info ) );
-		DB::Register( "test", info );
+		DB::Register( "test", info );*/
 		//Net::ConnectAsync( "localhost", "32791", m_events );
 	}
 };

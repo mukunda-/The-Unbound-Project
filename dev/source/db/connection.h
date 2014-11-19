@@ -8,6 +8,7 @@
 #include "transaction.h"
 #include "forwards.h"
 #include "endpoint.h"
+#include "line.h"
 
 //-----------------------------------------------------------------------------
 namespace DB {

@@ -2,18 +2,15 @@
 //                                                                           //
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
-#pragma once
-
-#include "endpoint.h"
+#include "stdafx.h"
+#include "core.h"
+#include "line.h"
 
 //-----------------------------------------------------------------------------
 namespace DB {
-	 
-	class Line {
-		std::unique_ptr<sql::Connection> m_connection;
+	extern Instance *g_instance;
 
-	public:
-		Line( const Endpoint &endpoint );
-	};
-
+	Line::Line( const Endpoint &endpoint ) {
+		m_connection = g_instance->Connect( endpoint );
+	}
 }

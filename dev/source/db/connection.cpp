@@ -24,7 +24,7 @@ Connection::~Connection() {
 
 
 void Execute( std::unique_ptr<Transaction> &t ) {
-	lock_guard<std::mutex> lock(m_mut);
+//	lock_guard<std::mutex> lock(m_mut);
 
 }
 

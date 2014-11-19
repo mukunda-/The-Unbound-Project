@@ -63,16 +63,27 @@ void Instance::ThreadMain() {
 	}
 }
 
+/// ---------------------------------------------------------------------------
+/// Create an sql connection. This should be done in a work thread.
+///
+/// @param endpoint Address and credentials to use.
+///
+unique_ptr<sql::Connection> Instance::Connect( const Endpoint &endpoint ) {
+	return unique_ptr<sql::Connection>(
+		m_driver.connect( endpoint.m_address, 
+						  endpoint.m_username, 
+						  endpoint.m_password ));
+}
+
 //-----------------------------------------------------------------------------
-Instance::Instance( int threads ) {
+Instance::Instance( int threads ) : 
+			m_driver( *sql::mysql::get_mysql_driver_instance() ) {
 	g_instance = this;
 
 	for( int i = 0; i < threads; i++ ) {
 		m_threadpool.push_back( 
 			std::thread( std::bind( &Instance::ThreadMain, this )));
 	}
-
-	m_driver = sql::mysql::get_mysql_driver_instance(); 
 	 
 	// system.console isn't available yet!
 	//	System::Console::Print( "%s", "Database subsystem started." );

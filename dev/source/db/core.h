@@ -39,7 +39,7 @@ public:
 private:
 	std::unordered_map< std::string, ConnectionPtr > m_conmap;
 
-	sql::mysql::MySQL_Driver *m_driver;
+	sql::mysql::MySQL_Driver &m_driver;
 	std::vector<std::thread> m_threadpool;
 
 	std::deque<std::unique_ptr<Transaction>> m_work_queue; // todo, use arena allocator.
@@ -54,6 +54,12 @@ private:
 public: // wrapped by global functions.
 	void RegisterConnection( const std::string &name, 
 							 const Endpoint &endpoint );
+
+	//-------------------------------------------------------------------------
+private:
+	friend class Line;
+
+	std::unique_ptr<sql::Connection> Connect( const Endpoint &endpoint );
 };
 
 }
