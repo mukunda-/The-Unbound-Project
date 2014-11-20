@@ -12,4 +12,5 @@ namespace DB {
 	Line::Line( Manager &manager, const Endpoint &endpoint ) {
 		m_connection = manager.Connect( endpoint );
 	}
+
 }

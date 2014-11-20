@@ -48,5 +48,6 @@ namespace System {
 		static Callback<Args...> Bind() {
 			return Callback<Args...>
 		}
+
 	};
 }

@@ -6,6 +6,7 @@
 #include "core.h"
 #include "connection.h"
 #include "system/console.h"
+#include "failure.h"
 
 using namespace std;
 
@@ -44,20 +45,27 @@ Connection &Manager::RegisterConnection( const string &name,
 //-----------------------------------------------------------------------------
 void Manager::ExecuteTransaction( TransactionPtr transaction ) {
 	Connection &conn = *transaction->parent;
-	LinePtr line = conn.GetLine();
 	
-	Transaction::PostAction action = transaction->Actions( *line );
+	try {
+		LinePtr line = conn.GetLine();
+	
+		Transaction::PostAction action = transaction->Actions( *line );
 
-	if( action == Transaction::COMMIT ) {
-		// todo run commit.
-	} else if( action == Transaction::ROLLBACK ) {
-		// todo run rollback.
+		if( action == Transaction::COMMIT ) {
+			// todo run commit.
+		} else if( action == Transaction::ROLLBACK ) {
+			// todo run rollback.
+		}
+
+		// push line back into pool.
+		conn.PushLine( std::move(line) );
+
+		transaction->Completed( std::move(transaction), false );
+
+	} catch( const Failure &failure ) {
+
+		transaction->Completed( std::move( transaction ), true );
 	}
-
-	// push line back into pool.
-	conn.PushLine( std::move(line) );
-
-	transaction->Completed( std::move(transaction), false );
 }
 
 //-----------------------------------------------------------------------------
@@ -75,6 +83,7 @@ void Manager::ThreadMain() {
 			m_work_queue.pop_front();
 			lock.unlock();
 
+
 			ExecuteTransaction( std::move(transaction) );
 			
 			// <process>.
@@ -86,23 +95,31 @@ void Manager::ThreadMain() {
 }
 
 /// ---------------------------------------------------------------------------
-/// Create an sql connection. This should be done in a work thread.
+/// Create an sql connection. This is done in a work thread.
 ///
 /// @param endpoint Address and credentials to use.
 ///
 unique_ptr<sql::Connection> Manager::Connect( const Endpoint &endpoint ) {
 
-	unique_ptr<sql::Connection> conn(
-		m_driver.connect( endpoint.m_address.c_str(), 
-						  endpoint.m_username.c_str(), 
-						  endpoint.m_password.c_str() ));
+	while( true ) {
+		try {
+			unique_ptr<sql::Connection> conn(
+				m_driver.connect( endpoint.m_address.c_str(), 
+								  endpoint.m_username.c_str(), 
+								  endpoint.m_password.c_str() ));
 
-	if( !endpoint.m_database.empty() ) {
-		conn->setSchema( endpoint.m_database.c_str() );
+			if( !endpoint.m_database.empty() ) {
+				conn->setSchema( endpoint.m_database.c_str() );
+			}
+
+			conn->setAutoCommit( false );
+			return conn;
+		} catch( sql::SQLException &e ) {
+			// todo, catch recoverable
+			
+			throw Failure( e );
+		}
 	}
-
-	conn->setAutoCommit( false );
-	return conn;
 }
 
 //-----------------------------------------------------------------------------

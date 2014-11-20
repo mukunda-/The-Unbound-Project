@@ -9,6 +9,14 @@
 
 namespace DB {
 	
+/// ---------------------------------------------------------------------------
+/// The transaction class provides an interface to execute a transaction
+/// in the database. A transaction is a single unit of commands that 
+/// doesn't rely on previous or future operations.
+///
+/// The manager will try to execute the transaction and retry if there is
+/// a recoverable failure until it succeeds or becomes impossible.
+///
 class Transaction {
 	friend class Manager;
 	friend class Connection;
@@ -38,6 +46,11 @@ protected:
 	/// @param failed True if the transaction could not complete.
 	///
 	virtual void Completed( TransactionPtr ptr, bool failed ) = 0;
+
+	/// -----------------------------------------------------------------------
+	/// Return type information about this transaction.
+	///
+	virtual int Type() { return 0; }
 
 public:
 	Transaction()

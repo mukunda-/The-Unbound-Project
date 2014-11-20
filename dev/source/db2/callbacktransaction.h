@@ -9,17 +9,43 @@
 
 namespace DB {
 
-	template<typename ... Args>
+	/// -----------------------------------------------------------------------
+	/// Implements Transaction and provides a simple interface to forward
+	/// the transaction object to a system callback.
+	///
 	class CallbackTransaction : public Transaction {
 		
 	public:
-		using Callback = System::Callback<Args...>;
+		using Callback = System::Callback<std::shared_ptr<Transaction>, bool>;
 
-		CallbackTransaction( System::Callback<Args...> handler ) :
-				m_handler( handler ) {
-			
+		CallbackTransaction( Callback handler ) :
+				m_handler( handler ) 
+		{
 		}
-		 
+
+		virtual void Completed( TransactionPtr ptr, bool failed ) {
+			m_handler( std::move(ptr), failed );
+		}
+		/*
+		template<typename ... MemberFunction>
+		static auto Bind( MemberFunction...binding ) 
+				-> decltype( std::bind( binding..., std::placeholders::_1, 
+													std::placeholders::_2 )) 
+		{
+			return std::bind( binding..., std::placeholders::_1, 
+										  std::placeholders::_2 );
+		}*/
+
+		template<typename F, typename T>
+		static Callback Bind( F func, T thisptr, bool main = true ) 
+		{
+			return Callback( 
+					std::bind( func, thisptr, 
+							   std::placeholders::_1, 
+							   std::placeholders::_2 
+					), main );
+		}
+
 	private:
 		Callback m_handler;
 	};

@@ -27,25 +27,20 @@
 #include "system/callback.h"
 
 //-----------------------------------------------------------------------------
-class TestX : public DB::CallbackTransaction<TestX&, bool> {
+class TestX : public DB::CallbackTransaction {
 public:
- 
-	TestX( Callback handler ) : DB::CallbackTransaction<TestX&, bool>( handler ) {
+	
+	TestX( Callback handler ) : DB::CallbackTransaction( handler ) {
 
 	}
 
 	//-------------------------------------------------------------------------
 	PostAction Actions( DB::Line &line ) override { 
 		auto statement = line.CreateStatement();
-		
-		statement->execute( "CREATE TABLE IF NOT EXISTS Test ( test INT )" );
+		//statement->
+		//statement->execute( "CREATE TABLE IF NOT EXISTS Test ( test INT )" );
 		line->commit();
 		return NOP; 
-	}
-
-	//-------------------------------------------------------------------------
-	void Completed( DB::TransactionPtr ptr, bool failed ) {
-	//	m_callback( *this, 
 	}
 
 private:
@@ -113,7 +108,8 @@ public:
 		 
 		auto &con = DB::Register( "test", info );
 
-		auto test = DB::TransactionPtr( new TestX( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) ));
+		//auto test = DB::TransactionPtr( new TestX( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) ));
+		auto test = DB::TransactionPtr( new TestX( DB::CallbackTransaction::Bind( &TestProgram::Test, this ) ) );//std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) ));
 
 		//auto test = DB::TransactionPtr( new TestX( TestX::Callback::Bind(
 
@@ -124,7 +120,7 @@ public:
 		//Net::ConnectAsync( "localhost", "32791", m_events );
 	}
 
-	void Test( TestX& t, bool failed ) {}
+	void Test( std::shared_ptr<DB::Transaction> &t, bool failed ) {}
 };
 
 void Test() {
