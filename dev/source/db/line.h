@@ -13,7 +13,15 @@ namespace DB {
 		std::unique_ptr<sql::Connection> m_connection;
 
 	public:
-		Line( const Endpoint &endpoint );
+		Line( Manager &manager, const Endpoint &endpoint );
+
+		std::unique_ptr<sql::Statement> CreateStatement() { 
+			return std::unique_ptr<sql::Statement>(m_connection->createStatement());
+		}
+
+		sql::Connection *operator->() { 
+			return m_connection.get(); 
+		}
 	};
 
 }

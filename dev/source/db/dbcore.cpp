@@ -36,9 +36,28 @@ Connection &Manager::RegisterConnection( const string &name,
 				"Connection name is already registered." );
 	}
 
-	Connection *con = new Connection( name, endpoint );
+	Connection *con = new Connection( *this, name, endpoint );
 	m_conmap[ name ] = ConnectionPtr( con );
 	return *con;
+}
+
+//-----------------------------------------------------------------------------
+void Manager::ExecuteTransaction( TransactionPtr transaction ) {
+	Connection &conn = *transaction->parent;
+	LinePtr line = conn.GetLine();
+	
+	Transaction::PostAction action = transaction->Actions( *line );
+
+	if( action == Transaction::COMMIT ) {
+		// todo run commit.
+	} else if( action == Transaction::ROLLBACK ) {
+		// todo run rollback.
+	}
+
+	// push line back into pool.
+	conn.PushLine( std::move(line) );
+
+	transaction->Completed( std::move(transaction), false );
 }
 
 //-----------------------------------------------------------------------------
@@ -49,13 +68,15 @@ void Manager::ThreadMain() {
 		while( m_work_queue.empty() && !m_shutdown ) {
 			m_work_signal.wait( lock );
 		}
-	
+		
 		if( !m_work_queue.empty() ) {
 			std::unique_ptr<Transaction> transaction = 
 					std::move(m_work_queue.front());
 			m_work_queue.pop_front();
 			lock.unlock();
 
+			ExecuteTransaction( std::move(transaction) );
+			
 			// <process>.
 			continue;
 		}
@@ -70,10 +91,18 @@ void Manager::ThreadMain() {
 /// @param endpoint Address and credentials to use.
 ///
 unique_ptr<sql::Connection> Manager::Connect( const Endpoint &endpoint ) {
-	return unique_ptr<sql::Connection>(
-		m_driver.connect( endpoint.m_address, 
-						  endpoint.m_username, 
-						  endpoint.m_password ));
+
+	unique_ptr<sql::Connection> conn(
+		m_driver.connect( endpoint.m_address.c_str(), 
+						  endpoint.m_username.c_str(), 
+						  endpoint.m_password.c_str() ));
+
+	if( !endpoint.m_database.empty() ) {
+		conn->setSchema( endpoint.m_database.c_str() );
+	}
+
+	conn->setAutoCommit( false );
+	return conn;
 }
 
 //-----------------------------------------------------------------------------

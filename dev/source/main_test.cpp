@@ -18,19 +18,38 @@
 
 #include "db/core.h"
 #include "db/endpoint.h"
-#include "db/transaction.h"
+#include "db2/callbacktransaction.h"
 
 #include "mem/arena/arena.h"
 
 #include "util/slinkedlist.h"
 
-class TestX : public DB::Transaction {
+#include "system/callback.h"
 
+//-----------------------------------------------------------------------------
+class TestX : public DB::CallbackTransaction<TestX&, bool> {
 public:
-	TestX() {}// : Transaction( conn ) {}
-	bool Actions( sql::Connection &con ) override { 
-		return true; 
+ 
+	TestX( Callback handler ) : DB::CallbackTransaction<TestX&, bool>( handler ) {
+
 	}
+
+	//-------------------------------------------------------------------------
+	PostAction Actions( DB::Line &line ) override { 
+		auto statement = line.CreateStatement();
+		
+		statement->execute( "CREATE TABLE IF NOT EXISTS Test ( test INT )" );
+		line->commit();
+		return NOP; 
+	}
+
+	//-------------------------------------------------------------------------
+	void Completed( DB::TransactionPtr ptr, bool failed ) {
+	//	m_callback( *this, 
+	}
+
+private:
+	
 };
 
 class MyStream : public Net::Stream {
@@ -72,8 +91,7 @@ public:
 		return std::make_shared<MyStream>();
 	}
 
-	TestProgram() : 
-			m_events(*this) {
+	TestProgram() : m_events(*this) {
 
 	}
 
@@ -95,10 +113,18 @@ public:
 		 
 		auto &con = DB::Register( "test", info );
 
-		auto test = std::unique_ptr<DB::Transaction>( new TestX ); 
+		auto test = DB::TransactionPtr( new TestX( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) ));
+
+		//auto test = DB::TransactionPtr( new TestX( TestX::Callback::Bind(
+
+		//TestX::Callback( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) );
+		//		TestX::Callback( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 )))); 
+				//TestX::Callback( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 )); 
 		con.Execute( test );
 		//Net::ConnectAsync( "localhost", "32791", m_events );
 	}
+
+	void Test( TestX& t, bool failed ) {}
 };
 
 void Test() {

@@ -105,12 +105,14 @@ void Finish() {
 	GetService().Finish( true ); 
 }
 
+//-----------------------------------------------------------------------------
 void RunProgram( Program &program ) {
 	g_instance->RunProgram( program );
 }
 
 //-----------------------------------------------------------------------------
 void Shutdown() {
+	System::Console::Print( "Shutting down..." );
 	g_instance->Shutdown();
 }
 

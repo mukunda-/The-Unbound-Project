@@ -9,6 +9,10 @@ namespace DB {
 	class Connection;
 	class Transaction;
 	class Line;
+	class Manager;
 
+	using TransactionPtr = std::unique_ptr<Transaction>;
+	using TransactionHandler = std::function< void( TransactionPtr t ) >;
 	using ConnectionPtr = std::unique_ptr<Connection>;
+	using LinePtr = std::unique_ptr<Line>;
 }

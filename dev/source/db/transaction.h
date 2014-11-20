@@ -8,19 +8,36 @@
 #include "forwards.h"
 
 namespace DB {
-
+	
 class Transaction {
+	friend class Manager;
+	friend class Connection;
+
+	Connection *parent;
 
 protected:
+
+	enum PostAction {
+		NOP,     // do nothing
+		COMMIT,  // execute "COMMIT"
+		ROLLBACK // execute "ROLLBACK"
+	};
 
 	/// -----------------------------------------------------------------------
 	/// Perform the actions for this transaction.
 	///
-	/// @param con SQL Connection to send queries to.
-	/// @return true to commit the transaction, false to rollback the
-	///         transaction.
+	/// @param line SQL Connection to send queries to.
+	/// @return command to perform afterwards.
 	///
-	virtual bool Actions( sql::Connection &con ) = 0;
+	virtual PostAction Actions( Line &line ) = 0;
+
+	/// -----------------------------------------------------------------------
+	/// Called after the transaction is executed.
+	///
+	/// @param ptr    Pointer that owns "this" (!)
+	/// @param failed True if the transaction could not complete.
+	///
+	virtual void Completed( TransactionPtr ptr, bool failed ) = 0;
 
 public:
 	Transaction()
@@ -28,5 +45,7 @@ public:
 	}
 	 
 };
+
+
 
 }

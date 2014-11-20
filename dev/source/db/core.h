@@ -47,8 +47,8 @@ private:
 	std::mutex m_work_mutex;
 	std::condition_variable m_work_signal;
 
-	void QueueWork( std::unique_ptr<Transaction> &&work );
 	void ThreadMain();
+	void ExecuteTransaction( TransactionPtr transaction );
 
 	//-------------------------------------------------------------------------
 public: // wrapped by global functions.
@@ -58,8 +58,14 @@ public: // wrapped by global functions.
 	//-------------------------------------------------------------------------
 private:
 	friend class Line;
+	friend class Connection;
 
+	// called by Line:
 	std::unique_ptr<sql::Connection> Connect( const Endpoint &endpoint );
+
+	// called by Connection:
+	void QueueWork( std::unique_ptr<Transaction> &&work );
+	
 };
 
 }

@@ -8,9 +8,8 @@
 
 //-----------------------------------------------------------------------------
 namespace DB {
-	extern Manager *g_manager;
 
-	Line::Line( const Endpoint &endpoint ) {
-		m_connection = g_manager->Connect( endpoint );
+	Line::Line( Manager &manager, const Endpoint &endpoint ) {
+		m_connection = manager.Connect( endpoint );
 	}
 }
