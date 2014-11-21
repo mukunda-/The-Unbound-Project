@@ -21,7 +21,8 @@
 namespace Net {
 
 /// -----------------------------------------------------------------------
-/// A Stream is a network connection. 
+/// A Stream is a network connection. You need to implement this class
+/// to handle your base protocol format.
 ///
 class Stream : 
 		public std::enable_shared_from_this<Stream>, 
@@ -88,11 +89,21 @@ private:
 			boost::asio::ip::tcp::resolver::iterator it );
 		 
 	void StartReceive(); 
-	bool ParseMessage(  std::istream &is  );
+	bool ParseMessage( std::istream &is );
 	void StopReceive();  
 	void SetConnected();
 
 	void DoClose();
+
+protected:
+	/// -----------------------------------------------------------------------
+	/// Parse input will be called repeatedly until you return zero.
+	///
+	/// @param bytes_available Number of bytes available in the stream.
+	///
+	/// @return Number of bytes read from stream.
+	///
+	virtual int ParseInput( int bytes_available );
 
 public:
 	Stream( System::Service &service );

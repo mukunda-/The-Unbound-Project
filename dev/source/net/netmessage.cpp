@@ -63,7 +63,7 @@ void Remsg::Parse( google::protobuf::MessageLite &msg ) {
 
 //-----------------------------------------------------------------------------
 PBMsg::PBMsg( uint32_t header, google::protobuf::MessageLite &msg ) :
-	m_msg(msg), Message(header) {
+		m_msg(msg), Message(header) {
 }
 
 //-----------------------------------------------------------------------------

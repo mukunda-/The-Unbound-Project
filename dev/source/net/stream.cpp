@@ -12,103 +12,47 @@
 namespace Net {
 
 //-----------------------------------------------------------------------------
-	namespace {
-		const int READ_BUFFER_SIZE = 4096;
+namespace {
+	const int READ_BUFFER_SIZE = 4096;
 
-		/// -------------------------------------------------------------------
-		/// Read a Varint from a stream. Max 28 bits.
-		///
-		/// @param stream Stream to read from.
-		/// @param avail  How many bytes are available in the stream.
-		/// @param value  Where to store the value.
-		/// @returns Amount of bytes read from the stream. 
-		///          0 means there wasn't sufficient data
-		///          and the operation was cancelled.
-		///
-		/// @throws ParseError when the data is errornous (too long).
-		///
-		int ReadVarint( std::istream &stream, int avail, int &value ) {
-			if( avail == 0 ) return 0;
-			int result = 0;
+	/// -------------------------------------------------------------------
+	/// Read a Varint from a stream. Max 28 bits.
+	///
+	/// @param stream Stream to read from.
+	/// @param avail  How many bytes are available in the stream.
+	/// @param value  Where to store the value.
+	/// @returns Amount of bytes read from the stream. 
+	///          0 means there wasn't sufficient data
+	///          and the operation was cancelled.
+	///
+	/// @throws ParseError when the data is errornous (too long).
+	///
+	int ReadVarint( std::istream &stream, int avail, int &value ) {
+		if( avail == 0 ) return 0;
+		int result = 0;
 
-			// 28 bits max.
-			for( int i = 0; i < 4; i++ ) {
-				int data = stream.get();
-				if( data == EOF ) throw ParseError();
+		// 28 bits max.
+		for( int i = 0; i < 4; i++ ) {
+			int data = stream.get();
+			if( data == EOF ) throw ParseError();
 				
 				
-				result |= (data & 127) << (i*7);
-				if( data & 128 ) {
-					if( avail < (i+2) ) {
-						// not enough data. rewind and fail.
-						stream.seekg( -(i+1), std::ios_base::cur );
-						return 0;
-					}
-				} else {
-					value = result;
-					return i+1;
+			result |= (data & 127) << (i*7);
+			if( data & 128 ) {
+				if( avail < (i+2) ) {
+					// not enough data. rewind and fail.
+					stream.seekg( -(i+1), std::ios_base::cur );
+					return 0;
 				}
-			}
-			throw ParseError();
-		}
-	}
-	
-/// ---------------------------------------------------------------------------
-/// [PRIVATE] Processed data that was received
-///
-/// @param data Data to process
-/// @param size Size of data in bytes
-/// @returns    Number of bytes that were used from the data.
-///
-//int Stream::ProcessDataRecv( const boost::uint8_t *data, int size ) {
-	/*
-	if( m_recv_write < 2 ) {
-		if( m_recv_write==0 ) {
-			m_recv_size = data[0];
-			m_recv_write++;
-			if( size >= 2 ) {
-				m_recv_size |= data[1]<<8;
-				m_recv_write++;
-				if( m_recv_packet != 0 ) Packet::Delete( m_recv_packet );
-				m_recv_packet = Packet::Create( m_recv_size );
-				return 2;
-			}
-			return 1;
-		} else {
-			m_recv_size |= data[0] <<8;
-			if( m_recv_packet != 0 ) Packet::Delete( m_recv_packet );
-			m_recv_packet = Packet::Create( m_recv_size );
-			return 1;
-		}
-	} else {
-		int pwrite = m_recv_write-2;
-		int copy_amount = Util::Min( size, m_recv_size-pwrite );
-		memcpy( m_recv_packet->data + pwrite, data, copy_amount );
-		m_recv_write += copy_amount;
-		if( m_recv_write == m_recv_size+2 ) {
-
-			bool handled = false;
-			// pass to event
-			// only push into fifo if not handled.
-
-			handled = Events::Stream::Dispatcher( shared_from_this() )
-					  .Receive( *m_recv_packet );
-			
-			if( !handled ) {
-				m_recv_fifo.Push( m_recv_packet );
-				m_recv_packet = 0;
 			} else {
-				Packet::Delete( m_recv_packet );
-				m_recv_packet = 0;
+				value = result;
+				return i+1;
 			}
-			
-			// completed a packet
-			m_recv_write = 0;
-			m_recv_size = 0;
 		}
-		return copy_amount;
-	}*/
-//}
+		throw ParseError();
+	}
+}
+	
  
 //-----------------------------------------------------------------------------
 bool Stream::ParseMessage( std::istream &is ) {
