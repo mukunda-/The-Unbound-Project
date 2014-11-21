@@ -1,6 +1,6 @@
 //============================  The Unbound Project  ==========================//
 //                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//========== Copyright Â© 2014, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h"
 
@@ -116,19 +116,19 @@ int ServerEntryPoint() {
 		if( Util::StrEqual( arg, "-master" ) ) {
 			// this is the master node
 			if( nodetype != SERVERNODE_NULL ) {
-				printf( "error: multiple nodetypes specified" );
+				printf( "Error: Multiple nodetypes specified! Can not, process... Too much..." );
 				return EXIT_FAILURE;
 			}
 			nodetype = SERVERNODE_MASTER;
-		} else if( Util::StrEqual( arg, "-world" ) ) {
-			if( nodetype != SERVERNODE_NULL ) {
-				printf( "error: multiple nodetypes specified" );
+			} else if( Util::StrEqual( arg, "-world" ) ) {
+				if( nodetype != SERVERNODE_NULL ) {
+			printf( "Error: Multiple nodetypes specified! Have mercy!" );
 				return EXIT_FAILURE;
 			}
 			nodetype = SERVERNODE_WORLD;
 		} else if( Util::StrEqual( arg, "-process" ) ) {
 			if( nodetype != SERVERNODE_NULL ) {
-				printf( "error: multiple nodetypes specified" );
+				printf( "Error: Multiple nodetypes specified. -_-" );
 				return EXIT_FAILURE;
 			}
 			nodetype = SERVERNODE_PROCESS;
@@ -136,7 +136,7 @@ int ServerEntryPoint() {
 	}
 
 	if( nodetype == SERVERNODE_NULL ) {
-		printf( "error: nodetype not specified" );
+		printf( "Error: Nodetype not specified!" );
 		return EXIT_FAILURE;
 	}
 
@@ -220,7 +220,7 @@ INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
 	
 	WinMainREAL( hinst, p1,p2,p3);
 
-	printf( "DEBUG: program exited, press enter to terminate\n" );
+	printf( "DEBUG: Program exited, press enter to burn to death\n" );
 	getc(stdin);
 	return 0;
 }
