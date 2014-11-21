@@ -36,7 +36,10 @@ class Connection : public Util::SLinkedItem<Connection> {
 	LinePtr GetLine();
 
 	// push a line back into the linepool
-	void PushLine( LinePtr &&line );
+	void PushLine( LinePtr &&line, bool thread_freed = true );
+
+	// increment the free thread counter.
+	void FreeThread();
 
 public:
 

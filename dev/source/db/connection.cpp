@@ -27,7 +27,7 @@ Connection::~Connection() {
 
 //-----------------------------------------------------------------------------
 void Connection::Execute( TransactionPtr &t ) {
-	t->parent = this;
+	t->m_parent = this;
 	{
 		lock_guard<std::mutex> lock( m_mut );
 	
@@ -57,11 +57,19 @@ LinePtr Connection::GetLine() {
 }
 
 //-----------------------------------------------------------------------------
-void Connection::PushLine( LinePtr &&line ) {
+void Connection::PushLine( LinePtr &&line, bool thread_freed ) {
 	
 	lock_guard<std::mutex> lock( m_mut );
 	m_linepool.push( std::move(line) );
+	if( thread_freed ) {
+		m_free_threads++;
+	}
 
+}
+
+void Connection::FreeThread() {
+	lock_guard<std::mutex> lock( m_mut );
+	m_free_threads++;
 }
 
 }

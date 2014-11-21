@@ -18,6 +18,8 @@
 
 #include "db/core.h"
 #include "db/endpoint.h"
+#include "db/querybuilder.h"
+#include "db/statement.h"
 #include "db2/callbacktransaction.h"
 
 #include "mem/arena/arena.h"
@@ -38,8 +40,11 @@ public:
 	PostAction Actions( DB::Line &line ) override { 
 		auto statement = line.CreateStatement();
 		//statement->
-		//statement->execute( "CREATE TABLE IF NOT EXISTS Test ( test INT )" );
-		line->commit();
+	//	statement->execute( "CREATE TABLE IF NOT EXISTS Test ( test INT )" );
+		
+		statement->ExecuteUpdate( "INSERT INTO Test VALUES ( %d )", 252 );
+
+		System::Console::Print( "yo!" );
 		return NOP; 
 	}
 
@@ -116,10 +121,17 @@ public:
 
 	void Test( std::shared_ptr<DB::Transaction> &t, bool failed ) {}
 };
+	
+
+
+	sql::Connection *testes;
 
 //-------------------------------------------------------------------------------------------------
 void RunProgram() {
 	System::RunProgram( TestProgram() );
+	 
+	//builder.AddEscapedString( "hi" );
+	//builder % "hi";
 }
 
 //-------------------------------------------------------------------------------------------------

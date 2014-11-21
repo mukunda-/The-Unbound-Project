@@ -44,11 +44,11 @@ Connection &Manager::RegisterConnection( const string &name,
 
 //-----------------------------------------------------------------------------
 void Manager::ExecuteTransaction( TransactionPtr transaction ) {
-	Connection &conn = *transaction->parent;
+	Connection &conn = *transaction->m_parent;
 	
 	try {
 		LinePtr line = conn.GetLine();
-	
+		
 		while(true) {
 			try {
 				Transaction::PostAction action = transaction->Actions( *line );
@@ -73,11 +73,13 @@ void Manager::ExecuteTransaction( TransactionPtr transaction ) {
 
 		// push line back into pool, if a failure occurs
 		// this is skipped and the connection is deleted.
-		conn.PushLine( std::move(line) );
+		conn.PushLine( std::move(line), true );
 
 	} catch( const Failure &failure ) {
-		
+
+		transaction->m_mysql_error = failure.MySQLCode();
 		transaction->Completed( std::move( transaction ), true );
+		conn.FreeThread();
 		return;
 	}
 

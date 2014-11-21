@@ -21,7 +21,8 @@ class Transaction {
 	friend class Manager;
 	friend class Connection;
 
-	Connection *parent;
+	Connection *m_parent = nullptr;
+	int m_mysql_error = 0;
 
 protected:
 
@@ -56,7 +57,11 @@ public:
 	Transaction()
 	{
 	}
-	 
+	
+	/// -----------------------------------------------------------------------
+	/// On failure, get the mysql error code.
+	///
+	int GetMySQLError() { return m_mysql_error; }
 };
 
 
