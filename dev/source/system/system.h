@@ -90,21 +90,56 @@ public:
 ///
 void Finish(); 
 
+template <typename ... T> void Evaluator( T... ) {}
+
+//-----------------------------------------------------------------------------
+template<typename F, typename ... Args>
+void LogEx( F output, const char *format, Args ... args ) {
+	try {
+		boost::format formatter(format); 
+		Evaluator( formatter % args ... );
+		output( formatter.str().c_str() );
+	} catch( boost::io::format_error &e ) {
+		output( (boost::format( "FORMAT ERROR: %s" ) % e.what())
+				.str().c_str());
+	}
+}
+
 /// ---------------------------------------------------------------------------
-/// Print a message to the info logs. May also print to the console.
+/// Print a formatted message to the info log.
 ///
-/// @param format printf syntax for output.
-/// @param ... Formatted arguments.
+/// @param format boost::format format string. (printf compatible)
+/// @param ...    Formatted arguments.
 ///
-void Log( const char *format, ... );
+template<typename Arg, typename ... Args>
+void Log( const char *format, Arg arg1, Args ... args ) {
+	LogEx( Log, format, arg1, args... );
+}
+
+/// ---------------------------------------------------------------------------
+/// Print a message to the info log. May also print to the console.
+///
+/// @param message Message to log.
+///
+void Log( const char *message );
+
+/// ---------------------------------------------------------------------------
+/// Print a formatted message to the error log.
+///
+/// @param format boost::format format string. (printf compatible)
+/// @param ...    Formatted arguments.
+///
+template<typename Arg, typename ... Args>
+void LogError( const char *format, Arg arg1, Args ... args ) {
+	LogEx( LogError, format, arg1, args... );
+}
 
 /// ---------------------------------------------------------------------------
 /// Print a message to the error logs. May also print to the console.
 ///
-/// @param format printf syntax for output.
-/// @param ... Formatted arguments.
+/// @param message Message to log.
 ///
-void LogError( const char *format, ... );
+void LogError( const char *message );
 
 /// ---------------------------------------------------------------------------
 /// Get the main Service instance.

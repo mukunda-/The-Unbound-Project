@@ -105,17 +105,11 @@ public:
 		info.m_username = config[  "user"  ].as<std::string>();
 		info.m_password = config["password"].as<std::string>();
 		info.m_database = config["database"].as<std::string>();
-		 
+		
 		auto &con = DB::Register( "test", info );
-
-		//auto test = DB::TransactionPtr( new TestX( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) ));
-		auto test = DB::TransactionPtr( new TestX( DB::CallbackTransaction::Bind( &TestProgram::Test, this ) ) );//std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) ));
-
-		//auto test = DB::TransactionPtr( new TestX( TestX::Callback::Bind(
-
-		//TestX::Callback( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 ) );
-		//		TestX::Callback( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 )))); 
-				//TestX::Callback( std::bind( &TestProgram::Test,this, std::placeholders::_1, std::placeholders::_2 )); 
+		
+		auto test = DB::TransactionPtr( 
+				new TestX( DB::CallbackTransaction::Bind( &TestProgram::Test, this )));  
 		con.Execute( test );
 		//Net::ConnectAsync( "localhost", "32791", m_events );
 	}
@@ -123,18 +117,9 @@ public:
 	void Test( std::shared_ptr<DB::Transaction> &t, bool failed ) {}
 };
 
-void Test() {
-	
-}
-
+//-------------------------------------------------------------------------------------------------
 void RunProgram() {
-	//std::allocator<int> poop;
-
 	System::RunProgram( TestProgram() );
-	
-	//DB::Register( std::make_unique<DB::Connection>( "test", info ) );
-	
-	
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -144,11 +129,7 @@ void Main( int argc, char *argv[] ) {
 	Net::Instance i_net(2);
 	DB::Manager i_db(1);
 	{
-	//	setvbuf(stdin, NULL, _IONBF, 0); //turn off buffering
-	//	getchar();
 		
-		//boost::asio::windows::stream_handle poop( System::GetService()(), 
-		//			  GetStdHandle(STD_INPUT_HANDLE) );
 		RunProgram(); 
 	} 
 	

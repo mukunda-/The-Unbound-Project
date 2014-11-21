@@ -49,23 +49,39 @@ void Manager::ExecuteTransaction( TransactionPtr transaction ) {
 	try {
 		LinePtr line = conn.GetLine();
 	
-		Transaction::PostAction action = transaction->Actions( *line );
+		while(true) {
+			try {
+				Transaction::PostAction action = transaction->Actions( *line );
 
-		if( action == Transaction::COMMIT ) {
-			// todo run commit.
-		} else if( action == Transaction::ROLLBACK ) {
-			// todo run rollback.
+				if( action == Transaction::COMMIT ) {
+					// todo run commit.
+					(*line)->commit();
+				} else if( action == Transaction::ROLLBACK ) {
+					// todo run rollback.
+					(*line)->rollback();
+				}
+
+				break; // success!
+			} catch( const sql::SQLException &e ) {
+				// handle, or fail!
+				throw Failure( e );
+			}
+
+			// rollback and try again.
+			(*line)->rollback();
 		}
 
-		// push line back into pool.
+		// push line back into pool, if a failure occurs
+		// this is skipped and the connection is deleted.
 		conn.PushLine( std::move(line) );
 
-		transaction->Completed( std::move(transaction), false );
-
 	} catch( const Failure &failure ) {
-
+		
 		transaction->Completed( std::move( transaction ), true );
+		return;
 	}
+
+	transaction->Completed( std::move(transaction), false );
 }
 
 //-----------------------------------------------------------------------------
