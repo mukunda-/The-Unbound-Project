@@ -19,6 +19,9 @@ namespace Net {
 				m_sendlock( std::move(lock) ), 
 				m_stream( &m_sendlock.Buffer() ) { 
 		} 
+		WriterBase( WriterBase& ) = delete;
+		WriterBase &operator=( WriterBase& ) = delete;
+		WriterBase &operator=( WriterBase&& ) = delete;
 	};
 
 }

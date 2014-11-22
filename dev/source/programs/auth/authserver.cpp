@@ -46,10 +46,10 @@ namespace User {
 
 	//-------------------------------------------------------------------------
 	void AuthServer::NetEventHandler::Receive( 
-				Net::Stream::ptr &source, 
+				Net::Stream::ptr &str, 
 				Net::Message &netmsg ) {
-
-		AuthStream &stream = static_cast<AuthStream&>(*source); 
+		
+		auto &stream = str->Cast<AuthStream>();
 		if( stream.Invalidated() ) return;
 		if( stream.GetState() == AuthStream::STATE_LOGIN ) {
 

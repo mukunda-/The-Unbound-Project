@@ -180,3 +180,25 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp" )
 		"protocol/compiled/**.cc",
 		"source/**.h"
 	}
+	
+project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp" )
+	defines {"UB_SERVER"}
+	
+	files {
+		"source/pch/*.cpp",
+		"source/io/*.cpp",
+		"source/net/*.cpp",
+		"source/db/*.cpp",
+		"source/asev/*.cpp",
+		"source/system/*.cpp",
+		"source/system/server/*.cpp",
+		"source/util/*.cpp",
+		"source/mem/*.cpp",
+		"source/mem/arena/*.cpp",
+		"source/tests/*.cpp",
+		"source/programs/rxgserv/*.cpp",
+		"source/main_rxgserv.cpp",
+		
+		"protocol/compiled/**.cc",
+		"source/**.h"
+	}

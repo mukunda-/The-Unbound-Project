@@ -10,8 +10,7 @@ namespace Net {
 	//-------------------------------------------------------------------------
 	int TextStream::ProcessInput( std::istream &is, int bytes_available ) {
 		 
-		int bytesleft = bytes_available;
-		while( bytesleft ) {
+		for( int bytesleft = bytes_available; bytesleft; bytesleft-- ) {
 			int c = is.get();
 			if( c == '\n' ) {
 				// execute.
@@ -22,6 +21,8 @@ namespace Net {
 					.Receive( msg );
 
 				m_current_message.clear();
+				continue;
+			} else if( c == '\r' ) {
 				continue;
 			}
 			m_current_message += (char)c; 

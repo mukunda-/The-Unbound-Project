@@ -310,24 +310,24 @@ bool ParseColorString( const char *input, Eigen::Vector4f &output  ) {
 	output.setOnes();
 
 	ArgString args(input);
-	if( args.args.size() == 0 || args.args.size() > 3 ) {
+	if( args.Count() == 0 || args.Count() > 3 ) {
 		return false;
 	}
 
-	if( args.args.size() == 3 || args.args.size() == 4 ) {
-		if( args.args[0].find_first_of( '.' ) != std::string::npos ) {
+	if( args.Count() == 3 || args.Count() == 4 ) {
+		if( args[0].find_first_of( '.' ) != std::string::npos ) {
 			// r g b decimal
-			for( uint32_t i = 0; i < args.args.size(); i++ )
-				output[i] = (float)Util::Clamp( std::atof( args.args[i].c_str() ), 0.0,1.0 );
+			for( int i = 0; i < args.Count(); i++ )
+				output[i] = (float)Util::Clamp( std::atof( args[i].c_str() ), 0.0,1.0 );
 			
 		} else {
 			// rrr ggg bbb
-			for( uint32_t i = 0; i < args.args.size(); i++ )
-				output[i] = (float)Util::Clamp( (float)std::atoi( args.args[i].c_str() ) / 255.0, 0.0, 1.0 );
+			for( int i = 0; i < args.Count(); i++ )
+				output[i] = (float)Util::Clamp( (float)std::atoi( args[i].c_str() ) / 255.0, 0.0, 1.0 );
 			
 		}
-	} else if( args.args.size() == 1 ) {
-		std::string &arg = args.args[0];
+	} else if( args.Count() == 1 ) {
+		const std::string &arg = args[0];
 		if( arg.size() == 3 || arg.size() == 4 ) {
 			for( uint32_t i = 0; i < arg.size(); i++ )
 				output[i] = Util::Clamp( (float)(arg[i]-'0') / 9.0f, 0.0f, 0.1f );

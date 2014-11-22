@@ -122,7 +122,7 @@ void Stream::OnSend( const boost::system::error_code& error,
 			std::lock_guard<std::mutex> lock( m_lock );
 			m_sending   = false;
 			m_cv_send_complete.notify_all();
-			if( !m_connected ) { 
+			if( !m_connected ) {
 				// Close was called already.
 				m_socket.close();
 				return;
@@ -271,6 +271,7 @@ void Stream::SetConnected() {
 void Stream::OnAccept( const boost::system::error_code &error ) {
 
 	if( !error ) {
+		m_hostname = m_socket.remote_endpoint().address().to_string();
 
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Accepted();
@@ -298,10 +299,9 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 	} else {
 		// resolve OK, do connect.
 		boost::asio::async_connect( m_socket, endpoints, 
-			m_strand.wrap( 
-				boost::bind( &Stream::OnConnect, 
-						shared_from_this(), 
-						boost::asio::placeholders::error )));
+			m_strand.wrap( boost::bind( &Stream::OnConnect, 
+					shared_from_this(), 
+					boost::asio::placeholders::error )));
 	}
 }
 
@@ -394,7 +394,7 @@ void Stream::Connect( const std::string &host, const std::string &service ) {
 		.Connected();
 
 	m_service.Post( m_strand.wrap( 
-		boost::bind( &Stream::SetConnected, this )));
+			boost::bind( &Stream::SetConnected, this )));
 }
 
 //-----------------------------------------------------------------------------
@@ -405,8 +405,7 @@ void Stream::ConnectAsync( const std::string &host,
 
 	m_hostname = host + ":" + service;
 	Resolver::CreateThreaded( host, service, 
-		m_strand.wrap( 
-			boost::bind( 
+		m_strand.wrap( boost::bind( 
 				&Stream::OnResolve, shared_from_this(), _1, _2 )));
 }
 

@@ -63,6 +63,25 @@ class TestProgram : public System::Program {
 
 		TestProgram &m_parent;
 		
+			virtual void Accepted( Net::Stream::ptr &stream ) {
+				System::Console::Print( "ACCEPTED" );
+			}
+			virtual void AcceptError( 
+					Net::Stream::ptr &stream,
+					const boost::system::error_code &error ) {
+				System::Console::Print( "ACCEPTERROR", error.message().c_str() );
+			}
+			
+			virtual void Disconnected( 
+					Net::Stream::ptr &stream,
+					const boost::system::error_code &error ) {
+				System::Console::Print( "DISCONNECTED", error.message().c_str() );
+			}
+			virtual void SendFailed( 
+					Net::Stream::ptr &stream,
+					const boost::system::error_code &error ) {
+				System::Console::Print( "SENDFAILED %s", error.message().c_str() );
+			}
 			void ConnectError( Net::Stream::ptr &stream,
 							   const boost::system::error_code &error ) {
 				System::Console::Print( "Couldn't connect : %s", error.message().c_str() );
@@ -85,6 +104,7 @@ class TestProgram : public System::Program {
 			}
 			*/
 			
+			//-----------------------------------------------------------------
 			virtual void Connected( Net::Stream::ptr &str ) {
 				namespace PID = Net::Proto::ID;
 
@@ -92,17 +112,25 @@ class TestProgram : public System::Program {
 				
 				System::Console::Print( "Connected... Sending login." );
 				 
-
-				stream.Write() << "hello" << "world"; 
-				stream.Close();
+				stream.Write().Formatted( "Hello %s", "world." );
+				
 				System::Console::Print( "ok!" );
+			}
+
+			//-----------------------------------------------------------------
+			void Receive( Net::Stream::ptr &str, Net::Message &netmsg ) override {
+				auto &msg = netmsg.Cast<Net::TextStream::Message>();
+				
+				System::Console::Print( "Received message: %s", msg().c_str() );
+				
 			}
 
 	public:
 		NetEventHandler( TestProgram &parent ) : m_parent(parent) {
 		}
 	};
-
+	
+	Net::Listener m_listener; 
 	NetEventHandler m_events;
 public:
 	
@@ -110,16 +138,24 @@ public:
 		return std::make_shared<MyStream>();
 	}
 
-	TestProgram() : m_events(*this) {
+	TestProgram() : m_events(*this),
+			m_listener( 32791, StreamFactory, &m_events ) {
 
+	}
+	
+	//-------------------------------------------------------------------------
+	static Net::Stream::ptr StreamFactory() {
+		return std::make_shared<MyStream>();
 	}
 
 	~TestProgram() {
 		m_events.Disable();
+		m_listener.Stop();
 	}
 
 	void OnStart() {
 		
+		m_listener.Start();
 		/*
 		YAML::Node config = YAML::LoadFile("private/sql.yaml");
 	//	YAML::Node config = YAML::LoadFile("../test/test.yaml");
@@ -146,9 +182,7 @@ public:
 
 	void Test( std::shared_ptr<DB::Transaction> &t, bool failed ) {}
 };
-	
-
-
+	 
 	sql::Connection *testes;
 
 //-------------------------------------------------------------------------------------------------
@@ -163,8 +197,8 @@ void RunProgram() {
 void Main( int argc, char *argv[] ) { 
 	System::Instance i_system(2); 
 	System::ServerConsole::Instance i_serverconsole( "TESTING" );
-	Net::Instance i_net(2);
-	DB::Manager i_db(1);
+	Net::Instance i_net(1);
+//	DB::Manager i_db(1);
 	{
 		
 		RunProgram(); 

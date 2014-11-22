@@ -67,6 +67,10 @@
 #elif PROJECT_TEST
 
 #include "pch_test.h"
+
+#elif PROJECT_RXGSERV
+
+#include "pch_rxgserv.h"
  
 #endif
 

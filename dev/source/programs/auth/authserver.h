@@ -4,6 +4,8 @@
 
 //Authentication Server
 
+#pragma once
+
 #include "system/program.h"
 
 #include "system/console.h"
@@ -52,7 +54,7 @@ class AuthServer : public System::Program {
 	};
 
 	NetEventHandler m_event_handler;
-	Net::Listener m_listener; 
+	Net::Listener m_listener;
 	
 public:
 	AuthServer();

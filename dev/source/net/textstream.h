@@ -20,7 +20,7 @@ class TextStream : public Stream {
 	
 protected:
 
-	virtual int ProcessInput( std::istream &is, int bytes_available );
+	int ProcessInput( std::istream &is, int bytes_available ) override;
 	
 public:
 	class Message;
@@ -28,7 +28,7 @@ public:
 	/// -----------------------------------------------------------------------
 	/// Obtain an object used to write messages.
 	///
-	Writer Write(); 
+	Writer Write();
 };
 
 /// ---------------------------------------------------------------------------
@@ -40,12 +40,13 @@ public:
 	Writer( Stream::SendLock &&lock );
 	
 	template <typename ... Args>
-	void expand( Args... );
+	void expand( Args... ) {}
 
 	/// -----------------------------------------------------------------------
 	/// Output text.
 	///
 	/// @param message Text to send.
+	/// @returns this for chaining.
 	/// 
 	Writer &operator<<( const std::string &message ) {
 		m_stream << message;
@@ -53,13 +54,15 @@ public:
 	}
 	
 	/// -----------------------------------------------------------------------
-	/// Output formatted text. A newline is added to the end.
+	/// Output formatted text.
 	///
 	/// @param message Message or message template.
+	///                A newline is added to the end.
 	/// @param args    Arguments to substitute.
+	/// @returns this for chaining.
 	/// 
 	template <typename ... Args>
-	void Formatted( const std::string &message, Args...args ) {
+	Writer & Formatted( const std::string &message, Args...args ) {
 		
 		if( sizeof...(args) == 0 ) {
 			// raw message.
