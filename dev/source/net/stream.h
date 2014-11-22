@@ -106,6 +106,7 @@ private:
 
 protected:
 	class SendLock;
+	friend class WriterBase;
 	 
 	/// -----------------------------------------------------------------------
 	/// Process input will be called repeatedly until you return zero or 
@@ -262,6 +263,7 @@ public:
 /// A send lock holds a buffer from a stream to write to.
 ///
 class Stream::SendLock {
+
 	bool m_locked = false;
 	Stream &m_parent;
 	boost::asio::streambuf &m_buffer;

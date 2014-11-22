@@ -6,6 +6,7 @@
 
 #include "stream.h"
 #include "message.h"
+#include "writerbase.h"
 
 namespace Net {
 
@@ -34,19 +35,13 @@ public:
 /// ---------------------------------------------------------------------------
 /// Implementation of the stream writer to output data.
 ///
-class LidStream::Writer {
-
-	Stream::SendLock m_sendlock;
-	std::ostream m_stream;
+class LidStream::Writer : public WriterBase {
+	 
 	bool m_expecting_data = false;
 	int m_next_header;
 
 public:
-	Writer( Stream::SendLock &&lock ) :
-			m_sendlock( std::move(lock) ), 
-			m_stream( &m_sendlock.Buffer() ) {
-
-	}
+	Writer( Stream::SendLock &&lock ) : WriterBase( std::move(lock) ) {}
 
 	/// -----------------------------------------------------------------------
 	/// This writer accepts an integer first which is the header.
