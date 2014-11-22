@@ -121,8 +121,14 @@ void Stream::OnSend( const boost::system::error_code& error,
 		{
 			std::lock_guard<std::mutex> lock( m_lock );
 			m_sending   = false;
-			m_connected = false;
 			m_cv_send_complete.notify_all();
+			if( !m_connected ) { 
+				// Close was called already.
+				m_socket.close();
+				return;
+			} else {
+				m_connected = false;
+			}
 		}
 		
 		DoClose();
@@ -131,6 +137,19 @@ void Stream::OnSend( const boost::system::error_code& error,
 
 	m_send_buffers[1-m_send_buffer_index].consume( bytes_transferred );
 	SendNext(); 
+}
+
+/// ---------------------------------------------------------------------------
+/// [PRIVATE] Stop the sending thread and signal waiters.
+///
+void Stream::StopSend() {
+	m_sending = false;
+	m_cv_send_complete.notify_all();
+
+	if( m_close_after_send ) {
+		m_socket.close();
+	}
+	return;
 }
 
 /// ---------------------------------------------------------------------------
@@ -149,15 +168,15 @@ void Stream::SendNext() {
 		if( m_send_buffer_locked ) {
 			// a thread is busy writing to the send buffer
 			// this process will resume after they release it.
-			m_sending = false;
-			m_cv_send_complete.notify_all();
+
+			StopSend();
 			return;
 		}
 
 		if( m_send_buffers[m_send_buffer_index].size() == 0 ) {
 			// no more data to send, stop the writing service.
-			m_sending = false;
-			m_cv_send_complete.notify_all();
+
+			StopSend();
 			return;
 		}
 
@@ -212,7 +231,7 @@ Stream::~Stream() {
 
 	// these operations keep the stream alive, if the destructor is called
 	// when they are active something is wrong.
-	assert( m_sending   == false ); 
+	assert( m_sending   == false );
 	assert( m_receiving == false );
 	 
 	// the socket should not be open when the destructor is called.
@@ -234,14 +253,12 @@ void Stream::DoClose() {
 	if( m_connected ) {
 		m_connected = false; 
 
-		// wait until any sending is complete.
-		while( m_sending ) {
-			m_cv_send_complete.wait( lock );
+		if( m_sending ) {
+			m_close_after_send = true;
+			return; // the sending `thread` will close the socket.
 		}
-
-		// TODO: do we need to linger here for the data to be sent?
-	} else {
-
+		
+		// TODO: do we need to linger here for the data to be sent? 
 	}
 
 	m_socket.close();

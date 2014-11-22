@@ -61,6 +61,8 @@ private:
 	bool m_send_buffer_locked = false;
 	bool m_sending = false; // if the write thread is active
 
+	bool m_close_after_send = false;
+
 	// when a writer has finished working.
 	std::condition_variable m_cond_sendbuffer_unlocked; 
 	 
@@ -88,7 +90,7 @@ private:
 	void ReceiveNext(); 
 	void StopReceive();
 	void SendNext();
-	
+	void StopSend();
 
 	void OnAccept( const boost::system::error_code &error );
 	void OnConnect( const boost::system::error_code &error );
