@@ -11,9 +11,7 @@
 namespace Net {
 
 	System::Service &DefaultService(); 
-	void Run( int threads );
-	
-	StreamPtr DefaultStreamFactory();
+	void Run( int threads ); 
 
 	/// -----------------------------------------------------------------------
 	/// Make a remote connection.
@@ -30,7 +28,7 @@ namespace Net {
 	///
 	Stream::ptr Connect( const std::string &host, 
 						 const std::string &service,
-						 StreamFactory factory = DefaultStreamFactory );
+						 StreamFactory factory );
 	
 	/// -----------------------------------------------------------------------
 	/// Make a remote connection asynchronously.
@@ -43,9 +41,9 @@ namespace Net {
 	void ConnectAsync( const std::string &host, 
 					   const std::string &service, 
 					   Asev::Handler &handler,
-					   StreamFactory factory = DefaultStreamFactory );
+					   StreamFactory factory );
 
-
+	//-------------------------------------------------------------------------
 	struct Instance {
 	 
 		Instance( int threads );

@@ -18,19 +18,21 @@ namespace {
 		return 1;
 	}
 }
-
+/*
 //-----------------------------------------------------------------------------
 Message::Message( uint32_t header ) : 
 		m_header(header) 
 {
 	
-}
-
+}*/
+/*
 //-----------------------------------------------------------------------------
 void Message::Write( std::ostream &stream ) {
 	throw std::runtime_error( "You cannot write this message." );
 }
+*/
 
+/*
 //-----------------------------------------------------------------------------
 Remsg::Remsg( uint32_t header, std::istream &stream, int length ) :
 		Message(header), m_stream(stream), m_length(length)
@@ -44,7 +46,9 @@ Remsg::~Remsg() {
 		m_stream.ignore( m_length );
 	}
 }
+*/
 
+/*
 //-----------------------------------------------------------------------------
 void Remsg::Parse( google::protobuf::MessageLite &msg ) {
 	
@@ -64,6 +68,7 @@ void Remsg::Parse( google::protobuf::MessageLite &msg ) {
 //-----------------------------------------------------------------------------
 PBMsg::PBMsg( uint32_t header, google::protobuf::MessageLite &msg ) :
 		m_msg(msg), Message(header) {
+
 }
 
 //-----------------------------------------------------------------------------
@@ -75,18 +80,7 @@ void PBMsg::Write( std::ostream &std_stream ) {
 	const int size = m_msg.ByteSize() + SizeofVarint( Header() );
 	output.WriteVarint32( size );
 	output.WriteVarint32( Header() );
-	
-	//http://stackoverflow.com/a/22927149/3264295
-	uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
-	if( buffer != NULL ) {
-		// Optimization:  The message fits in one buffer, so use the faster
-		// direct-to-array serialization path.
-		m_msg.SerializeWithCachedSizesToArray( buffer );
-	} else {
-		// Slightly-slower path when the message is multiple buffers.
-		m_msg.SerializeWithCachedSizes( &output );
-		if( output.HadError() ) throw WriteError();
-	} 
-}
+	m_msg.SerializeToCodedStream( &output );
+}*/
 
 }

@@ -10,6 +10,7 @@
 #include "net/stream.h"
 #include "net/listener.h"
 #include "net/core.h"
+#include "net/lidstream.h"
 
 #include "protocol.h"
 #include "proto/auth/login.pb.h"
@@ -52,7 +53,7 @@ private:
 	
 };
 
-class MyStream : public Net::Stream {
+class MyStream : public Net::LidStream {
 
 };
 
@@ -67,15 +68,19 @@ class TestProgram : public System::Program {
 				System::Console::Print( "Couldn't connect : %s", error.message().c_str() );
 			}
 			 
-			virtual void Connected( Net::Stream::ptr &stream ) {
+			virtual void Connected( Net::Stream::ptr &str ) {
 				namespace PID = Net::Proto::ID;
+
+				auto &stream = str->Cast<Net::LidStream>();
 				
 				System::Console::Print( "Connected... Sending login." );
+
 				Net::Proto::Auth::Login message;
 				message.set_username( "testes" );
 				message.set_password( "password" );
-				stream->Write( Net::PBMsg( PID::Auth::LOGIN, message ) );
-				stream->Close();
+
+				stream.Write() << PID::Auth::LOGIN << message; 
+				stream.Close();
 			}
 
 

@@ -7,19 +7,14 @@
 #include "system/console.h"
 #include "system/system.h"
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 namespace Net {
 
 namespace {
 	Instance *g_instance;
 }
 
-//-------------------------------------------------------------------------------------------------
-Stream::ptr DefaultStreamFactory() {
-	return std::make_shared<Stream>();
-}
-
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Stream::ptr Connect( const std::string &host, const std::string &service, 
 					 StreamFactory factory ) {
 
@@ -28,16 +23,16 @@ Stream::ptr Connect( const std::string &host, const std::string &service,
 	return stream;
 }
 
-//-------------------------------------------------------------------------------------------------
-void ConnectAsync( const std::string &host, const std::string &service, Asev::Handler &handler, 
-				   StreamFactory factory ) {
+//-----------------------------------------------------------------------------
+void ConnectAsync( const std::string &host, const std::string &service, 
+				   Asev::Handler &handler, StreamFactory factory ) {
 
 	Stream::ptr stream = factory();
 	stream->AsevSubscribe( handler );
 	stream->ConnectAsync( host, service );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Instance::Instance( int threads ) {
 	
 	g_instance = this;
@@ -46,21 +41,22 @@ Instance::Instance( int threads ) {
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Instance::~Instance() {
 	m_service.Finish( true );
 	g_instance = nullptr;  
 }
 
+//-----------------------------------------------------------------------------
 System::Service &Instance::GetService() {
 	return m_service;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 System::Service &DefaultService() {
 	assert(g_instance);
 	return g_instance->GetService();
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 }

@@ -64,7 +64,7 @@ namespace Asev {
 			Pipe &m_pipe;
 		public:
 			Lock( Pipe &pipe );
-
+			
 			/// ---------------------------------------------------------------
 			/// @returns The handler for the locked pipe, or nullptr if the
 			///          pipe is closed.

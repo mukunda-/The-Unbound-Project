@@ -15,76 +15,8 @@ namespace Net {
 namespace {
 	const int READ_BUFFER_SIZE = 4096;
 
-	/// -------------------------------------------------------------------
-	/// Read a Varint from a stream. Max 28 bits.
-	///
-	/// @param stream Stream to read from.
-	/// @param avail  How many bytes are available in the stream.
-	/// @param value  Where to store the value.
-	/// @returns Amount of bytes read from the stream. 
-	///          0 means there wasn't sufficient data
-	///          and the operation was cancelled.
-	///
-	/// @throws ParseError when the data is errornous (too long).
-	///
-	int ReadVarint( std::istream &stream, int avail, int &value ) {
-		if( avail == 0 ) return 0;
-		int result = 0;
-
-		// 28 bits max.
-		for( int i = 0; i < 4; i++ ) {
-			int data = stream.get();
-			if( data == EOF ) throw ParseError();
-				
-				
-			result |= (data & 127) << (i*7);
-			if( data & 128 ) {
-				if( avail < (i+2) ) {
-					// not enough data. rewind and fail.
-					stream.seekg( -(i+1), std::ios_base::cur );
-					return 0;
-				}
-			} else {
-				value = result;
-				return i+1;
-			}
-		}
-		throw ParseError();
-	}
 }
-	
- 
-//-----------------------------------------------------------------------------
-bool Stream::ParseMessage( std::istream &is ) {
-	if( m_read_avail == 0 ) return false;
-
-	if( m_read_length == 0 ) {
-		int avail = (int)m_read_buffer.in_avail();
-		if( avail == 0 ) return false;
-
-		int bytesread = ReadVarint( is, m_read_avail, m_read_length );
-		if( bytesread ) {
-			m_read_avail -= bytesread;
-			return true;
-		}
-		return false;
-		
-	} else {
-		if( m_read_avail < m_read_length ) return false; // need more data.
-		int header;
-		int bytesread = ReadVarint( is, m_read_avail, header );
-		if( bytesread == 0 ) throw ParseError();
-		m_read_length -= bytesread;
-
-		Remsg msg( header, is, m_read_length );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Receive( msg );
-		
-		m_read_length = 0;
-		return true;
-	}
-}
-
+	 
 /// ---------------------------------------------------------------------------
 /// [PRIVATE] Callback for receiving data.
 ///  
@@ -108,16 +40,22 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	m_read_buffer.commit( bytes_transferred );
 	m_read_avail += bytes_transferred;
 
-	std::istream is( &m_read_buffer );
-	while( ParseMessage( is ) ) {
-		// loop and parse messages.
+	if( m_read_avail > 0 ) {
+		std::istream is( &m_read_buffer );
+		while( m_read_avail ) {
+
+			// loop until processor returns 0 or there is no more data.
+			int amount = ProcessInput( is, m_read_avail );
+			if( amount == 0 ) break;
+			m_read_avail -= amount;
+		}
 	}
 
 	// TODO catch parse error exception and terminate connection.
 
 	if( !m_shutdown ) {
 		// receive next data chunk
-		StartReceive();
+		ReceiveNext();
 	} else {
 		// shutdown.
 		StopReceive();
@@ -147,7 +85,7 @@ void Stream::StopReceive() {
 ///        the connection is established. FALSE if it is a continued 
 ///        receive call.
 ///  
-void Stream::StartReceive() {
+void Stream::ReceiveNext() {
 
 	m_receiving = true;
 	
@@ -166,7 +104,7 @@ void Stream::StartReceive() {
 /// ---------------------------------------------------------------------------
 /// [PRIVATE] Callback for when some data is put out onto the line.
 ///
-void Stream::OnDataSent( const boost::system::error_code& error, 
+void Stream::OnSend( const boost::system::error_code& error, 
 						 size_t bytes_transferred ) {
 	
 	if( error ) {
@@ -182,7 +120,7 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 		// shutdown.
 		{
 			std::lock_guard<std::mutex> lock( m_lock );
-			m_writing = false;
+			m_sending   = false;
 			m_connected = false;
 			m_cv_send_complete.notify_all();
 		}
@@ -192,49 +130,51 @@ void Stream::OnDataSent( const boost::system::error_code& error,
 	}
 
 	m_send_buffers[1-m_send_buffer_index].consume( bytes_transferred );
-	ContinueSend(); 
+	SendNext(); 
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Put more data on the line or signal that the send has
+/// [PRIVATE] Put data on the line or signal that the send has
 ///           completed.
 ///
-void Stream::ContinueSend() {
+void Stream::SendNext() {
 	// we own one buffer, but not the other.
+	// 1 - index for ours.
+
 	if( m_send_buffers[1-m_send_buffer_index].size() == 0 ) {
-		
+
 		// lock for accessing the other buffer and send variables
 		std::lock_guard<std::mutex> lock( m_lock );
-		if( m_send_buffers[m_send_buffer_index].size() == 0 ) {
-			// no more data to send, stop the writing service.
-			m_writing = false;
+
+		if( m_send_buffer_locked ) {
+			// a thread is busy writing to the send buffer
+			// this process will resume after they release it.
+			m_sending = false;
 			m_cv_send_complete.notify_all();
 			return;
 		}
 
-		// swap buffers.
+		if( m_send_buffers[m_send_buffer_index].size() == 0 ) {
+			// no more data to send, stop the writing service.
+			m_sending = false;
+			m_cv_send_complete.notify_all();
+			return;
+		}
+
+		// swap the buffers.
 		m_send_buffer_index = 1-m_send_buffer_index;
 	}
 	
 	m_socket.async_write_some( 
 		m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
-			boost::bind( &Stream::OnDataSent, this, 
+			boost::bind( &Stream::OnSend, this, 
 						 boost::asio::placeholders::error, 
 						 boost::asio::placeholders::bytes_transferred )));
 							
 }
 
 void Stream::Init() {
-//	m_recv_packet = 0;
-//	m_send_packet = 0;
-//	m_recv_write = 0;
-//	m_receiving = false;
-//	m_sending = false;
-	
-	 
-//	m_userdata = nullptr; 
-//	m_shutdown = false; 
-	
+
 	// this doesn't work:
 	// allow lingering for 30 seconds to finish unsent sending data on shutdown
 //	boost::system::error_code ec; //ignore error, maybe log message
@@ -242,6 +182,8 @@ void Stream::Init() {
 //	socket.set_option(option,ec);
 }
 
+// todo merge constructors with c++11 power
+// delete above init function.
 //-----------------------------------------------------------------------------
 Stream::Stream( System::Service &service ) : 
 			m_service(service), m_socket( m_service() ), 
@@ -261,7 +203,6 @@ Stream::Stream() :
 //-----------------------------------------------------------------------------
 void Stream::Close() {
 
-
 	m_service.Post( m_strand.wrap( 
 		boost::bind( &Stream::DoClose, shared_from_this() )));
 }
@@ -271,15 +212,11 @@ Stream::~Stream() {
 
 	// these operations keep the stream alive, if the destructor is called
 	// when they are active something is wrong.
-	assert( m_writing == false ); 
+	assert( m_sending   == false ); 
 	assert( m_receiving == false );
 	 
 	// the socket should not be open when the destructor is called.
-	//m_socket.close();	
-	 
-	// free memory TODO smart packet pointers
-//	if( m_recv_packet ) Packet::Delete( m_recv_packet );
-//	if( m_send_packet ) Packet::Delete( m_send_packet ); 
+	//m_socket.close();	 
 }
 
 /// ---------------------------------------------------------------------------
@@ -298,7 +235,7 @@ void Stream::DoClose() {
 		m_connected = false; 
 
 		// wait until any sending is complete.
-		while( m_writing ) {
+		while( m_sending ) {
 			m_cv_send_complete.wait( lock );
 		}
 
@@ -317,10 +254,10 @@ void Stream::SetConnected() {
 		if( m_shutdown ) return;
 
 		m_connected = true; 
-		StartReceive();  
-		m_writing = true;
+		ReceiveNext();  
+		m_sending = true;
 	}
-	ContinueSend();
+	SendNext();
 }
 
 /// ---------------------------------------------------------------------------
@@ -380,24 +317,45 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 }
 
 //-----------------------------------------------------------------------------
-//Packet *Stream::Read() {
-//	return m_recv_fifo.Pop();
-//}
-
-//-----------------------------------------------------------------------------
-//void Stream::WaitForData() {
-//	m_recv_fifo.WaitForData();
-//}
-
-//-----------------------------------------------------------------------------
 void Stream::WaitSend() {
 	
 	std::unique_lock<std::mutex> lock( m_lock );
-	while( m_writing ) {
+	while( m_sending ) {
 		m_cv_send_complete.wait( lock );
 	}
 }
-		
+
+//-----------------------------------------------------------------------------
+auto Stream::AcquireSendBuffer() -> SendLock {
+	{
+		std::unique_lock<std::mutex> lock( m_lock );
+		while( m_send_buffer_locked ) {
+			// someone else is writing to the send buffer
+			// wait for them.
+			m_cond_sendbuffer_unlocked.wait( lock );
+		}
+		m_send_buffer_locked = true;
+	}
+	
+	return SendLock( *this, m_send_buffers[m_send_buffer_index] );
+}
+
+//-----------------------------------------------------------------------------
+void Stream::ReleaseSendBuffer( bool start ) {
+	{
+		std::lock_guard<std::mutex> lock( m_lock );
+
+		if( start && m_connected && !m_sending ) {
+			m_sending = true;
+			m_strand.post( boost::bind( &Stream::SendNext, 
+										 shared_from_this() ));
+		}
+
+		m_send_buffer_locked = false;
+	}
+	m_cond_sendbuffer_unlocked.notify_one();
+}
+/*
 //-----------------------------------------------------------------------------
 void Stream::Write( Message &msg ) { 
 	std::lock_guard<std::mutex> lock( m_lock );
@@ -407,11 +365,11 @@ void Stream::Write( Message &msg ) {
 	// todo: catch write error and terminate stream.
 	
 	if( !m_connected ) return;
-	if( m_writing ) return;
-	m_writing = true; 
-	m_strand.post( boost::bind(	&Stream::ContinueSend, shared_from_this() ));
+	if( m_sending ) return;
+	m_sending = true; 
+	m_strand.post( boost::bind(	&Stream::SendNext, shared_from_this() ));
 }
-
+*/
 
 //-----------------------------------------------------------------------------
 const std::string &Stream::GetHostname() const {
@@ -458,5 +416,6 @@ void Stream::Listen( BasicListener &listener ) {
 			&Stream::OnAccept, shared_from_this(),
 			boost::asio::placeholders::error )));
 }
+ 
 
 }

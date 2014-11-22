@@ -9,6 +9,25 @@
 namespace Net {
 
 	class Message {
+		
+	public:
+		using MessageInfo = unsigned int;
+		
+		/// -------------------------------------------------------------------
+		/// Information about this message.
+		/// 
+		/// Upper 16 bits are the stream implementation ID.
+		///   (what kind of stream uses it)
+		/// Lower 16 bits are the message identification code.
+		///   (the type of the message)
+		///
+		virtual MessageInfo Info() { 
+			return 0;
+		}
+	};
+
+	/*
+	class Message {
 
 		// The header can contain up to 28 bits that
 		// is sent with all messages.
@@ -26,8 +45,9 @@ namespace Net {
 		/// Write the message contents to a stream.
 		///
 		virtual void Write( std::ostream &stream );
-	};
+	};*/
 
+	/*
 	/// an intermediate received message
 	class Remsg : public Message {
 
@@ -45,8 +65,9 @@ namespace Net {
 		/// @throws Net::ParseError on failure.
 		///
 		void Parse( google::protobuf::MessageLite &msg );
-	};
+	};*/
 
+	/*
 	/// -----------------------------------------------------------------------
 	/// PBMsg is a protobuf wrapper that does not copy the source.
 	/// It's a medium to write a protobuf message to a stream
@@ -58,5 +79,5 @@ namespace Net {
 	public:
 		PBMsg( uint32_t header, google::protobuf::MessageLite &msg );
 		void Write( std::ostream &stream ) final;
-	};
+	};*/
 }

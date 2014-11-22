@@ -20,7 +20,7 @@
 
 namespace Net {
 
-/// -----------------------------------------------------------------------
+/// ---------------------------------------------------------------------------
 /// A Stream is a network connection. You need to implement this class
 /// to handle your base protocol format.
 ///
@@ -51,14 +51,18 @@ private:
 	// new:
 	boost::asio::streambuf m_read_buffer;
 	// 0 = next read is length, nonzero = next read is payload.
-	int m_read_length = 0;
+	
 	int m_read_avail = 0;
 	bool m_receiving = false;
 	
-	std::mutex m_send_lock;
+	//std::mutex m_send_lock;
 	boost::asio::streambuf m_send_buffers[2];
 	int m_send_buffer_index = 0; // which buffer the outside writes to
-	bool m_writing = false; // if the write thread is active
+	bool m_send_buffer_locked = false;
+	bool m_sending = false; // if the write thread is active
+
+	// when a writer has finished working.
+	std::condition_variable m_cond_sendbuffer_unlocked; 
 	 
 	// for safe outside access.
 	std::mutex m_lock;
@@ -75,35 +79,52 @@ private:
 	// shutdown is FALSE upon construction
 	// and TRUE after Close is called.
 	bool m_shutdown = false;
-	 
-//	int ProcessDataRecv( const uint8_t *data, int size );
-	void OnReceive( const boost::system::error_code& error, 
+	
+	virtual void OnReceive( const boost::system::error_code& error, 
 					size_t bytes_transferred );
-	void OnDataSent( const boost::system::error_code& error,
+	virtual void OnSend( const boost::system::error_code& error,
 					size_t bytes_transferred );
-	void ContinueSend();
+		 
+	void ReceiveNext(); 
+	void StopReceive();
+	void SendNext();
+	
 
 	void OnAccept( const boost::system::error_code &error );
 	void OnConnect( const boost::system::error_code &error );
 	void OnResolve( const boost::system::error_code& ec, 
 			boost::asio::ip::tcp::resolver::iterator it );
-		 
-	void StartReceive(); 
-	bool ParseMessage( std::istream &is );
-	void StopReceive();  
+
+	//bool ParseMessage( std::istream &is );
+	
 	void SetConnected();
 
 	void DoClose();
+	
 
 protected:
+	class SendLock;
+	 
 	/// -----------------------------------------------------------------------
-	/// Parse input will be called repeatedly until you return zero.
+	/// Process input will be called repeatedly until you return zero or 
+	/// use all of the available bytes.
 	///
+	/// @param stream          Stream to read from.
 	/// @param bytes_available Number of bytes available in the stream.
 	///
 	/// @return Number of bytes read from stream.
+	///         (function will be repeated if this is zero
+	///          or less than bytes_available.)
 	///
-	virtual int ParseInput( int bytes_available );
+	/// @throws ParseError if the input is invalid.
+	///
+	virtual int ProcessInput( std::istream &stream, int bytes_available ) = 0;
+	
+	/// -----------------------------------------------------------------------
+	/// Create/release send locks.
+	///
+	SendLock AcquireSendBuffer();
+	void ReleaseSendBuffer( bool start );
 
 public:
 	Stream( System::Service &service );
@@ -223,8 +244,48 @@ public:
 	template <class T> T *GetUserData() {
 		return static_cast<T*>(m_userdata);
 	}
+	
+	/// -----------------------------------------------------------------------
+	/// Obtain a casted reference.
+	///
+	template <class T> T& Cast() {
+		return static_cast<T&>(*this);
+	}
 
+	
 	typedef std::shared_ptr<Stream> ptr;
 };
+
+/// ---------------------------------------------------------------------------
+/// A send lock holds a buffer from a stream to write to.
+///
+class Stream::SendLock {
+	bool m_locked = false;
+	Stream &m_parent;
+	boost::asio::streambuf &m_buffer;
+
+public:
+	// create new
+	SendLock( Stream &parent, boost::asio::streambuf &buffer );
+
+	// or move
+	SendLock( SendLock &&lock );
+		
+	SendLock( SendLock & ) = delete;
+	SendLock& operator=( SendLock & ) = delete;
+	SendLock& operator=( SendLock && ) = delete;
+
+
+	~SendLock();
+
+	Stream &Stream() {
+		return m_parent;
+	}
+
+	boost::asio::streambuf &Buffer() {
+		return m_buffer;
+	}
+}; 
+
 
 }

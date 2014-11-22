@@ -62,7 +62,7 @@ namespace Stream {
 	}
 
 	//-------------------------------------------------------------------------
-	Event::Receive::Receive( StreamPtr &stream, Remsg &msg ) :
+	Event::Receive::Receive( StreamPtr &stream, Message &msg ) :
 			Event( stream, RECEIVE ), m_msg(msg) {
 		
 	}
@@ -140,7 +140,7 @@ namespace Stream {
 	}
 
 	//-------------------------------------------------------------------------
-	void Dispatcher::Receive( Remsg &msg ) {
+	void Dispatcher::Receive( Message &msg ) {
 		Send( Event::Receive( m_stream, msg ) );
 	}
 }

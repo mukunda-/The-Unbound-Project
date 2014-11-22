@@ -12,13 +12,12 @@
 #  error "Missing <memory>."
 #endif
  
-#include "packet.h"
 #include "asev/asev.h"
 
 namespace Net {
 
-	class Stream;  
-	class Remsg;
+	class Stream;   
+	class Message;
 }
  
 //-----------------------------------------------------------------------------
@@ -119,11 +118,11 @@ namespace Net { namespace Events {
 
 		//-------------------------------------------------------------------------
 		class Event::Receive : public Event {
-			Remsg &m_msg;
+			Message &m_msg;
 		public:
-			Receive( StreamPtr &stream, Remsg &msg );
+			Receive( StreamPtr &stream, Message &msg );
 
-			Remsg &GetMessage() { return m_msg; }
+			Message &GetMessage() { return m_msg; }
 		};
 		 
 		/// -----------------------------------------------------------------------
@@ -196,7 +195,7 @@ namespace Net { namespace Events {
 			///
 			virtual void Receive( 
 					StreamPtr &stream,
-					Remsg &msg ) { 
+					Message &msg ) { 
 			 
 			}
 		public:
@@ -225,7 +224,7 @@ namespace Net { namespace Events {
 			void Connected();
 			void Disconnected( const boost::system::error_code &error );
 			void SendFailed( const boost::system::error_code &error );
-			void Receive( Remsg &msg );
+			void Receive( Message &msg );
 		};
 	}
 }}
