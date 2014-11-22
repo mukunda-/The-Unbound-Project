@@ -10,7 +10,7 @@
 #include "net/stream.h"
 #include "net/listener.h"
 #include "net/core.h"
-#include "net/lidstream.h"
+#include "net/textstream.h"
 
 #include "protocol.h"
 #include "proto/auth/login.pb.h"
@@ -53,7 +53,7 @@ private:
 	
 };
 
-class MyStream : public Net::LidStream {
+class MyStream : public Net::TextStream {
 
 };
 
@@ -67,7 +67,7 @@ class TestProgram : public System::Program {
 							   const boost::system::error_code &error ) {
 				System::Console::Print( "Couldn't connect : %s", error.message().c_str() );
 			}
-			 
+			/*
 			virtual void Connected( Net::Stream::ptr &str ) {
 				namespace PID = Net::Proto::ID;
 
@@ -83,7 +83,20 @@ class TestProgram : public System::Program {
 				stream.Close();
 				System::Console::Print( "ok!" );
 			}
+			*/
+			
+			virtual void Connected( Net::Stream::ptr &str ) {
+				namespace PID = Net::Proto::ID;
 
+				auto &stream = str->Cast<MyStream>();
+				
+				System::Console::Print( "Connected... Sending login." );
+				 
+
+				stream.Write() << "hello" << "world"; 
+				stream.Close();
+				System::Console::Print( "ok!" );
+			}
 
 	public:
 		NetEventHandler( TestProgram &parent ) : m_parent(parent) {
@@ -127,8 +140,8 @@ public:
 		Net::ConnectAsync( "localhost", "32791", m_events, MyStreamFactory );
 	}
 
-	static std::shared_ptr<Net::LidStream> MyStreamFactory() {
-		return std::make_shared<Net::LidStream>();
+	static std::shared_ptr<MyStream> MyStreamFactory() {
+		return std::make_shared<MyStream>();
 	}
 
 	void Test( std::shared_ptr<DB::Transaction> &t, bool failed ) {}

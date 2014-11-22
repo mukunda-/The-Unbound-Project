@@ -15,7 +15,9 @@ namespace Net {
 ///
 class TextStream : public Stream {
 	class Writer;
-	  
+
+	std::string m_current_message;
+	
 protected:
 
 	virtual int ProcessInput( std::istream &is, int bytes_available );
@@ -26,7 +28,7 @@ public:
 	/// -----------------------------------------------------------------------
 	/// Obtain an object used to write messages.
 	///
-	Writer Write() { return Writer( AcquireSendBuffer() ); }
+	Writer Write(); 
 };
 
 /// ---------------------------------------------------------------------------
@@ -35,19 +37,29 @@ public:
 class TextStream::Writer : public WriterBase {
 	
 public:
-	Writer( Stream::SendLock &&lock ) : WriterBase( std::move(lock) ) {}
+	Writer( Stream::SendLock &&lock );
 	
 	template <typename ... Args>
 	void expand( Args... );
 
 	/// -----------------------------------------------------------------------
-	/// Output a message. A newline is added to the end.
+	/// Output text.
 	///
-	/// @param message Message or message template. (printf/boost.format)
-	/// @param args    Args to substitute placeholders.
+	/// @param message Text to send.
+	/// 
+	Writer &operator<<( const std::string &message ) {
+		m_stream << message;
+		return *this;
+	}
+	
+	/// -----------------------------------------------------------------------
+	/// Output formatted text. A newline is added to the end.
 	///
+	/// @param message Message or message template.
+	/// @param args    Arguments to substitute.
+	/// 
 	template <typename ... Args>
-	Writer &operator<<( const std::string &message, Args ... args ) {
+	void Formatted( const std::string &message, Args...args ) {
 		
 		if( sizeof...(args) == 0 ) {
 			// raw message.
@@ -83,7 +95,7 @@ public:
 	/// -----------------------------------------------------------------------
 	/// @returns the message.
 	///
-	const std::string &operator() { return m_string; }
+	const std::string &operator()() { return m_string; }
 	
 };
 

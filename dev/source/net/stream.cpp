@@ -190,10 +190,13 @@ void Stream::SendNext() {
 						 boost::asio::placeholders::error, 
 						 boost::asio::placeholders::bytes_transferred )));
 							
-}
-
-void Stream::Init() {
-
+} 
+ 
+//-----------------------------------------------------------------------------
+Stream::Stream( System::Service &service ) : 
+			m_service(service), m_socket( m_service() ), 
+			m_strand( m_service() ) {
+	  
 	// this doesn't work:
 	// allow lingering for 30 seconds to finish unsent sending data on shutdown
 //	boost::system::error_code ec; //ignore error, maybe log message
@@ -201,23 +204,8 @@ void Stream::Init() {
 //	socket.set_option(option,ec);
 }
 
-// todo merge constructors with c++11 power
-// delete above init function.
 //-----------------------------------------------------------------------------
-Stream::Stream( System::Service &service ) : 
-			m_service(service), m_socket( m_service() ), 
-			m_strand( m_service() ) {
-	 
-	Init();
-}
-
-//-----------------------------------------------------------------------------
-Stream::Stream() : 
-			m_service(Net::DefaultService()), m_socket( m_service() ),
-			m_strand( m_service() ) {
-	
-	Init();
-}
+Stream::Stream() : Stream( Net::DefaultService() ) {}
 
 //-----------------------------------------------------------------------------
 void Stream::Close() {

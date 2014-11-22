@@ -133,7 +133,6 @@ public:
 	Stream( System::Service &service );
 	Stream();
 	~Stream();
-	void Init();
 		  
 	/// -----------------------------------------------------------------------
 	/// Close the stream.
