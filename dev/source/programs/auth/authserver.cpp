@@ -10,6 +10,17 @@
 namespace User {
 
 	//-------------------------------------------------------------------------
+	struct AuthMessage {
+		   
+		static uint16_t ID( Net::LidStream::Message &msg ) {
+			return msg.Header() & 0x3FFF;
+		}
+		static uint16_t Extra( Net::LidStream::Message &msg ) {
+			return msg.Header() >> 14;
+		}
+	};
+
+	//-------------------------------------------------------------------------
 	AuthStream::AuthStream() {
 		m_state = STATE_LOGIN;
 	}
@@ -36,13 +47,15 @@ namespace User {
 	//-------------------------------------------------------------------------
 	void AuthServer::NetEventHandler::Receive( 
 				Net::Stream::ptr &source, 
-				Net::Remsg &msg ) {
+				Net::Message &netmsg ) {
 
 		AuthStream &stream = static_cast<AuthStream&>(*source); 
 		if( stream.Invalidated() ) return;
 		if( stream.GetState() == AuthStream::STATE_LOGIN ) {
-		
-			if( msg.ID() == Net::Proto::ID::LOGIN ) {
+
+			auto &msg = netmsg.Cast<Net::LidStream::Message>();
+			
+			if( AuthMessage::ID(msg) == Net::Proto::ID::Auth::LOGIN ) {
 				// user wants to log in.
 				Net::Proto::Auth::Login buffer;
 				msg.Parse( buffer );

@@ -7,13 +7,14 @@
 #include "system/program.h"
 
 #include "system/console.h"
-#include "net/stream.h"
+#include "net/lidstream.h"
 #include "net/listener.h"
 #include "net/events.h"
 
 namespace User {
 
-class AuthStream : public Net::Stream {
+//-----------------------------------------------------------------------------
+class AuthStream : public Net::LidStream {
 
 public:
 	enum State{
@@ -43,7 +44,7 @@ class AuthServer : public System::Program {
 		void AcceptError( Net::Stream::ptr &stream, 
 						  const boost::system::error_code &error  ) override;
 		void Accepted( Net::Stream::ptr &stream ) override;
-		void Receive( Net::Stream::ptr &stream, Net::Remsg &msg ) override;
+		void Receive( Net::Stream::ptr &stream, Net::Message &msg ) override;
 
 	public:
 		

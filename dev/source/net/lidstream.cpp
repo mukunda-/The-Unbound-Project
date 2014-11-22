@@ -9,6 +9,17 @@
 namespace Net {
 	
 namespace {
+
+	/// -------------------------------------------------------------------
+	/// Get the byte size of a packed 28-bit varint.
+	///
+	int SizeofVarint( int value ) {
+		if( value >= (1<<21) ) return 4;
+		if( value >= (1<<14) ) return 3;
+		if( value >= (1<<7) ) return 2;
+		return 1;
+	}
+
 	/// -------------------------------------------------------------------
 	/// Read a Varint from a stream. Max 28 bits.
 	///
@@ -63,14 +74,15 @@ int LidStream::ProcessInput( std::istream &is, int bytes_available ) {
 		int bytesread = ReadVarint( is, bytes_available, &header );
 		if( bytesread == 0 ) throw ParseError();
 		m_read_length -= bytesread;
+		int data_length = m_read_length;
+		m_read_length = 0;
 
-		Message msg( header, m_read_length, is  );
+		Message msg( header, data_length, is  );
 
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Receive( msg );
-		
-		m_read_length = 0;
-		return true;
+		 
+		return m_read_length;
 	}
 }
 
@@ -103,5 +115,22 @@ void LidStream::Message::Parse( google::protobuf::MessageLite &msg ) {
 	m_parsed = true;
 }
 
+//-----------------------------------------------------------------------------
+	auto LidStream::Writer::operator<<( 
+			google::protobuf::MessageLite &data ) -> Writer& {
+
+		assert( m_expecting_data );
+		m_expecting_data = false; 
+
+		google::protobuf::io::OstreamOutputStream stream( &m_stream );
+		google::protobuf::io::CodedOutputStream output( &stream );
+	
+		// Write the size.
+		const int size = data.ByteSize() + SizeofVarint( m_next_header );
+		output.WriteVarint32( size );
+		output.WriteVarint32( m_next_header );
+		data.SerializeToCodedStream( &output );
+		return *this;
+	}
 
 }

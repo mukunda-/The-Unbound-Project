@@ -81,6 +81,7 @@ class TestProgram : public System::Program {
 
 				stream.Write() << PID::Auth::LOGIN << message; 
 				stream.Close();
+				System::Console::Print( "ok!" );
 			}
 
 
@@ -106,6 +107,7 @@ public:
 
 	void OnStart() {
 		
+		/*
 		YAML::Node config = YAML::LoadFile("private/sql.yaml");
 	//	YAML::Node config = YAML::LoadFile("../test/test.yaml");
 	//	System::Console::Print( "%s", config["address"].as<std::string>().c_str() );
@@ -120,8 +122,13 @@ public:
 		
 		auto test = DB::TransactionPtr( 
 				new TestX( DB::CallbackTransaction::Bind( &TestProgram::Test, this )));  
-		con.Execute( test );
-		//Net::ConnectAsync( "localhost", "32791", m_events );
+		con.Execute( test );*/
+
+		Net::ConnectAsync( "localhost", "32791", m_events, MyStreamFactory );
+	}
+
+	static std::shared_ptr<Net::LidStream> MyStreamFactory() {
+		return std::make_shared<Net::LidStream>();
 	}
 
 	void Test( std::shared_ptr<DB::Transaction> &t, bool failed ) {}

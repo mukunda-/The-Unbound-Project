@@ -9,15 +9,6 @@
 
 namespace Net {
 
-namespace {
-	// get size of 28-bit varint
-	int SizeofVarint( int value ) {
-		if( value >= (1<<21) ) return 4;
-		if( value >= (1<<14) ) return 3;
-		if( value >= (1<<7) ) return 2;
-		return 1;
-	}
-}
 /*
 //-----------------------------------------------------------------------------
 Message::Message( uint32_t header ) : 

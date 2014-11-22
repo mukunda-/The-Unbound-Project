@@ -24,6 +24,12 @@ namespace Net {
 		virtual MessageInfo Info() { 
 			return 0;
 		}
+		
+		//---------------------------------------------------------------------
+		template <typename T>
+		T Cast() {
+			return static_cast<T&>(*this);
+		}
 	};
 
 	/*

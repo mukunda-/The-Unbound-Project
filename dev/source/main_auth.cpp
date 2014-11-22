@@ -9,7 +9,7 @@
 #include "system/system.h" 
 #include "system/server/serverconsole.h"
 #include "programs/auth/authserver.h"
-#include "net/nwcore.h"
+#include "net/core.h"
 
 #define VERSION "DEV1"
 #define WINDOW_TITLE "UNBOUND SERVER (AUTH) " VERSION
