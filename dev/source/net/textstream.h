@@ -50,26 +50,27 @@ public:
 		m_stream << message;
 		return *this;
 	}
+
+	/// -----------------------------------------------------------------------
+	Writer &operator<<( char a ) {
+		m_stream << a;
+		return *this;
+	}
 	
 	/// -----------------------------------------------------------------------
 	/// Output formatted text.
 	///
-	/// @param message Message or message template.
-	///                A newline is added to the end.
+	/// @param message Message or message template. 
 	/// @param args    Arguments to substitute.
+	///
 	/// @returns this for chaining.
 	/// 
 	template <typename ... Args>
 	Writer & Formatted( const std::string &message, Args...args ) {
 		
-		if( sizeof...(args) == 0 ) {
-			// raw message.
-			m_stream << message << '\n';
-		} else {
-			boost::format formatter( message );
-			Util::Feed( formatter, args... );
-			m_stream << formatter.str() << '\n';
-		}
+		boost::format formatter( message );
+		Util::Feed( formatter, args... );
+		m_stream << formatter.str();
 		
 		return *this;
 	}

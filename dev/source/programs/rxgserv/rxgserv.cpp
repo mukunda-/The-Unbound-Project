@@ -10,11 +10,6 @@ namespace User { namespace RXGServ {
 
 RXGServ *g_rxgserv;
 
-int Test1( Util::ArgString &args ) {
-	
-
-	return 0;
-}
 
 //-----------------------------------------------------------------------------
 RXGServ::RXGServ() :
@@ -32,7 +27,23 @@ RXGServ::~RXGServ() {
 
 //-----------------------------------------------------------------------------
 void RXGServ::OnStart() {
-	System::Console::AddGlobalCommand( "test1", Test1 );
+
+	try {
+		YAML::Node config = YAML::LoadFile("rxgserv.yaml");
+		try {
+			m_password = config["password"].as<std::string>();
+		} catch( std::exception & ) {
+			throw std::exception( "`password` is not defined." );
+		}
+	} catch( std::exception &e ) {
+		System::Console::Print( "Error loading config:" );
+		System::Console::Print( "%s", e.what() );
+		System::Console::Print( "Quitting..." );
+		std::this_thread::sleep_for( std::chrono::seconds(5) );
+		System::Shutdown();
+		return;
+	}
+
 	m_listener.Start();
 	System::Console::Print( "Ready." );
 }
@@ -55,7 +66,9 @@ void NetHandler::AcceptError(
 void NetHandler::Disconnected( 
 		Net::StreamPtr &stream,
 		const boost::system::error_code &error ) {
-
+	
+	System::Log( "A client disconnected: address \"%s\"", 
+		stream->GetHostname().c_str() );
 }
 
 //-----------------------------------------------------------------------------

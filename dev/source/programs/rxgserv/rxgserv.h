@@ -12,7 +12,6 @@
 
 #include "procs.h"
 
-
 //-----------------------------------------------------------------------------
 namespace User { namespace RXGServ {
 
@@ -22,8 +21,7 @@ namespace User { namespace RXGServ {
 	class MyProcs : public ProcHandler {
 	
 		Stream &m_stream;
-
-		
+		 
 	public:
 		MyProcs( Stream &stream );
 
@@ -86,6 +84,8 @@ namespace User { namespace RXGServ {
 		Net::Listener m_listener;
 	//	Procs         m_procs;
 
+		std::string   m_password;
+
 		enum {
 			LISTEN_PORT = 12107
 		};
@@ -93,7 +93,6 @@ namespace User { namespace RXGServ {
 		static Net::StreamPtr StreamFactory() {
 			return std::make_shared<Stream>();
 		}
-		
 		
 	protected:
 		void OnStart() override;
