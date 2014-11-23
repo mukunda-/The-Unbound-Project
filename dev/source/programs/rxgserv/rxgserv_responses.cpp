@@ -28,7 +28,7 @@ SimpleResponse::SimpleResponse( const std::string &text ) :
 
 //-----------------------------------------------------------------------------
 void SimpleResponse::Write( Stream &stream ) {
-	stream.Write().Formatted( "RT1: %s\n", m_text );
+	stream.Write().Formatted( "[RT1] %s\n", m_text );
 }
 
 //-----------------------------------------------------------------------------
