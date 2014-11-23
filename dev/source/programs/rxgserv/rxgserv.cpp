@@ -2,15 +2,26 @@
 #include "stdafx.h"
 #include "rxgserv.h"
 #include "system/console.h"
+#include "system/commands.h"
 #include "util/stringles.h"
 
 //-----------------------------------------------------------------------------
 namespace User { namespace RXGServ {
 
+RXGServ *g_rxgserv;
+
+int Test1( Util::ArgString &args ) {
+	
+
+	return 0;
+}
+
 //-----------------------------------------------------------------------------
 RXGServ::RXGServ() :
 		m_listener( LISTEN_PORT, StreamFactory, &m_netevents ),
 		m_netevents(*this)  {
+
+	g_rxgserv = this;
 }
 
 //-----------------------------------------------------------------------------
@@ -18,8 +29,10 @@ RXGServ::~RXGServ() {
 	m_netevents.Disable();
 }
 
+
 //-----------------------------------------------------------------------------
 void RXGServ::OnStart() {
+	System::Console::AddGlobalCommand( "test1", Test1 );
 	m_listener.Start();
 	System::Console::Print( "Ready." );
 }
@@ -62,7 +75,7 @@ void NetHandler::Receive( Net::StreamPtr &netstream,
 	auto &stream = netstream->Cast<Stream>();
 	auto &msg = netmsg.Cast<Net::TextStream::Message>();
 
-//	stream.m_procq.Run( msg() );
+	stream.RunProc( msg() );
 }
 
 //-----------------------------------------------------------------------------

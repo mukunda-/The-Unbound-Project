@@ -183,7 +183,7 @@ void Instance::HandleConsoleInput() {
 				if( key < 0 || key > 255 ) key = 0;
 				key = m_vkey_map[key];
 			}
-		
+			
 			if( key != 0 ) {
 				m_linereader.Process( key );
 			}

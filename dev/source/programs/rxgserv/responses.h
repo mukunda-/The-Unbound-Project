@@ -13,6 +13,20 @@ namespace User { namespace RXGServ {
 		}
 	}
 
+	enum class RCodes {
+		UNKNOWN_COMMAND = 400, 
+	};
+
+	//---------------------------------------------------------------------
+	class RCodeText {
+
+		static std::unordered_map<RCodes,std::string> m_values;
+		static void Init();
+	public:
+		
+		static const std::string &Get( RCodes code );
+	};
+
 	//---------------------------------------------------------------------
 	class Response {
 
@@ -36,13 +50,20 @@ namespace User { namespace RXGServ {
 	public:
 		ListResponse &operator<<( const std::string &text );
 		
-		void Write( Stream &stream );
+		void Write( Stream &stream ) override;
 	};
 
 	/// -------------------------------------------------------------------
 	/// RT3
 	///
-	class KeyValues : public Response {
+	class KVResponse : public Response {
+	};
+
+	class ErrorResponse : public Response {
+		RCodes m_code;
+	public:
+		ErrorResponse( RCodes code );
+		void Write( Stream &stream ) override;
 	};
 	
 }}

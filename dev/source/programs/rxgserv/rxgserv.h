@@ -20,13 +20,17 @@ namespace User { namespace RXGServ {
 
 	//-------------------------------------------------------------------------
 	class MyProcs : public ProcHandler {
+	
 		Stream &m_stream;
 
-		void Unknown( ProcContext::ptr& ) override;
-		void Test( ProcContext::ptr& ) override;
+		
 	public:
 		MyProcs( Stream &stream );
 
+		std::shared_ptr<ProcContext> CreateContext( 
+				const std::string &cmd) override;
+		void Unknown( ProcContext::ptr& ) override;
+		void Test( ProcContext::ptr& ) override;
 	};
 	
 	//-------------------------------------------------------------------------
@@ -34,29 +38,21 @@ namespace User { namespace RXGServ {
 		friend class NetHandler;
 		friend class ProcContext;
 
-		enum class State {
-			AUTH, // waiting for authentication
-			READY // active
-		};
+		bool m_authed = false;
+
+		MyProcs m_prochandler; 
+
+		std::deque<std::string> m_procqueue;
+		std::mutex m_mutex; 
 		
-		State m_state = State::AUTH;
+		void NextProc(); // executed after proc
+		void ExecProc( const std::string &command );
 
-		MyProcs m_prochandler;
-		ProcQueue m_procq;
-
-
-		//std::deque<std::string> m_queue;
-		//std::mutex m_mutex;
-
-		//void ExecCommand( const std::string &cmd );
 	public:
 		Stream();
-		// queue or run a command.
-		//void RunCommand( const std::string &command );
-		//void NextCommand();
-
+	
 	public: // procs
-		
+		void RunProc( const std::string &command ); // executed from outside
 	};
 
 	//-------------------------------------------------------------------------

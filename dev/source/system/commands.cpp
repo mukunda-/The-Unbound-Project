@@ -183,7 +183,7 @@ bool TryExecuteCommand( const char *command_string ) {
 	return true;
 }
 
-
+//---------------------------------------------------------------------------------------
 void AddGlobalCommand( const char *name, Command::Handler handler, 
 					  const char *desc, bool high_priority ) {
 	

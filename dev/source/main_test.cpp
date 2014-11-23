@@ -28,6 +28,7 @@
 #include "util/slinkedlist.h"
 
 #include "system/callback.h"
+#include "util/stringles.h"
 
 //-----------------------------------------------------------------------------
 class TestX : public DB::CallbackTransaction {
@@ -155,7 +156,7 @@ public:
 
 	void OnStart() {
 		
-		m_listener.Start();
+	//	m_listener.Start();
 		/*
 		YAML::Node config = YAML::LoadFile("private/sql.yaml");
 	//	YAML::Node config = YAML::LoadFile("../test/test.yaml");
@@ -172,8 +173,14 @@ public:
 		auto test = DB::TransactionPtr( 
 				new TestX( DB::CallbackTransaction::Bind( &TestProgram::Test, this )));  
 		con.Execute( test );*/
+	//	Net::ConnectAsync( "localhost", "32791", m_events, MyStreamFactory );
+		
+		//f.operator%(5);
+		//System::Console::Print( Util::Format( "testes %d %s %d %d", 535, "3235", 1, 2 ).c_str() );
+		//System::Console::Print( (boost::format( "testes %d %s %d %d" )% 535 % "3235" % 1 % 2).str().c_str() );
 
-		Net::ConnectAsync( "localhost", "32791", m_events, MyStreamFactory );
+		System::Log( "%s %s", "a", "b" );
+		//System::Console::Print( f.str().c_str() );
 	}
 
 	static std::shared_ptr<MyStream> MyStreamFactory() {

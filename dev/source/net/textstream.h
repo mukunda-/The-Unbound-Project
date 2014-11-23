@@ -7,6 +7,7 @@
 #include "stream.h"
 #include "message.h"
 #include "writerbase.h"
+#include "util/feed.h"
 
 namespace Net {
 
@@ -38,10 +39,7 @@ class TextStream::Writer : public WriterBase {
 	
 public:
 	Writer( Stream::SendLock &&lock );
-	
-	template <typename ... Args>
-	void expand( Args... ) {}
-
+	  
 	/// -----------------------------------------------------------------------
 	/// Output text.
 	///
@@ -69,7 +67,7 @@ public:
 			m_stream << message << '\n';
 		} else {
 			boost::format formatter( message );
-			expand( formatter % args ... );
+			Util::Feed( formatter, args... );
 			m_stream << formatter.str() << '\n';
 		}
 		

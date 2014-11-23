@@ -6,6 +6,7 @@
 
 #include "system/program.h"
 #include "mem/arena/arena.h"
+#include "util/feed.h"
 
 namespace System {
 
@@ -90,14 +91,13 @@ public:
 ///
 void Finish(); 
 
-template <typename ... T> void Evaluator( T... ) {}
 
 //-----------------------------------------------------------------------------
 template<typename F, typename ... Args>
 void LogEx( F output, const char *format, Args ... args ) {
 	try {
 		boost::format formatter(format); 
-		Evaluator( formatter % args ... );
+		Util::Feed( formatter, args... ); 
 		output( formatter.str().c_str() );
 	} catch( boost::io::format_error &e ) {
 		output( (boost::format( "FORMAT ERROR: %s" ) % e.what())
@@ -111,9 +111,9 @@ void LogEx( F output, const char *format, Args ... args ) {
 /// @param format boost::format format string. (printf compatible)
 /// @param ...    Formatted arguments.
 ///
-template<typename Arg, typename ... Args>
-void Log( const char *format, Arg arg1, Args ... args ) {
-	LogEx( Log, format, arg1, args... );
+template<typename ... Args>
+void Log( const char *format,Args ... args ) {
+	LogEx( Log, format, args... );
 }
 
 /// ---------------------------------------------------------------------------
