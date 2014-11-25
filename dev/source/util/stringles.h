@@ -184,9 +184,6 @@ namespace Util {
 	///
 	std::string RoundDecimal( double input, int digits = 0 );
 
-	template< typename ... Args >
-	void Eval( Args... ) {}
-	
 	/// -----------------------------------------------------------------------
 	/// Format a string.
 	///
@@ -197,9 +194,7 @@ namespace Util {
 	template< typename ... Args >
 	std::string Format( const std::string &format, Args ... args ) {
 		boost::format formatter(format);
-		Eval( formatter % args... );
+		Util::Feed( formatter, args... );
 		return formatter.str();
 	}
 }
-
-#include "util/argstring.h"

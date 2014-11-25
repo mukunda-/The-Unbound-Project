@@ -25,7 +25,9 @@ RXGServ::RXGServ() :
 
 	// add procs here
 	 
+	m_pmap.Add<MyProcs::Unknown>();
 	m_pmap.Add<MyProcs::Test>();
+	m_pmap.Add<MyProcs::Perks>();
 }
 
 //-----------------------------------------------------------------------------

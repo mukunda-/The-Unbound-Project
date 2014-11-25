@@ -10,7 +10,7 @@ namespace User { namespace RXGServ { namespace MyProcs {
 	//-------------------------------------------------------------------------
 	void Unknown::Run( CT &c ) {
 
-		ErrorResponse( "BADINPUT", "Unknown command" ).Write( c->GetStream() );
+		ErrorResponse( "BADINPUT", "Unknown command" ).Write( *c );
 	}
 
 	//-------------------------------------------------------------------------
@@ -23,23 +23,23 @@ namespace User { namespace RXGServ { namespace MyProcs {
 					.Put( "bar", "2" )
 					.Put( "baz", "three" )
 					.Put( "bar", "2" )
-					.Write( c->GetStream() );
+					.Write( *c );
 				return;
 			} else if( arg == "rt2" ) {
 				(ListResponse() <<
 					"testing" <<
 					"testing" <<
-					"1 2 3").Write( c->GetStream() );
+					"1 2 3").Write( *c );
 				return;
 			}
 		}
 
-		SimpleResponse( "OKAY" ).Write( c->GetStream() );
+		SimpleResponse( "OKAY" ).Write( *c );
 	}
 
 	//-------------------------------------------------------------------------
 	void Perks::Run( CT &c ) {
-
+		
 	}
 
 }}}

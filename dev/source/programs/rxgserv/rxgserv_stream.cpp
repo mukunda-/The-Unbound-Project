@@ -26,6 +26,7 @@ namespace User { namespace RXGServ {
 
 		auto ctx = std::make_shared<Procs::Context>( 
 			std::static_pointer_cast<Stream>( shared_from_this() ), cmd );
+
 		m_serv.RunProc( ctx );
 	}
 

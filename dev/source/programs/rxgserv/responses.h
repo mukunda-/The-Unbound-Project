@@ -5,6 +5,9 @@
 namespace User { namespace RXGServ {
 
 	class Stream;
+	namespace Procs {
+		class Context;
+	}
 
 	//-------------------------------------------------------------------------
 	namespace {
@@ -30,7 +33,21 @@ namespace User { namespace RXGServ {
 	//-------------------------------------------------------------------------
 	class Response {
 
-		virtual void Write( Stream &stream ) = 0;
+	protected:
+
+		/// -------------------------------------------------------------------
+		/// Write implementation.
+		///
+		virtual void DoWrite( Stream &stream ) = 0;
+
+	public:
+
+		/// -------------------------------------------------------------------
+		/// Write this response to a context's stream.
+		///
+		/// Throws an exception if the context already had a response written.
+		///
+		void Write( Procs::Context &ct );
 	};
 
 	/// -----------------------------------------------------------------------
@@ -39,7 +56,7 @@ namespace User { namespace RXGServ {
 		std::string m_text; 
 	public:
 		SimpleResponse( const std::string &text );
-		void Write( Stream &stream ) override;
+		void DoWrite( Stream &stream ) override;
 	};
 
 	/// -----------------------------------------------------------------------
@@ -49,8 +66,7 @@ namespace User { namespace RXGServ {
 		std::vector<std::string> m_list;
 	public:
 		ListResponse &operator<<( const std::string &text );
-		
-		void Write( Stream &stream ) override;
+		void DoWrite( Stream &stream ) override;
 	};
 
 	/// -----------------------------------------------------------------------
@@ -65,7 +81,7 @@ namespace User { namespace RXGServ {
 		KVResponse &Put( const std::string &key, const std::string &value );
 		KVResponse &Erase( const std::string &key );
 
-		void Write( Stream &stream ) override;
+		void DoWrite( Stream &stream ) override;
 	};
 
 	//-------------------------------------------------------------------------
@@ -75,7 +91,7 @@ namespace User { namespace RXGServ {
 	public:
 		ErrorResponse( const std::string &status, 
 					   const std::string &desc );
-		void Write( Stream &stream ) override;
+		void DoWrite( Stream &stream ) override;
 	};
 	
 }}

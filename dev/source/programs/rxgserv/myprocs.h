@@ -4,16 +4,17 @@
 
 namespace User { namespace RXGServ { namespace MyProcs {
 
-#define DEFPROC( type, command )	\
+#define DEFPROC( type, command, reqargs )	\
 	class type : public Procs::Proc {								\
 		void Run( Procs::Context::ptr &ct ) override;				\
 	public:															\
-		const char *Command() override { return command; }	\
+		const char *Command() const override { return command; }	\
+		const int RequiredArgs() const override { return reqargs; } \
 	}
 	
-	DEFPROC( Unknown, "UNKNOWN" );
-	DEFPROC( Test,    "TEST"    );
-	DEFPROC( Perks,   "PERKS"   );
+	DEFPROC( Unknown, ""       , -1);
+	DEFPROC( Test,    "TEST"   , 0 );
+	DEFPROC( Perks,   "PERKS"  , 2 );
 
 	/*
 	//-------------------------------------------------------------------------

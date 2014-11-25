@@ -20,6 +20,15 @@ const std::string &RCodeText::Get( RCodes code ) {
 }
 
 //-----------------------------------------------------------------------------
+void Response::Write( Procs::Context &ct ) {
+	if( ct.Responded() ) {
+		throw std::runtime_error( "Duplicate response from proc." );
+	}
+	DoWrite( ct.GetStream() );
+	ct.Responded(true);
+}
+
+//-----------------------------------------------------------------------------
 SimpleResponse::SimpleResponse( const std::string &text ) : 
 		m_text(text) {
 
@@ -27,7 +36,7 @@ SimpleResponse::SimpleResponse( const std::string &text ) :
 }
 
 //-----------------------------------------------------------------------------
-void SimpleResponse::Write( Stream &stream ) {
+void SimpleResponse::DoWrite( Stream &stream ) {
 	stream.Write().Formatted( "[RT1] %s\n", m_text );
 }
 
@@ -40,7 +49,7 @@ ListResponse &ListResponse::operator <<( const std::string &text ) {
 }
 
 //-----------------------------------------------------------------------------
-void ListResponse::Write( Stream &stream ) {
+void ListResponse::DoWrite( Stream &stream ) {
 	auto writer = stream.Write();
 	writer << "[RT2]\n";
 	for( auto &i : m_list ) {
@@ -68,7 +77,7 @@ KVResponse &KVResponse::Put( const std::string &key,
 }
 
 //-----------------------------------------------------------------------------
-void KVResponse::Write( Stream &stream ) {
+void KVResponse::DoWrite( Stream &stream ) {
 	auto writer = stream.Write();
 	writer << "[RT3]\n";
 	for( auto &i : m_values ) {
@@ -83,7 +92,7 @@ ErrorResponse::ErrorResponse( const std::string &status,
 }
 
 //-----------------------------------------------------------------------------
-void ErrorResponse::Write( Stream &stream ) {
+void ErrorResponse::DoWrite( Stream &stream ) {
 	stream.Write().Formatted( "[ERR] %s %s\n", m_status, m_desc );
 }
 

@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "rxgserv.h"
+#include "responses.h"
 
 using namespace std;
 
@@ -19,7 +20,7 @@ namespace {
 shared_ptr<Proc> &Map::Get( const string &command ) {
 	std::string upper = Uppercase( command );
 	if( m_map.count( upper ) == 0 ) {
-		return m_map.at( 0 );
+		return m_map.at( string("") );
 	}
 	return m_map.at( upper );
 }
@@ -30,9 +31,15 @@ void Map::Add( shared_ptr<Proc> &proc ) {
 }
 
 //-----------------------------------------------------------------------------
-void Map::Run( shared_ptr<Context> &ct ) {
-	const string &cmdname = ct->Args().Count() == 0 ? "" : ct->Args()[0];
-	auto &proc = Map::Get( cmdname );
+void Map::Run( shared_ptr<Context> &ct ) { 
+	auto &proc = Map::Get( ct->Args()[0] );
+	if( (ct->Args().Count()-1) < proc->RequiredArgs()  ) {
+		ErrorResponse( "FAILED", Util::Format( 
+			"This request needs at least %d argument%s.", 
+			proc->RequiredArgs(),
+			proc->RequiredArgs() == 1 ? "" : "s" )).Write(*ct);
+		return;
+	}
 	(*proc)( ct );
 }
 
@@ -50,6 +57,10 @@ Context::~Context() {
 //-----------------------------------------------------------------------------
 void Context::Complete() {
 	if( m_completed ) return;
+	if( !m_responded ) {
+		ErrorResponse( "FAILED", "Invalid usage or undefined error." )
+			.Write(*this);
+	}
 	m_completed = true;
 	m_stream->NextProc();
 }
