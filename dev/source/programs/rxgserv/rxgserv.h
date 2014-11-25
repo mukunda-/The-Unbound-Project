@@ -11,34 +11,21 @@
 #include "net/events.h"
 
 #include "procs.h"
+#include "myprocs.h"
 
 //-----------------------------------------------------------------------------
 namespace User { namespace RXGServ {
 
 	class Stream;
-
-	//-------------------------------------------------------------------------
-	class MyProcs : public ProcHandler {
-	
-		Stream &m_stream;
-		 
-	public:
-		MyProcs( Stream &stream );
-
-		std::shared_ptr<ProcContext> CreateContext( 
-				const std::string &cmd) override;
-		void Unknown( ProcContext::ptr& ) override;
-		void Test( ProcContext::ptr& ) override;
-	};
 	
 	//-------------------------------------------------------------------------
 	class Stream : public Net::TextStream {
 		friend class NetHandler;
-		friend class ProcContext;
+		friend class Procs::Context;
 
-		bool m_authed = false;
+		RXGServ &m_serv;
 
-		MyProcs m_prochandler; 
+		bool m_authed = false; 
 
 		std::deque<std::string> m_procqueue;
 		std::mutex m_mutex; 
@@ -47,8 +34,8 @@ namespace User { namespace RXGServ {
 		void ExecProc( const std::string &command );
 
 	public:
-		Stream();
-	
+		Stream( RXGServ &serv );
+		
 	public: // procs
 		void RunProc( const std::string &command ); // executed from outside
 	};
@@ -79,10 +66,9 @@ namespace User { namespace RXGServ {
 	
 	//-------------------------------------------------------------------------
 	class RXGServ : public System::Program {
-		 
+		
 		NetHandler    m_netevents;
 		Net::Listener m_listener;
-	//	Procs         m_procs;
 
 		std::string   m_password;
 
@@ -90,9 +76,11 @@ namespace User { namespace RXGServ {
 			LISTEN_PORT = 12107
 		};
 
-		static Net::StreamPtr StreamFactory() {
-			return std::make_shared<Stream>();
+		Net::StreamPtr StreamFactory() {
+			return std::make_shared<Stream>( *this );
 		}
+
+		Procs::Map m_pmap;
 		
 	protected:
 		void OnStart() override;
@@ -100,6 +88,8 @@ namespace User { namespace RXGServ {
 	public:
 		RXGServ();
 		~RXGServ();
+
+		void RunProc( std::shared_ptr<Procs::Context> &ctx );
 	};
 
 

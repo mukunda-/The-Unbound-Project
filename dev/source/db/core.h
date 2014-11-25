@@ -17,10 +17,22 @@ namespace DB {
 /// ---------------------------------------------------------------------------
 /// Register a database connection
 ///
-/// @param connection Connection to register. The subsystem will take
-///        ownership of the pointer.
+/// @param name     Name to assign to connection.
+/// @param endpoint DB endpoint information.
+/// @param threads  How many threads the connection can use at once.
 ///
-Connection &Register( const std::string &name, const Endpoint &endpoint );
+/// @returns Reference to newly created connection.
+///
+Connection &Register( const std::string &name, const Endpoint &endpoint, 
+					  int threads = 1 );
+
+/// ---------------------------------------------------------------------------
+/// Get a database connection by name.
+///
+/// @param name Name the connection was registered with.
+/// @returns    Database connection.
+///
+Connection &Get( const std::string &name );
 
 //-----------------------------------------------------------------------------
 class Manager {
@@ -53,7 +65,8 @@ private:
 	//-------------------------------------------------------------------------
 public: // wrapped by global functions.
 	Connection &RegisterConnection( const std::string &name, 
-									const Endpoint &endpoint );
+									const Endpoint &endpoint, int threads );
+	Connection &GetConnection( const std::string &name );
 
 	//-------------------------------------------------------------------------
 private:

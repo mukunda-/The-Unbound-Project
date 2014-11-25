@@ -2,61 +2,56 @@
 #include "stdafx.h"
 #include "rxgserv.h"
 
-namespace User { namespace RXGServ {
-	
-//-------------------------------------------------------------------------
-class ProcMap {
-		
-public:
-	using ProcType = void (ProcHandler::*)( ProcContext::ptr& ); 
-	ProcMap();
-	ProcType Get( const std::string &name );
-private:
+using namespace std;
 
-	std::unordered_map< std::string, ProcType > m_map;
-} g_procmap;
+namespace User { namespace RXGServ { namespace Procs {
 
 //-----------------------------------------------------------------------------
-ProcMap::ProcMap() {
-	m_map[ "TEST" ] = &ProcHandler::Test;
-}
-
-//-----------------------------------------------------------------------------
-auto ProcMap::Get( const std::string &name ) -> ProcType {
-	std::string uppercase = name;
-	boost::to_upper( uppercase );
-	return m_map.at( uppercase );
-}
-
- 
-//-----------------------------------------------------------------------------
-void ProcHandler::Run( ProcContext::ptr &context ) {
-	ProcMap::ProcType proc;
-	try { 
-		proc = g_procmap.Get( context->Args()[0] );
-	} catch( std::out_of_range & ) {
-		//  TODO respond with error.
-		proc = &ProcHandler::Unknown; 
+namespace {
+	std::string Uppercase( const string &a ) {
+		string b = a;
+		boost::to_upper( b );
+		return b;
 	}
-	
-	(*this.*proc)( context );
+}
+	  
+//-----------------------------------------------------------------------------
+shared_ptr<Proc> &Map::Get( const string &command ) {
+	std::string upper = Uppercase( command );
+	if( m_map.count( upper ) == 0 ) {
+		return m_map.at( 0 );
+	}
+	return m_map.at( upper );
 }
 
-
-ProcContext::ProcContext( std::shared_ptr<Stream> &stream, 
-						  const std::string &command ) : 
-		m_stream(stream), m_args( command ) {
-
+//-----------------------------------------------------------------------------
+void Map::Add( shared_ptr<Proc> &proc ) {
+	m_map[ Uppercase( proc->Command() ) ] = proc;
 }
 
-ProcContext::~ProcContext() {
+//-----------------------------------------------------------------------------
+void Map::Run( shared_ptr<Context> &ct ) {
+	const string &cmdname = ct->Args().Count() == 0 ? "" : ct->Args()[0];
+	auto &proc = Map::Get( cmdname );
+	(*proc)( ct );
+}
+
+//-----------------------------------------------------------------------------
+Context::Context( shared_ptr<Stream> &stream, 
+				  const string &commandline ) : 
+		m_stream(stream), m_args( commandline ) {
+}
+
+//-----------------------------------------------------------------------------
+Context::~Context() {
 	Complete();
 }
 
-void ProcContext::Complete() {
+//-----------------------------------------------------------------------------
+void Context::Complete() {
 	if( m_completed ) return;
 	m_completed = true;
 	m_stream->NextProc();
 }
 
-}}
+}}}

@@ -16,8 +16,16 @@ namespace DB {
 Manager *g_manager = nullptr;
 
 //-----------------------------------------------------------------------------
-Connection &Register( const string &name, const Endpoint &endpoint ) {
-	return g_manager->RegisterConnection( name, endpoint );
+Connection &Register( const string &name, const Endpoint &endpoint, 
+					  int threads ) {
+	assert( g_manager );
+	return g_manager->RegisterConnection( name, endpoint, threads );
+}
+
+//-----------------------------------------------------------------------------
+Connection &Get( const string &name ) {
+	assert( g_manager );
+	return g_manager->GetConnection( name );
 }
 
 //-----------------------------------------------------------------------------
@@ -31,15 +39,21 @@ void Manager::QueueWork( unique_ptr<Transaction> &&transaction ) {
 
 //-----------------------------------------------------------------------------
 Connection &Manager::RegisterConnection( const string &name, 
-										 const Endpoint &endpoint ) {
+										 const Endpoint &endpoint,
+										 int threads ) {
 	if( m_conmap.count( name ) ) {
 		throw invalid_argument( 
 				"Connection name is already registered." );
 	}
 
-	Connection *con = new Connection( *this, name, endpoint );
+	Connection *con = new Connection( *this, name, endpoint, threads );
 	m_conmap[ name ] = ConnectionPtr( con );
 	return *con;
+}
+
+//-----------------------------------------------------------------------------
+Connection &Manager::GetConnection( const string &name ) {
+	return *m_conmap.at( name );
 }
 
 //-----------------------------------------------------------------------------

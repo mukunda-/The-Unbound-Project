@@ -9,6 +9,7 @@
 #include "transaction.h"
 
 using namespace std;
+using LockGuard = lock_guard<mutex>;
 
 namespace DB {
 
@@ -29,8 +30,7 @@ Connection::~Connection() {
 void Connection::Execute( TransactionPtr &t ) {
 	t->m_parent = this;
 	{
-		lock_guard<std::mutex> lock( m_mut );
-	
+		LockGuard lock( m_mut ); 
 		if( m_free_threads > 0 ) {
 			m_free_threads--;
 		} else {
@@ -44,7 +44,7 @@ void Connection::Execute( TransactionPtr &t ) {
 //-----------------------------------------------------------------------------
 LinePtr Connection::GetLine() {
 	{
-		lock_guard<std::mutex> lock( m_mut );
+		LockGuard lock( m_mut );
 		if( !m_linepool.empty() ) {
 			LinePtr line = std::move(m_linepool.top());
 			m_linepool.pop();
@@ -59,16 +59,16 @@ LinePtr Connection::GetLine() {
 //-----------------------------------------------------------------------------
 void Connection::PushLine( LinePtr &&line, bool thread_freed ) {
 	
-	lock_guard<std::mutex> lock( m_mut );
+	LockGuard lock( m_mut );
 	m_linepool.push( std::move(line) );
 	if( thread_freed ) {
 		m_free_threads++;
 	}
-
 }
 
+//-----------------------------------------------------------------------------
 void Connection::FreeThread() {
-	lock_guard<std::mutex> lock( m_mut );
+	LockGuard lock( m_mut );
 	m_free_threads++;
 }
 

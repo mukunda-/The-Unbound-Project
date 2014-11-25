@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "system/system.h"
 #include "net/core.h"
+#include "db/core.h"
 #include "system/server/serverconsole.h"
 #include "programs/rxgserv/rxgserv.h"
 
@@ -19,7 +20,7 @@ namespace User {
 		System::Instance i_system(2); 
 		System::ServerConsole::Instance i_serverconsole( "RXG SERVICES" );
 		Net::Instance i_net(1);
-	//	DB::Manager i_db(1);
+		DB::Manager i_db(1);
 		{
 		
 			RunProgram(); 

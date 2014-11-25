@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "rxgserv.h"
+#include "rxgserv.h" 
 
 namespace User { namespace RXGServ {
 
 	//-----------------------------------------------------------------------------
-	Stream::Stream() : m_prochandler( *this ) {}
+	Stream::Stream( RXGServ &serv) : m_serv( serv ) {}
 	 
 	//-----------------------------------------------------------------------------
 	void Stream::RunProc( const std::string &command ) {
@@ -23,8 +23,10 @@ namespace User { namespace RXGServ {
 
 	//-----------------------------------------------------------------------------
 	void Stream::ExecProc( const std::string &cmd ) { 
-	//	Util::ArgString args( cmd );
-		m_prochandler.Run( m_prochandler.CreateContext( cmd ) ); 
+
+		auto ctx = std::make_shared<Procs::Context>( 
+			std::static_pointer_cast<Stream>( shared_from_this() ), cmd );
+		m_serv.RunProc( ctx );
 	}
 
 	//-----------------------------------------------------------------------------
