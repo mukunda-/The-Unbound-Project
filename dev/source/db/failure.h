@@ -9,20 +9,26 @@ namespace DB {
 	/// -----------------------------------------------------------------------
 	/// A failure occurs when the database system fails and cannot recover.
 	///
-	class Failure : public std::runtime_error {
+	class Failure final : public std::runtime_error {
 
 		// the error code when the failure was determined. 
 		// (it may just be the last one after several retries.)
 		int m_mysql_error;
-		const std::string m_sqlstate;
+		std::string m_sqlstate;
 
 	public:
 		Failure( const sql::SQLException &e ) :
 				m_mysql_error( e.getErrorCode() ),
-				m_sqlstate( e.getSQLState() ),
 				std::runtime_error( e.what() )
 		{
+			if( m_mysql_error ) {
+				// this was an sql failure.
+				m_sqlstate = e.getSQLState();
+			} else {
+				// this was not an sql failure.
+			}
 		}
+
 		Failure( int mysql_error, const std::string &sqlstate, const std::string &message ) :
 				m_mysql_error( mysql_error ),
 				m_sqlstate( sqlstate ),

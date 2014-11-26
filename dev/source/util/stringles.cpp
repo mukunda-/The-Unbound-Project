@@ -368,4 +368,15 @@ std::string StringGarbage( int length ) {
 	return str;
 }
 
+//-------------------------------------------------------------------------------------------------
+bool IsDigits( const std::string &test ) {
+	if( test.size() == 0 ) return false;
+
+	for( char a: test ) {
+		if( a < '0' || a > '9' ) return false;
+	}
+
+	return true;
+}
+
 }

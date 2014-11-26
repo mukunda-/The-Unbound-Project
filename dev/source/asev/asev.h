@@ -21,6 +21,8 @@ namespace Asev {
 		virtual const type_info &Info() { 
 			return typeid( Event ); 
 		}
+
+		virtual ~Event() {}
 	};
 	
 	/// -----------------------------------------------------------------------
@@ -29,6 +31,7 @@ namespace Asev {
 	class Interface {
 
 	protected:
+		virtual ~Interface() {}
 		
 		/// -------------------------------------------------------------------
 		/// Handle an event.
@@ -128,6 +131,7 @@ namespace Asev {
 		 
 	public: 
 		Source();
+		virtual ~Source() {}
 
 		/// -------------------------------------------------------------------
 		/// Add an event handler to this source.

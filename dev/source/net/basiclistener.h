@@ -20,6 +20,8 @@ public:
 
 		m_acceptor.async_accept( socket, handler );
 	}
+
+	virtual ~BasicListener() {}
 };
 
 }

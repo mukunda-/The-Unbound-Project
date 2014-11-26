@@ -65,4 +65,22 @@ void Context::Complete() {
 	m_stream->NextProc();
 }
 
+//-----------------------------------------------------------------------------
+void Context::RespondSimple( const std::string &text ) {
+	SimpleResponse( text ).Write( *this );
+}
+
+//-----------------------------------------------------------------------------
+void Context::RespondError( const std::string &status, 
+							const std::string &desc ) {
+
+	ErrorResponse( status, desc ).Write( *this );
+}
+
+//-----------------------------------------------------------------------------
+void Context::RespondDBError() {
+	ErrorResponse( "DBFAILURE", "A database error occurred." ).Write( *this );
+}
+
+
 }}}

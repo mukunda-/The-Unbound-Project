@@ -19,6 +19,7 @@ namespace DB {
 			m_base = std::unique_ptr<sql::Statement>( 
 							line->createStatement() );
 		}
+		virtual ~Statement() {}
 
 		/// -------------------------------------------------------------------
 		/// Access to the sql statement object.
@@ -35,11 +36,12 @@ namespace DB {
 		/// @returns result from sql::Statement::executeQuery.
 		///
 		template < typename ... Args >
-		sql::ResultSet * ExecuteQuery( const std::string &statement,
-									   Args ... args ) {
+		std::unique_ptr<sql::ResultSet> ExecuteQuery( 
+				const std::string &statement,
+				Args ... args ) {
 
-			return m_base->executeQuery( 
-					m_parent.BuildQueryEx( statement, args... ));
+			return std::unique_ptr<sql::ResultSet>( m_base->executeQuery( 
+					m_parent.BuildQueryEx( statement, args... )));
 		}
 		
 		/// -------------------------------------------------------------------

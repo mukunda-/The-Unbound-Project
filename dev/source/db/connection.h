@@ -53,7 +53,7 @@ public:
 	///
 	Connection( Manager &manager, const std::string &name, 
 				const Endpoint &endpoint, int threads = 1 );
-	~Connection();
+	virtual ~Connection();
 	
 	/// -----------------------------------------------------------------------
 	/// @returns the name of this connection.
@@ -66,7 +66,7 @@ public:
 	/// @param t Transaction; ownership is given to the connection and is
 	///          no longer accessible outside.
 	///
-	void Execute( TransactionPtr &t );
+	void Execute( TransactionPtr &&t );
 };
 
 }

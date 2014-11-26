@@ -12,24 +12,9 @@ namespace User { namespace RXGServ { namespace MyProcs {
 		const int RequiredArgs() const override { return reqargs; } \
 	}
 	
-	DEFPROC( Unknown, ""       , -1);
+	DEFPROC( Unknown, ""       ,-1 );
 	DEFPROC( Test,    "TEST"   , 0 );
 	DEFPROC( Perks,   "PERKS"  , 2 );
-
-	/*
-	//-------------------------------------------------------------------------
-	class Unknown : public Procs::Proc {
-		void Run( Procs::Context::ptr &ct ) override;
-	};
-
-	//-------------------------------------------------------------------------
-	class Test : public Procs::Proc {
-		void Run( Procs::Context::ptr &ct ) override;
-
-	public:
-		const std::string &Command() override { return "TEST"; }
-	};
-
-	*/
+	DEFPROC( Member,  "MEMBER" , 1 );
 
 }}}

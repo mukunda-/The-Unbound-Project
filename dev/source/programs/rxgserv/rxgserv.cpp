@@ -28,6 +28,7 @@ RXGServ::RXGServ() :
 	m_pmap.Add<MyProcs::Unknown>();
 	m_pmap.Add<MyProcs::Test>();
 	m_pmap.Add<MyProcs::Perks>();
+	m_pmap.Add<MyProcs::Member>();
 }
 
 //-----------------------------------------------------------------------------

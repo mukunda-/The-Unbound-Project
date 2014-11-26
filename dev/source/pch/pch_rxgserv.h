@@ -10,3 +10,5 @@
 #else
 	#pragma comment( lib, "libyaml-cppmd.lib" )
 #endif
+
+#include "steamid.hpp"

@@ -54,10 +54,9 @@ protected:
 	virtual int Type() { return 0; }
 
 public:
-	Transaction()
-	{
-	}
-	
+	Transaction() {}
+	virtual ~Transaction() {}
+
 	/// -----------------------------------------------------------------------
 	/// On failure, get the mysql error code.
 	///

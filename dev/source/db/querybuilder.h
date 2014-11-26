@@ -9,7 +9,7 @@ namespace DB {
 
 	class Line;
 	
-	class QueryBuilder {
+	class QueryBuilder final {
 		boost::format m_formatter;
 		sql::Connection &m_conn;
 

@@ -27,7 +27,7 @@ Connection::~Connection() {
 }
 
 //-----------------------------------------------------------------------------
-void Connection::Execute( TransactionPtr &t ) {
+void Connection::Execute( TransactionPtr &&t ) {
 	t->m_parent = this;
 	{
 		LockGuard lock( m_mut ); 

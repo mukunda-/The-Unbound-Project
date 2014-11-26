@@ -62,6 +62,23 @@ namespace Procs {
 		bool Responded() const { return m_responded; }
 		bool Responded( bool set ) { return m_responded = set; }
 
+		/// -------------------------------------------------------------------
+		/// Send a simple (RT1) response.
+		///
+		/// @param text Response text.
+		///
+		void RespondSimple( const std::string &text );
+
+		/// -------------------------------------------------------------------
+		/// Send an ERR response.
+		///
+		/// @param text Response text.
+		///
+		void RespondError( const std::string &code, const std::string &desc );
+
+		// send a database error response.
+		void RespondDBError();
+
 		using ptr = std::shared_ptr<Context>;
 	};
 

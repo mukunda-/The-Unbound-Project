@@ -1,19 +1,10 @@
-
-
-#include "stdafx.h"
+#pragma once
 
 namespace User { namespace RXGServ {
 
 	class Stream;
 	namespace Procs {
 		class Context;
-	}
-
-	//-------------------------------------------------------------------------
-	namespace {
-		void EscapeLine( std::string &str ) {
-			std::replace( str.begin(), str.end(), '\n', ' ' );
-		}
 	}
 
 	enum class RCodes {
@@ -48,6 +39,7 @@ namespace User { namespace RXGServ {
 		/// Throws an exception if the context already had a response written.
 		///
 		void Write( Procs::Context &ct );
+		void Write( std::shared_ptr<Procs::Context> &ct );
 	};
 
 	/// -----------------------------------------------------------------------
@@ -79,6 +71,7 @@ namespace User { namespace RXGServ {
 		std::unordered_map< std::string, std::string > m_values;
 	public:
 		KVResponse &Put( const std::string &key, const std::string &value );
+		KVResponse &Put( const std::string &key, int value );
 		KVResponse &Erase( const std::string &key );
 
 		void DoWrite( Stream &stream ) override;

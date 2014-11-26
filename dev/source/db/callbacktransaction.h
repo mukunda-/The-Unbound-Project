@@ -26,15 +26,6 @@ namespace DB {
 		virtual void Completed( TransactionPtr ptr, bool failed ) {
 			m_handler( std::move(ptr), failed );
 		}
-		/*
-		template<typename ... MemberFunction>
-		static auto Bind( MemberFunction...binding ) 
-				-> decltype( std::bind( binding..., std::placeholders::_1, 
-													std::placeholders::_2 )) 
-		{
-			return std::bind( binding..., std::placeholders::_1, 
-										  std::placeholders::_2 );
-		}*/
 
 		template<typename F, typename T>
 		static Callback Bind( F func, T thisptr, bool main = true ) 

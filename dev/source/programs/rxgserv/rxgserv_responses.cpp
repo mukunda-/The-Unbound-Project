@@ -4,6 +4,13 @@
 #include "rxgserv.h"
 
 namespace User { namespace RXGServ {
+	
+//-------------------------------------------------------------------------
+namespace {
+	void EscapeLine( std::string &str ) {
+		std::replace( str.begin(), str.end(), '\n', ' ' );
+	}
+}
 
 //-----------------------------------------------------------------------------
 std::unordered_map<RCodes,std::string> RCodeText::m_values;
@@ -26,6 +33,11 @@ void Response::Write( Procs::Context &ct ) {
 	}
 	DoWrite( ct.GetStream() );
 	ct.Responded(true);
+}
+
+//-----------------------------------------------------------------------------
+void Response::Write( Procs::Context::ptr &ct ) {
+	Write( *ct );
 }
 
 //-----------------------------------------------------------------------------
@@ -72,6 +84,14 @@ KVResponse &KVResponse::Put( const std::string &key,
 
 	std::string escaped = value;
 	EscapeLine(escaped);
+	m_values[key] = escaped;
+	return *this;
+}
+
+//-----------------------------------------------------------------------------
+KVResponse &KVResponse::Put( const std::string &key, int value ) {
+
+	std::string escaped = std::to_string(value); 
 	m_values[key] = escaped;
 	return *this;
 }

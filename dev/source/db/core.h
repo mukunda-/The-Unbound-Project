@@ -35,7 +35,7 @@ Connection &Register( const std::string &name, const Endpoint &endpoint,
 Connection &Get( const std::string &name );
 
 //-----------------------------------------------------------------------------
-class Manager {
+class Manager final {
 	
 public:
 	/// -----------------------------------------------------------------------

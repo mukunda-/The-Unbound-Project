@@ -12,12 +12,11 @@
 namespace DB {
 	class Statement;
 	class Line {
-		std::unique_ptr<sql::Connection> m_connection;
-
-		template <typename ... A> void eval( A... ) {}
+		std::unique_ptr<sql::Connection> m_connection; 
 
 	public:
 		Line( Manager &manager, const Endpoint &endpoint );
+		virtual ~Line() {}
 		 
 		std::unique_ptr<Statement> CreateStatement();
 
@@ -39,7 +38,7 @@ namespace DB {
 		template < typename ... Args >
 		QueryBuilder BuildQuery( const std::string &format, Args ... args ) {
 			QueryBuilder builder( *this, format );
-			eval( builder % args... );
+			Util::Feed( builder, args... );
 			return builder; 
 		}
 		
@@ -57,7 +56,7 @@ namespace DB {
 				return format.c_str();
 			} else {
 				QueryBuilder builder( *this, format );
-				eval( builder % args... );
+				Util::Feed( builder, args... );
 				return builder.SQLString(); 
 			}
 		}

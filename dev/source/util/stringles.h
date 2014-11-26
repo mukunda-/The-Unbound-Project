@@ -185,6 +185,12 @@ namespace Util {
 	std::string RoundDecimal( double input, int digits = 0 );
 
 	/// -----------------------------------------------------------------------
+	/// Test if a string is all digits (0-9), and if it contains at least
+	/// one character.
+	///         
+	bool IsDigits( const std::string &test );
+
+	/// -----------------------------------------------------------------------
 	/// Format a string.
 	///
 	/// @param format Template.
