@@ -3,10 +3,10 @@
 
 namespace User { namespace RXGServ {
 
-	//-----------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 	Stream::Stream( RXGServ &serv) : m_serv( serv ) {}
 	 
-	//-----------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 	void Stream::RunProc( const std::string &command ) {
 
 		{
@@ -21,7 +21,7 @@ namespace User { namespace RXGServ {
 		ExecProc( command );
 	}
 
-	//-----------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 	void Stream::ExecProc( const std::string &cmd ) { 
 
 		auto ctx = std::make_shared<Procs::Context>( 
@@ -30,7 +30,7 @@ namespace User { namespace RXGServ {
 		m_serv.RunProc( ctx );
 	}
 
-	//-----------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 	void Stream::NextProc() {
 		const std::string *cmdstr;
 		{
@@ -42,4 +42,16 @@ namespace User { namespace RXGServ {
 	
 		ExecProc( *cmdstr );
 	}
+
+	//-------------------------------------------------------------------------
+	void Stream::SetAuthed() {
+		m_authed = true;
+	}
+
+	//-------------------------------------------------------------------------
+	void Stream::SetInfo( const std::string &name, const std::string &game ) {
+		m_name = name;
+		m_game = game;
+	}
+
 }}

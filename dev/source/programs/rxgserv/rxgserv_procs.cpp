@@ -15,7 +15,7 @@ namespace {
 		return b;
 	}
 }
-	  
+
 //-----------------------------------------------------------------------------
 shared_ptr<Proc> &Map::Get( const string &command ) {
 	std::string upper = Uppercase( command );
@@ -33,7 +33,20 @@ void Map::Add( shared_ptr<Proc> &proc ) {
 //-----------------------------------------------------------------------------
 void Map::Run( shared_ptr<Context> &ct ) { 
 	auto &proc = Map::Get( ct->Args()[0] );
-	if( (ct->Args().Count()-1) < proc->RequiredArgs()  ) {
+
+	bool needargs = true;
+
+	if( (ct->Args().Count()-1) >= proc->RequiredArgs() ) {
+		needargs = false;
+		for( int i = 0; i < proc->RequiredArgs(); i++ ) {
+			if( ct->Args()[1+i].size() == 0 ) {
+				needargs = true;
+				break;
+			}
+		}
+	}
+	
+	if( needargs ) {
 		ErrorResponse( "FAILED", Util::Format( 
 			"This request needs at least %d argument%s.", 
 			proc->RequiredArgs(),
@@ -41,6 +54,14 @@ void Map::Run( shared_ptr<Context> &ct ) {
 		return;
 	}
 	(*proc)( ct );
+}
+
+void Proc::operator()( Context::ptr &ct ) { 
+	if( Locking() ) {
+		ct->m_lock = unique_lock<mutex>( m_mutex );
+	}
+	std::lock_guard<std::mutex> lock( m_mutex );
+	Run( ct ); 
 }
 
 //-----------------------------------------------------------------------------

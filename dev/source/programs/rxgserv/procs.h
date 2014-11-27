@@ -17,7 +17,9 @@ namespace Procs {
 	/// It also provides a handy cleanup routine.
 	///
 	class Context {
+		friend class Proc;
 		std::shared_ptr<Stream> m_stream;
+		std::unique_lock<std::mutex> m_lock;
 
 		bool m_completed = false; // if this context is invalid.
 		bool m_responded = false; // if a response was sent to the stream.
@@ -85,6 +87,8 @@ namespace Procs {
 	//-------------------------------------------------------------------------
 	class Proc {
 
+		std::mutex m_mutex;
+
 		/// -------------------------------------------------------------------
 		/// Command implementation
 		///
@@ -93,8 +97,8 @@ namespace Procs {
 		virtual void Run( Context::ptr &ct ) = 0;
 
 	public:
-
-		void operator()( Context::ptr &ct ) { Run( ct ); }
+		 
+		void operator()( Context::ptr &ct );
 
 		/// -------------------------------------------------------------------
 		/// Returns the name of this command.
@@ -105,6 +109,12 @@ namespace Procs {
 		/// Returns the required number of arguments for this command.
 		///
 		virtual const int RequiredArgs() const = 0;
+		
+		/// -------------------------------------------------------------------
+		/// Return true to not allow this procedure to run concurrently
+		/// e.g. when it is stateful
+		///
+		virtual const bool Locking() { return false; }
 	};
 
 	//-------------------------------------------------------------------------

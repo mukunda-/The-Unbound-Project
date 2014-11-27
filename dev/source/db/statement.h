@@ -14,12 +14,15 @@ namespace DB {
 	class Statement {
 		std::unique_ptr<sql::Statement> m_base;
 		Line &m_parent;
+		bool m_needsflush = false;
 	public:
 		Statement( Line &line ) : m_parent(line) {
 			m_base = std::unique_ptr<sql::Statement>( 
 							line->createStatement() );
 		}
-		virtual ~Statement() {}
+		virtual ~Statement() {
+			FlushResultSets();
+		}
 
 		/// -------------------------------------------------------------------
 		/// Access to the sql statement object.
@@ -39,7 +42,7 @@ namespace DB {
 		std::unique_ptr<sql::ResultSet> ExecuteQuery( 
 				const std::string &statement,
 				Args ... args ) {
-
+			FlushResultSets();
 			return std::unique_ptr<sql::ResultSet>( m_base->executeQuery( 
 					m_parent.BuildQueryEx( statement, args... )));
 		}
@@ -53,6 +56,7 @@ namespace DB {
 		///
 		template < typename ... Args >
 		int ExecuteUpdate( const std::string &statement, Args ... args ) {
+			FlushResultSets();
 			return m_base->executeUpdate( 
 					m_parent.BuildQueryEx( statement, args... ));
 		}
@@ -62,13 +66,27 @@ namespace DB {
 		///
 		/// @param statement Query template.
 		/// @param args      Format arguments.
-		/// @returns result from sql::Statement::execute.
+		/// @returns first result set.
 		///
 		template < typename ... Args >
-		bool Execute( const std::string &statement, Args ... args ) {
-			return m_base->executeUpdate( 
-					m_parent.BuildQueryEx( statement, args... ));
+		std::unique_ptr<sql::ResultSet> Execute( const std::string &statement, Args ... args ) {
+			m_base->execute( m_parent.BuildQueryEx( statement, args... ));
+			m_needsflush = true;
+			return GetResultSet();
 		}
+		
+
+		std::unique_ptr<sql::ResultSet> GetResultSet();
+
+		/// -------------------------------------------------------------------
+		/// Get the next result set from a multi query.
+		///
+		std::unique_ptr<sql::ResultSet> GetNextResultSet();
+		
+		/// -------------------------------------------------------------------
+		/// Flush any waiting result sets.
+		///
+		void FlushResultSets();
 
 	};
 }

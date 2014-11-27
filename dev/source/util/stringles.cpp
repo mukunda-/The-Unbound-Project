@@ -349,10 +349,13 @@ bool ParseColorString( const char *input, Eigen::Vector4f &output  ) {
 
 //-------------------------------------------------------------------------------------------------
 std::string RoundDecimal( double input, int digits  ) {
-	double scale = pow(10,digits);
-	input = floor( input * scale + 0.5 );
-	input = input / scale;
-	return std::to_string(input);
+	
+	std::string format = "%." + std::to_string(digits) + "f";
+	return (boost::format( format ) % input ).str();
+	//double scale = pow(10,digits);
+	//input = floor( input * scale + 0.5 );
+	//input = input / scale;
+	//return  std::to_string(input);
 }
 
 //-------------------------------------------------------------------------------------------------

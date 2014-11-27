@@ -26,6 +26,8 @@ namespace User { namespace RXGServ {
 		RXGServ &m_serv;
 
 		bool m_authed = false; 
+		std::string m_name;
+		std::string m_game;
 
 		std::deque<std::string> m_procqueue;
 		std::mutex m_mutex; 
@@ -38,6 +40,11 @@ namespace User { namespace RXGServ {
 		
 	public: // procs
 		void RunProc( const std::string &command ); // executed from outside
+
+		RXGServ &GetServer() { return m_serv; }
+		void SetAuthed();
+		bool IsAuthed() { return m_authed; }
+		void SetInfo( const std::string &name, const std::string &game );
 	};
 
 	//-------------------------------------------------------------------------
@@ -90,6 +97,7 @@ namespace User { namespace RXGServ {
 		~RXGServ();
 
 		void RunProc( std::shared_ptr<Procs::Context> &ctx );
+		const std::string &GetPassword() { return m_password; }
 	};
 
 

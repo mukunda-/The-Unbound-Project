@@ -8,6 +8,13 @@
 namespace DB {
 
 	class Line;
+
+	class RawString {
+		const std::string &m_value;
+	public: 
+		RawString( const std::string &value ) : m_value(value) {}
+		const std::string &Get() const { return m_value; }
+	};
 	
 	class QueryBuilder final {
 		boost::format m_formatter;
@@ -52,10 +59,26 @@ namespace DB {
 			return FeedEscapedString( arg ); 
 		}
 
+		template<> QueryBuilder &operator%( const std::string &&arg ) {
+			return FeedEscapedString( arg ); 
+		}
+
 		// string specialization.
 		template<> QueryBuilder &operator%( const std::string arg ) {
 			return FeedEscapedString( arg ); 
 		} 
+
+		template<> QueryBuilder &operator%( const RawString &arg ) {
+			return FeedUnescapedString( arg.Get() );
+		}
+
+		template<> QueryBuilder &operator%( const RawString &&arg ) {
+			return FeedUnescapedString( arg.Get() );
+		}
+
+		template<> QueryBuilder &operator%( const RawString arg ) {
+			return FeedUnescapedString( arg.Get() );
+		}
 
 		// see feed operator.
 		QueryBuilder &FeedEscapedString( const std::string &arg );
