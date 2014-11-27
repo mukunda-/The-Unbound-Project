@@ -11,6 +11,10 @@ namespace User { namespace RXGServ { namespace MyProcs {
 		const char *Command() const override { return command; }	\
 		const int RequiredArgs() const override { return reqargs; } \
 	}
+
+#define CMDARGS( command, reqargs ) \
+	const char *Command() const override { return command; } \
+	const int RequiredArgs() const override { return reqargs; }
 	
 	// simple procs
 	DEFPROC( Unknown,   ""          ,-1 );
@@ -53,8 +57,8 @@ namespace User { namespace RXGServ { namespace MyProcs {
 
 		void Run( Procs::Context::ptr &ct ) override;
 	public:
-		const char *Command()      const override { return "DONATIONS"; }
-		const int   RequiredArgs() const override { return 1;           }
-
+		CMDARGS( "DONATIONS", 1 ); 
+		const bool Locking() const { return true; }
+		
 	};
 }}}

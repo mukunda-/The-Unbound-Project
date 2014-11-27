@@ -56,11 +56,9 @@ void Map::Run( shared_ptr<Context> &ct ) {
 	(*proc)( ct );
 }
 
+//-----------------------------------------------------------------------------
 void Proc::operator()( Context::ptr &ct ) { 
-	if( Locking() ) {
-		ct->m_lock = unique_lock<mutex>( m_mutex );
-	}
-	std::lock_guard<std::mutex> lock( m_mutex );
+	if( Locking() ) ct->m_lock = unique_lock<mutex>( m_mutex );
 	Run( ct ); 
 }
 
@@ -78,6 +76,8 @@ Context::~Context() {
 //-----------------------------------------------------------------------------
 void Context::Complete() {
 	if( m_completed ) return;
+	if( m_lock ) m_lock.unlock();
+	
 	if( !m_responded ) {
 		ErrorResponse( "FAILED", "Invalid usage or undefined error." )
 			.Write(*this);

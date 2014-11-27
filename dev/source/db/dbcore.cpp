@@ -6,6 +6,7 @@
 #include "core.h"
 #include "connection.h"
 #include "system/console.h"
+#include "system/system.h"
 #include "failure.h"
 
 using namespace std;
@@ -90,7 +91,7 @@ void Manager::ExecuteTransaction( TransactionPtr transaction ) {
 		conn.PushLine( std::move(line), true );
 
 	} catch( const Failure &failure ) {
-
+		System::Log( "SQL error %d/%s: %s", failure.MySQLCode(), failure.SQLState(), failure.what() );
 		transaction->m_mysql_error = failure.MySQLCode();
 		transaction->Completed( std::move( transaction ), true );
 		conn.FreeThread();
@@ -135,15 +136,26 @@ unique_ptr<sql::Connection> Manager::Connect( const Endpoint &endpoint ) {
 
 	while( true ) {
 		try {
+			sql::ConnectOptionsMap props;
+			props["hostName"] = sql::SQLString( endpoint.address.c_str()  );
+			props["userName"] = sql::SQLString( endpoint.username.c_str() );
+			props["password"] = sql::SQLString( endpoint.password.c_str() );
+			if( !endpoint.database.empty() ) {
+				props["schema"] = sql::SQLString( endpoint.database.c_str() );
+			}
+			props["CLIENT_MULTI_STATEMENTS"] = true;
+			
 			unique_ptr<sql::Connection> conn(
-				m_driver.connect( endpoint.m_address.c_str(), 
+				m_driver.connect( props ));/* address.c_str(), 
 								  endpoint.m_username.c_str(), 
 								  endpoint.m_password.c_str() ));
-
-			if( !endpoint.m_database.empty() ) {
-				conn->setSchema( endpoint.m_database.c_str() );
-			}
-
+			
+			*/
+			
+			//if( !endpoint.m_database.empty() ) {
+			//	conn->setSchema( endpoint.m_database.c_str() );
+			//}
+			 
 			conn->setAutoCommit( false );
 			return conn;
 		} catch( sql::SQLException &e ) {
@@ -181,6 +193,11 @@ Manager::~Manager() {
 	for( auto &i : m_threadpool ) i.join();
 
 	g_manager = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+sql::SQLString Manager::SqlString( const std::string &str ) {
+	return sql::SQLString( str.c_str() );
 }
 
 }

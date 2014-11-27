@@ -68,6 +68,8 @@ public: // wrapped by global functions.
 									const Endpoint &endpoint, int threads );
 	Connection &GetConnection( const std::string &name );
 
+	static sql::SQLString SqlString( const std::string &source );
+
 	//-------------------------------------------------------------------------
 private:
 	friend class Line;
@@ -79,6 +81,9 @@ private:
 	// called by Connection:
 	void QueueWork( std::unique_ptr<Transaction> &&work );
 	
+	
 };
+
+
 
 }

@@ -265,16 +265,17 @@ public: //---------------------------------------------------------------------
 	}
 
 private: //--------------------------------------------------------------------
-	void CopyPersonResult( string &destname, double &destamount, 
+	void CopyPersonResult( string &destname, double &destamount, int &desttime,
 						   unique_ptr< sql::ResultSet > &result ) {
 
 		if( result->next() ) {
-			destname   = result->getString( 1 );
+			destname   = result->getString( 1 ).c_str();
 			destamount = result->getDouble( 2 );
 		} else {
 			destname   = "";
 			destamount = 0.0;
 		}
+		desttime = Util::GetTime();
 	}
 
 	//-------------------------------------------------------------------------
@@ -343,6 +344,8 @@ private: //--------------------------------------------------------------------
 			} else {
 				m_proc.m_goal = 0.0;
 			}
+
+			m_proc.m_total_ctime = Util::GetTime();
 			break;
 		//----------------------------------------------------------------
 		} case Donations::Query::TOP: {
@@ -350,7 +353,9 @@ private: //--------------------------------------------------------------------
 					topquery, month_start, month_end,
 					DB::RawString( "amount DESC" ));
 
-			CopyPersonResult( m_proc.m_top_name, m_proc.m_top_amt, result );
+			CopyPersonResult( m_proc.m_top_name, 
+							  m_proc.m_top_amt, 
+							  m_proc.m_top_ctime, result );
 			break;
 		//----------------------------------------------------------------
 		} case Donations::Query::LASTTOP: {
@@ -359,7 +364,8 @@ private: //--------------------------------------------------------------------
 					DB::RawString( "amount DESC" ));
 
 			CopyPersonResult( m_proc.m_lasttop_name, 
-							  m_proc.m_lasttop_amt, result );
+							  m_proc.m_lasttop_amt,
+							  m_proc.m_lasttop_ctime, result );
 			break;
 		//----------------------------------------------------------------
 		} case Donations::Query::RAND: {
@@ -367,7 +373,8 @@ private: //--------------------------------------------------------------------
 					topquery, month_start, month_end,
 					DB::RawString( "RAND()" ));
 			
-			CopyPersonResult( m_proc.m_rand_name, m_proc.m_rand_amt, result );
+			CopyPersonResult( m_proc.m_rand_name, m_proc.m_rand_amt, 
+							  m_proc.m_rand_ctime, result );
 			break;
 		}}
 
@@ -378,12 +385,16 @@ private: //--------------------------------------------------------------------
 	void OnSuccess( DB::TransactionPtr ptr ) override {
 		switch( m_query ) {
 		case Donations::Query::TOTAL:
+			m_proc.RespondTotal( m_ct );
 			break;
 		case Donations::Query::TOP:
+			m_proc.RespondTop( m_ct );
 			break;
 		case Donations::Query::LASTTOP:
+			m_proc.RespondLastTop( m_ct );
 			break;
 		case Donations::Query::RAND:
+			m_proc.RespondRand( m_ct );
 			break;
 		}
 	}

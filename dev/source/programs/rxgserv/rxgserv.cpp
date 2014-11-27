@@ -57,16 +57,16 @@ void RXGServ::OnStart() {
 			const YAML::Node &node = config["sql"]["forums"];
 			
 			var = "sql.forums.address";
-			ep_forums.m_address  = node["address"].as<string>();
+			ep_forums.address  = node["address"].as<string>();
 
 			var = "sql.forums.username";
-			ep_forums.m_username = node["username"].as<string>();
+			ep_forums.username = node["username"].as<string>();
 
 			var = "sql.forums.password";
-			ep_forums.m_password = node["password"].as<string>();
+			ep_forums.password = node["password"].as<string>();
 
 			var = "sql.forums.database";
-			ep_forums.m_database = node["database"].as<string>();
+			ep_forums.database = node["database"].as<string>();
 			
 		} catch( YAML::RepresentationException & ) { 
 			throw std::runtime_error( 
