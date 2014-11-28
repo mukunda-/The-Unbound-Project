@@ -157,7 +157,7 @@ void LineReader::InputChar( int c ) {
 
 			m_buffer = m_history.Previous(); 
 
-			MoveCursor( m_buffer.size() );
+			MoveCursor( (int)m_buffer.size() );
 			Redraw(true);
 		} else if( c == KEY_DOWN ) {
 			// next history

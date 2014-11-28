@@ -184,9 +184,9 @@ public:
 	/// @param text Line contents.
 	///
 	void Push( const std::string &text ) {
-		int position = m_data.size();
+		int position = (int)m_data.size();
 		m_data += text;
-		m_index.push_back( Index( position, text.size() ) );
+		m_index.push_back( Index( position, (int)text.size() ) );
 
 		if( (int)m_data.size() > m_memory_limit ) {
 			Prune( 10 );

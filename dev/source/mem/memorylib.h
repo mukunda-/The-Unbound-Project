@@ -111,7 +111,7 @@ int SizeOf( void * );
 //-------------------------------------------------------------------------------------------------
 struct FastAllocation {
 	void* operator new(size_t sz) { 
-		void* m = AllocMem(sz);
+		void* m = AllocMem( (int)sz );
 		return m;
 	} 
 	void operator delete(void* m) {

@@ -55,7 +55,7 @@ void CropStringLeft( char *str, int start ) {
 void StripQuotes( char *str ) {
 	// todo; better function
 
-	int a = strlen(str);
+	int a = (int)strlen(str);
 	if( a <= 1 ) return;
 	a--;
 	if( str[a] == '"' && str[0] == '"' ) {

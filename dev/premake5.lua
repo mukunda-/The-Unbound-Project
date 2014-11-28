@@ -2,29 +2,36 @@
 --- Project creation helper
 ---   p_name: Actual name of project, eg master
 ---   p_project: Project definition, eg MASTER
----   p_kind: WindowedApp or ConsoleApp
-function CreateProject( p_name, p_project, p_kind )
+---   p_kind: WindowedApp or ConsoleApp 
+---
+function CreateProject( p_name, p_project, p_kind, p_64bit )
 	solution( p_name )
 	local project_path = "projects/" .. p_name
 	location( project_path )
 	configurations { "Debug", "Release" }
 	
+	if p_64bit then
+		platforms { "x64" }
+		architecture "x64"
+	end
+	-------------------------------------------------------
 	project( p_name )
 	kind( p_kind )
 	language "C++"
 	
-	-- debug environment, point to /env folder
+	-- debug environment, point to /env folder ------------
 	debugenvs "PATH=$(Path);$(ProjectDir)../../../env/"
 	debugdir "../env"
 	
-	-- project definition, passed in as an argument
+	-- project definition, passed in as an argument -------
 	defines { "PROJECT_" .. p_project }
 	
-	-- PCH source files
+	-- PCH source files -----------------------------------
 	pchsource "source/pch/stdafx.cpp"
 	pchheader "stdafx.h"
 	
-	-- C++ PCH is not compatible with C files.
+	-- C++ PCH is not compatible with C files. ------------
+	-- disable PCH for C files.
 	filter { "files:**.c" }
 		flags { "NoPCH" }
 	filter { "files:protocol/compiled/**.cc" }
@@ -32,18 +39,24 @@ function CreateProject( p_name, p_project, p_kind )
 		warnings "Off"
 	filter {}
 	
-	-- PCH memory allocation
+	-- PCH memory allocation ------------------------------
 	buildoptions { "/Zm130" }
 	
-	-- library directories
+	-- library directories --------------------------------
+	
+	if( p_64bit ) then
+		libdirs { "$(BOOST_ROOT)/lib/x64/lib" }
+	else
+		libdirs { "$(BOOST_ROOT)/stage/lib" }
+	end
+	
 	libdirs {
-		"$(BOOST_ROOT)/stage/lib",
 		"$(DEVPATH)/glew/lib/Release/Win32",
 		"$(DEVPATH)/SDL203/lib/x86",
 		"$(DEVPATH)/freetype/objs/win32/vc2010"
 	}
 	
-	-- include directories
+	-- include directories --------------------------------
 	includedirs {
 		"source/",
 		"libsource/",
@@ -59,25 +72,45 @@ function CreateProject( p_name, p_project, p_kind )
 	defines { "WIN32", "_WINDOWS" }
 	linkoptions { "/nodefaultlib:msvcrt.lib" }
 	
+	-------------------------------------------------------
+	if p_64bit then
+		libdirs {
+			"$(DEVPATH)/libs/vs12/x64/debug",
+			"$(DEVPATH)/libs/vs12/x64/release"
+		}
+	end
+		
+	-------------------------------------------------------
+	configuration { "Release", "x64" }
+		libdirs {
+			"$(DEVPATH)/libs/vs12/x64/release"
+		}
+	
+	-------------------------------------------------------
 	configuration "Debug"
 		defines {"_DEBUG"}
 		flags {"Symbols"}
 		
 		libdirs {
+			"$(DEVPATH)/libs/vs12/x32/debug",
+			"$(DEVPATH)/libs/vs12/x32/release",
 			"$(DEVPATH)/libs/debug",
 			"$(DEVPATH)/libs/release"
 		}
 		objdir (project_path .. "/Debug")
 		
+	-------------------------------------------------------
 	configuration "Release"
 		defines {"NDEBUG"}
 		optimize "On" 
 		
 		libdirs {
+			"$(DEVPATH)/libs/vs12/x32/release",
 			"$(DEVPATH)/libs/release"
 		}
 		objdir (project_path .. "/Release")
-		
+	
+	-------------------------------------------------------
 	configuration {}
 	
 	return project_path
@@ -85,7 +118,7 @@ end
 
 local project_path;
 
-project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
+project_path = CreateProject( "client", "CLIENT", "WindowedApp", false )
 	defines { "UB_CLIENT" }
 	
 	files { 
@@ -106,7 +139,7 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp" )
 		"protocol/compiled/**.cc"
 	}
 
-project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
+project_path = CreateProject( "master", "MASTER", "ConsoleApp", true )
 	defines { "UB_SERVER" }
 	
 	files { 
@@ -122,7 +155,7 @@ project_path = CreateProject( "master", "MASTER", "ConsoleApp" )
 		"protocol/compiled/**.cc"
 	}
 
-project_path = CreateProject( "node", "NODE", "ConsoleApp" )
+project_path = CreateProject( "node", "NODE", "ConsoleApp", true )
 	defines { "UB_SERVER" }
 	
 	files {
@@ -138,7 +171,7 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp" )
 		"protocol/compiled/**.cc"
 	}
 
-project_path = CreateProject( "auth", "AUTH", "ConsoleApp" )
+project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 	defines {"UB_SERVER"}
 	
 	files {
@@ -159,7 +192,7 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp" )
 		"source/**.h"
 	}
 
-project_path = CreateProject( "test", "TEST", "ConsoleApp" )
+project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
 	defines {"UB_TESTING"}
 	
 	files {
@@ -181,8 +214,9 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp" )
 		"source/**.h"
 	}
 	
-project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp" )
+project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 	defines {"UB_SERVER"}
+	platforms { "x64" }
 	
 	files {
 		"source/pch/*.cpp",
