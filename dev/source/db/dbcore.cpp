@@ -146,15 +146,7 @@ unique_ptr<sql::Connection> Manager::Connect( const Endpoint &endpoint ) {
 			props["CLIENT_MULTI_STATEMENTS"] = true;
 			
 			unique_ptr<sql::Connection> conn(
-				m_driver.connect( props ));/* address.c_str(), 
-								  endpoint.m_username.c_str(), 
-								  endpoint.m_password.c_str() ));
-			
-			*/
-			
-			//if( !endpoint.m_database.empty() ) {
-			//	conn->setSchema( endpoint.m_database.c_str() );
-			//}
+				m_driver.connect( props )); 
 			 
 			conn->setAutoCommit( false );
 			return conn;

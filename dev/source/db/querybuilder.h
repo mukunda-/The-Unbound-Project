@@ -9,6 +9,14 @@ namespace DB {
 
 	class Line;
 
+	/// -----------------------------------------------------------------------
+	/// When RawString is fed to a query builder, the exact string contents
+	/// are output into the query, as opposed to being wrapped in quotes
+	/// and escaped like an normal string.
+	///
+	/// It may be more convenient to pass RawString directly into an execute 
+	/// command rather than using the FeedUnescapedString function yourself.
+	///
 	class RawString {
 		const std::string &m_value;
 	public: 
@@ -48,37 +56,17 @@ namespace DB {
 			m_formatter % arg;
 			return *this;
 		}
-		
-		// string specialization.
-		template<> QueryBuilder &operator%( const char *arg ) {
-			return FeedEscapedString( arg ); 
-		}
+		 
+		// string specializations
+		template<> QueryBuilder &operator%( const char *arg )         { return FeedEscapedString( arg ); }
+		template<> QueryBuilder &operator%( const std::string &arg )  { return FeedEscapedString( arg ); }
+		template<> QueryBuilder &operator%( const std::string &&arg ) {	return FeedEscapedString( arg ); }
+		template<> QueryBuilder &operator%( const std::string arg )   { return FeedEscapedString( arg ); }
 
-		// string specialization.
-		template<> QueryBuilder &operator%( const std::string &arg ) {
-			return FeedEscapedString( arg ); 
-		}
-
-		template<> QueryBuilder &operator%( const std::string &&arg ) {
-			return FeedEscapedString( arg ); 
-		}
-
-		// string specialization.
-		template<> QueryBuilder &operator%( const std::string arg ) {
-			return FeedEscapedString( arg ); 
-		} 
-
-		template<> QueryBuilder &operator%( const RawString &arg ) {
-			return FeedUnescapedString( arg.Get() );
-		}
-
-		template<> QueryBuilder &operator%( const RawString &&arg ) {
-			return FeedUnescapedString( arg.Get() );
-		}
-
-		template<> QueryBuilder &operator%( const RawString arg ) {
-			return FeedUnescapedString( arg.Get() );
-		}
+		// rawstring specializations
+		template<> QueryBuilder &operator%( const RawString &arg )  { return FeedUnescapedString( arg.Get() ); }
+		template<> QueryBuilder &operator%( const RawString &&arg ) { return FeedUnescapedString( arg.Get() ); }
+		template<> QueryBuilder &operator%( const RawString arg )   { return FeedUnescapedString( arg.Get() ); }
 
 		// see feed operator.
 		QueryBuilder &FeedEscapedString( const std::string &arg );

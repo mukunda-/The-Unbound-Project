@@ -23,7 +23,7 @@ namespace DB {
 		{
 			if( m_mysql_error ) {
 				// this was an sql failure.
-				m_sqlstate = e.getSQLState().c_str();
+				m_sqlstate = e.getSQLState();
 			} else {
 				// this was not an sql failure.
 			}

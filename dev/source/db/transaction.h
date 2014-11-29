@@ -49,7 +49,8 @@ protected:
 	virtual void Completed( TransactionPtr ptr, bool failed ) = 0;
 
 	/// -----------------------------------------------------------------------
-	/// Return type information about this transaction.
+	/// Return type information about this transaction. Not used by the
+	/// system.
 	///
 	virtual int Type() { return 0; }
 
