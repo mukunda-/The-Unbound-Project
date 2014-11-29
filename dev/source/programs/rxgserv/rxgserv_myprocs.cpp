@@ -208,7 +208,7 @@ private:
 			m_id.To64() );
 			
 		if( result->next() ) {
-			m_rank    = result->getString( 1 ).c_str();
+			m_rank    = result->getString( 1 );
 			m_groupid = result->getInt( 2 );
 		}
 
@@ -269,7 +269,7 @@ private: //--------------------------------------------------------------------
 						   unique_ptr< sql::ResultSet > &result ) {
 
 		if( result->next() ) {
-			destname   = result->getString( 1 ).c_str();
+			destname   = result->getString( 1 );
 			destamount = result->getDouble( 2 );
 		} else {
 			destname   = "";
@@ -314,7 +314,7 @@ private: //--------------------------------------------------------------------
 		//----------------------------------------------------------------
 		switch( m_query ) {
 		case Donations::Query::TOTAL: {
-			statement->Execute( 
+			auto result = statement->Execute( 
 				"SELECT SUM(mc_gross*exchange_rate) AS total "
 				"FROM dopro_donations "
 				"WHERE (payment_date >= '%d') AND (payment_date < '%d') "
@@ -326,12 +326,11 @@ private: //--------------------------------------------------------------------
 				"WHERE name='goal' AND subtype=%d; ",
 
 					month_start, // payment date >= 
-					month_end,  // payment date < 
-					month ); // goal subtype
-
-			auto result = statement->GetResultSet();
+					month_end,   // payment date < 
+					month );     // goal subtype
+			
 			if( result->next() ) {
-				m_proc.m_total = result->getDouble( 0 );
+				m_proc.m_total = result->getDouble( 1 );
 				while( result->next() );
 			} else {
 				m_proc.m_total = 0.0;
@@ -339,7 +338,7 @@ private: //--------------------------------------------------------------------
 
 			result = statement->GetNextResultSet();
 			if( result->next() ) {
-				m_proc.m_goal = result->getDouble( 0 );
+				m_proc.m_goal = result->getDouble( 1 );
 				while( result->next() );
 			} else {
 				m_proc.m_goal = 0.0;

@@ -171,7 +171,7 @@ void LineReader::InputChar( int c ) {
 				m_buffer = "";
 			}
 
-			MoveCursor( m_buffer.size() );
+			MoveCursor( (int)m_buffer.size() );
 			Redraw(true);
 		} else if( c == KEY_HOME ) {
 			MoveCursor(0);

@@ -75,15 +75,15 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 	-------------------------------------------------------
 	if p_64bit then
 		libdirs {
-			"$(DEVPATH)/libs/vs12/x64/debug",
-			"$(DEVPATH)/libs/vs12/x64/release"
+			"$(DEVPATH)/libs/vs12/debug/x64",
+			"$(DEVPATH)/libs/vs12/release/x64"
 		}
 	end
 		
 	-------------------------------------------------------
 	configuration { "Release", "x64" }
 		libdirs {
-			"$(DEVPATH)/libs/vs12/x64/release"
+			"$(DEVPATH)/libs/vs12/release/x64"
 		}
 	
 	-------------------------------------------------------
@@ -92,8 +92,8 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 		flags {"Symbols"}
 		
 		libdirs {
-			"$(DEVPATH)/libs/vs12/x32/debug",
-			"$(DEVPATH)/libs/vs12/x32/release",
+			"$(DEVPATH)/libs/vs12/debug/x86",
+			"$(DEVPATH)/libs/vs12/release/x86",
 			"$(DEVPATH)/libs/debug",
 			"$(DEVPATH)/libs/release"
 		}
@@ -105,7 +105,7 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 		optimize "On" 
 		
 		libdirs {
-			"$(DEVPATH)/libs/vs12/x32/release",
+			"$(DEVPATH)/libs/vs12/release/x86",
 			"$(DEVPATH)/libs/release"
 		}
 		objdir (project_path .. "/Release")
