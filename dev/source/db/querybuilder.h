@@ -89,13 +89,5 @@ namespace DB {
 		std::string String() {
 			return m_formatter.str();
 		}
-		
-		/// -------------------------------------------------------------------
-		/// Returns an SQLString object because mysql's implicit conversion 
-		/// is fucked up.
-		/// 
-		const sql::SQLString SQLString() {
-			return m_formatter.str().c_str();
-		}
 	};
 }

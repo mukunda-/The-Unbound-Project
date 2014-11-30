@@ -24,6 +24,8 @@ class Connection : public Util::SLinkedItem<Connection> {
 	std::mutex  m_mut;
 	int         m_free_threads;
 	std::deque<TransactionPtr> m_work_queue;
+
+	std::atomic<bool> m_failure = false;
 	
 	std::stack<LinePtr> m_linepool;
 	// connection pool, one per thread
@@ -67,6 +69,12 @@ public:
 	///          no longer accessible outside.
 	///
 	void Execute( TransactionPtr &&t );
+	
+	/// -----------------------------------------------------------------------
+	/// Disallow any further transactions from being processed.
+	///
+	void SetFailState() { m_failure = true; }
+	bool GetFailState() { return m_failure; }
 };
 
 }

@@ -13,6 +13,7 @@ namespace DB {
 	class Statement;
 	class Line {
 		std::unique_ptr<sql::Connection> m_connection; 
+		bool m_autocommit = true;
 
 	public:
 		Line( Manager &manager, const Endpoint &endpoint );
@@ -57,7 +58,7 @@ namespace DB {
 			} else {
 				QueryBuilder builder( *this, format );
 				Util::Feed( builder, args... );
-				return builder.SQLString(); 
+				return builder.String(); 
 			}
 		}
 

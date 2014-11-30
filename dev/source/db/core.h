@@ -60,6 +60,7 @@ private:
 	std::condition_variable m_work_signal;
 
 	void ThreadMain();
+	void DoActions( TransactionPtr &transaction, LinePtr &line, int &retries );
 	void ExecuteTransaction( TransactionPtr transaction );
 
 	//-------------------------------------------------------------------------

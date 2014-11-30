@@ -11,8 +11,8 @@ namespace DB {
 	
 /// ---------------------------------------------------------------------------
 /// The transaction class provides an interface to execute a transaction
-/// in the database. A transaction is a single unit of commands that 
-/// doesn't rely on previous or future operations.
+/// in the database. A transaction contains one or more queries that 
+/// don't rely on previous or future operations.
 ///
 /// The manager will try to execute the transaction and retry if there is
 /// a recoverable failure until it succeeds or becomes impossible.
@@ -29,7 +29,8 @@ protected:
 	enum PostAction {
 		NOP,     // do nothing
 		COMMIT,  // execute "COMMIT"
-		ROLLBACK // execute "ROLLBACK"
+		ROLLBACK, // execute "ROLLBACK"
+		FAIL     // cancel the transaction
 	};
 
 	/// -----------------------------------------------------------------------
@@ -53,6 +54,11 @@ protected:
 	/// system.
 	///
 	virtual int Type() { return 0; }
+	
+	/// -----------------------------------------------------------------------
+	/// Return desired SQL autocommit option.
+	///
+	virtual bool AutoCommit() { return true; }
 
 public:
 	Transaction() {}
@@ -63,7 +69,5 @@ public:
 	///
 	int GetMySQLError() { return m_mysql_error; }
 };
-
-
 
 }

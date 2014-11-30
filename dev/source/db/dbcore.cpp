@@ -7,7 +7,7 @@
 #include "connection.h"
 #include "system/console.h"
 #include "system/system.h"
-#include "failure.h"
+#include "exception.h"
 
 using namespace std;
 
@@ -58,47 +58,80 @@ Connection &Manager::GetConnection( const string &name ) {
 }
 
 //-----------------------------------------------------------------------------
-void Manager::ExecuteTransaction( TransactionPtr transaction ) {
-	Connection &conn = *transaction->m_parent;
-	
-	try {
-		LinePtr line = conn.GetLine();
-		
-		while(true) {
-			try {
-				Transaction::PostAction action = transaction->Actions( *line );
+void Manager::DoActions( TransactionPtr &transaction, LinePtr &line, 
+						 int &retries ) {
+	while(true) {
+		try {
+			auto action = transaction->Actions( *line );
 
-				if( action == Transaction::COMMIT ) {
-					// todo run commit.
-					(*line)->commit();
-				} else if( action == Transaction::ROLLBACK ) {
-					// todo run rollback.
-					(*line)->rollback();
-				}
-
-				break; // success!
-			} catch( const sql::SQLException &e ) {
-				// handle, or fail!
-				throw Failure( e );
+			if( action == Transaction::COMMIT ) {
+				// todo run commit.
+				(*line)->commit();
+			} else if( action == Transaction::ROLLBACK ) {
+				// todo run rollback.
+				(*line)->rollback();
 			}
 
-			// rollback and try again.
-			(*line)->rollback();
+			break; // success!
+		} catch( const sql::SQLException &e ) {
+			// retry, or fail!
+			Exception ex(e);
+			if( ex.Type() == Exception::RETRY && retries > 0 ) {
+				// rollback and try again.
+				retries--;
+				(*line)->rollback();
+				continue;
+			}
+			throw e;
 		}
+	}
+}
 
-		// push line back into pool, if a failure occurs
-		// this is skipped and the connection is deleted.
-		conn.PushLine( std::move(line), true );
-
-	} catch( const Failure &failure ) {
-		System::Log( "SQL error %d/%s: %s", failure.MySQLCode(), failure.SQLState(), failure.what() );
-		transaction->m_mysql_error = failure.MySQLCode();
+//-----------------------------------------------------------------------------
+void Manager::ExecuteTransaction( TransactionPtr transaction ) {
+	Connection &conn = *transaction->m_parent;
+	if( conn.GetFailState() ) {
+		transaction->m_mysql_error = 0;
 		transaction->Completed( std::move( transaction ), true );
-		conn.FreeThread();
 		return;
 	}
 
-	transaction->Completed( std::move(transaction), false );
+	int retries = 10;
+	while(true) {
+		try {
+			LinePtr line = conn.GetLine();
+		
+			DoActions( transaction, line, retries );
+
+			// push line back into pool, if an exception occurs
+			// this is skipped and the connection is deleted.
+			conn.PushLine( std::move(line), true );
+
+			transaction->Completed( std::move(transaction), false );
+			return;
+
+		} catch( const sql::SQLException &e ) {
+			Exception ex(e);
+			if( ex.Type() == Exception::RECOVERABLE && retries > 0 ) {
+				retries--;
+				continue;
+			} else if( ex.Type() == Exception::SOFTFAIL ) {
+				System::Log( "DB Soft Failure: %d/%s: %s", 
+					ex.MySQLCode(), ex.SQLState(), ex.what() );
+			} else if( ex.Type() == Exception::HARDFAIL ) {
+				System::Log( "DB Fatal Error: %d/%s: %s", 
+					ex.MySQLCode(), ex.SQLState(), ex.what() );
+				conn.SetFailState();
+			} else {
+				System::Log( "DB Failure: %d/%s: %s", 
+					ex.MySQLCode(), ex.SQLState(), ex.what() );
+			}
+			transaction->m_mysql_error = ex.MySQLCode();
+			transaction->Completed( std::move( transaction ), true );
+			conn.FreeThread();
+			return;
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -128,34 +161,27 @@ void Manager::ThreadMain() {
 }
 
 /// ---------------------------------------------------------------------------
-/// Create an sql connection. This is done in a work thread.
+/// Create an sql connection. This is called by a work thread.
 ///
 /// @param endpoint Address and credentials to use.
 ///
 unique_ptr<sql::Connection> Manager::Connect( const Endpoint &endpoint ) {
-
-	while( true ) {
-		try {
-			sql::ConnectOptionsMap props;
-			props["hostName"] = sql::SQLString( endpoint.address.c_str()  );
-			props["userName"] = sql::SQLString( endpoint.username.c_str() );
-			props["password"] = sql::SQLString( endpoint.password.c_str() );
-			if( !endpoint.database.empty() ) {
-				props["schema"] = sql::SQLString( endpoint.database.c_str() );
-			}
-			props["CLIENT_MULTI_STATEMENTS"] = true;
-			
-			unique_ptr<sql::Connection> conn(
-				m_driver.connect( props )); 
-			 
-			conn->setAutoCommit( false );
-			return conn;
-		} catch( sql::SQLException &e ) {
-			// todo, catch recoverable
-			
-			throw Failure( e );
-		}
+	 
+	sql::ConnectOptionsMap props;
+	props["hostName"] = endpoint.address;
+	props["userName"] = endpoint.username;
+	props["password"] = endpoint.password;
+	if( !endpoint.database.empty() ) {
+		props["schema"] = endpoint.database;
 	}
+	props["CLIENT_MULTI_STATEMENTS"] = true;
+			
+	unique_ptr<sql::Connection> conn(
+		m_driver.connect( props )); 
+			
+	conn->setAutoCommit( true );
+	return conn; 
+	// exceptions caught in transaction execution.
 }
 
 //-----------------------------------------------------------------------------

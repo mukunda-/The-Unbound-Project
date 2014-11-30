@@ -15,6 +15,9 @@ namespace DB {
 		std::unique_ptr<sql::Statement> m_base;
 		Line &m_parent;
 		bool m_needsflush = false;
+
+		std::unique_ptr<sql::ResultSet> GetResultSet();
+
 	public:
 		Statement( Line &line ) : m_parent(line) {
 			m_base = std::unique_ptr<sql::Statement>( 
@@ -74,14 +77,18 @@ namespace DB {
 			m_needsflush = true;
 			return GetResultSet();
 		}
-		
-
-		std::unique_ptr<sql::ResultSet> GetResultSet();
 
 		/// -------------------------------------------------------------------
 		/// Get the next result set from a multi query.
 		///
-		std::unique_ptr<sql::ResultSet> GetNextResultSet();
+		/// @param expected "result set is expected" If true, then if there 
+		///        are no more results, the transaction will be terminated
+		///        by an exception.
+		/// @returns Pointer to result set or nullptr if there are no more
+		///          results.
+		///
+		std::unique_ptr<sql::ResultSet> GetNextResultSet( 
+				bool expected = true );
 		
 		/// -------------------------------------------------------------------
 		/// Flush any waiting result sets.

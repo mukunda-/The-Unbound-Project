@@ -13,7 +13,9 @@ namespace DB {
 	}
 
 	//-------------------------------------------------------------------------
-	std::unique_ptr<sql::ResultSet> Statement::GetNextResultSet() {
+	std::unique_ptr<sql::ResultSet> Statement::GetNextResultSet( 
+			bool expected ) {
+
 		if( m_base->getMoreResults() ) {
 			return std::unique_ptr<sql::ResultSet>( m_base->getResultSet() );
 		} else {

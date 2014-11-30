@@ -29,7 +29,8 @@ namespace DB {
 			}
 		}
 
-		Failure( int mysql_error, const std::string &sqlstate, const std::string &message ) :
+		Failure( int mysql_error, const std::string &sqlstate, 
+				 const std::string &message ) :
 				m_mysql_error( mysql_error ),
 				m_sqlstate( sqlstate ),
 				std::runtime_error( message )
