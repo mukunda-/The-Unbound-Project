@@ -117,23 +117,23 @@ void Shutdown() {
 }
 
 //-----------------------------------------------------------------------------
-void Log( const char *message ) {
+void Log( const std::string &message ) {
 //	va_list argptr;
 //	va_start(argptr, format);
 //	char text[4096];
 //	vsnprintf( text, sizeof text, format, argptr );
-	System::Console::PrintS( message );
+	System::Console::PrintS( message.c_str() );
 	// todo: log to file
 //	va_end(argptr);
-}
+} 
 
 //-----------------------------------------------------------------------------
-void LogError( const char *message ) {
+void LogError( const std::string &message ) {
 //	va_list argptr;
 //	va_start(argptr, format);
 //	char text[4096];
 //	vsnprintf( text, sizeof text, format, argptr );
-	System::Console::PrintS( message );
+	System::Console::PrintS( message.c_str() );
 	// todo: log to error file
 //	va_end(argptr);
 }

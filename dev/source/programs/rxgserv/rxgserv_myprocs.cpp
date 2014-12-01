@@ -85,6 +85,7 @@ void Auth::Run( CT &c ) {
 		}
 	}
 	c->GetStream().SetInfo( c->Args()[2], c->Args()[3] );
+	c->RespondSimple( "OKAY" );
 }
 
 //-----------------------------------------------------------------------------

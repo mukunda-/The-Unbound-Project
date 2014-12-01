@@ -177,7 +177,7 @@ void LineReader::InputChar( int c ) {
 			MoveCursor(0);
 			Redraw();
 		} else if( c == KEY_END ) {
-			MoveCursor( m_buffer.size() );
+			MoveCursor( (int)m_buffer.size() );
 			Redraw();
 		}
 	}

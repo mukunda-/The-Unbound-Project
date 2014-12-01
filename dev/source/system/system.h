@@ -94,14 +94,14 @@ void Finish();
 
 //-----------------------------------------------------------------------------
 template<typename F, typename ... Args>
-void LogEx( F output, const char *format, Args ... args ) {
+void LogEx( F output, const std::string &format, Args ... args ) {
 	try {
 		boost::format formatter(format); 
 		Util::Feed( formatter, args... ); 
 		output( formatter.str().c_str() );
 	} catch( boost::io::format_error &e ) {
 		output( (boost::format( "FORMAT ERROR: %s" ) % e.what())
-				.str().c_str());
+				.str() );
 	}
 }
 
@@ -112,7 +112,7 @@ void LogEx( F output, const char *format, Args ... args ) {
 /// @param ...    Formatted arguments.
 ///
 template<typename ... Args>
-void Log( const char *format,Args ... args ) {
+void Log( const std::string &format, Args ... args ) {
 	LogEx( Log, format, args... );
 }
 
@@ -121,7 +121,7 @@ void Log( const char *format,Args ... args ) {
 ///
 /// @param message Message to log.
 ///
-void Log( const char *message );
+void Log( const std::string &message );
 
 /// ---------------------------------------------------------------------------
 /// Print a formatted message to the error log.
@@ -130,7 +130,7 @@ void Log( const char *message );
 /// @param ...    Formatted arguments.
 ///
 template<typename Arg, typename ... Args>
-void LogError( const char *format, Arg arg1, Args ... args ) {
+void LogError( const std::string &format, Arg arg1, Args ... args ) {
 	LogEx( LogError, format, arg1, args... );
 }
 
@@ -139,7 +139,7 @@ void LogError( const char *format, Arg arg1, Args ... args ) {
 ///
 /// @param message Message to log.
 ///
-void LogError( const char *message );
+void LogError( const std::string &message );
 
 /// ---------------------------------------------------------------------------
 /// Get the main Service instance.
