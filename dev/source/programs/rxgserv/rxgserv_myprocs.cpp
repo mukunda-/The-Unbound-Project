@@ -101,11 +101,11 @@ public:
 	/// @param type Type of query
 	/// @param id   Steam Account ID or forum user id.
 	///
-	PerksTransaction( CT &ct, Type type, int id ) : 
+	PerksTransaction( CT &ct, Type type, long long id ) : 
 			ContextTransaction(ct), m_type(type), m_id(id)
 	{}
 
-	static DB::TransactionPtr Create( CT &ct, Type type, int id ) {
+	static DB::TransactionPtr Create( CT &ct, Type type, long long id ) {
 
 		return DB::TransactionPtr( new PerksTransaction( ct, type, id ));
 	}
@@ -150,23 +150,23 @@ private:
 	}
 		
 	Type m_type;
-	int m_id;
+	long long m_id;
 
 	int m_expires1 = 0;
 	int m_expires5 = 0;
 };
-	 
+	  
 //-----------------------------------------------------------------------------
 void Perks::Run( CT &c ) {
 	DB::Connection &connection = DB::Get( "FORUMS" );
 	if( boost::iequals( c->Args()[1], "steam" ) ) {
 		SteamID steamid( c->Args()[2] );
-		if( !steamid || !steamid.ToS32() ) return;
+		if( !steamid ) return;
 
 		// steamid lookup
 		connection.Execute( PerksTransaction::Create( 
 					c, PerksTransaction::Type::STEAM, 
-					steamid.ToS32() ));
+					steamid.To64() ));
 
 	} else if( boost::iequals( c->Args()[1], "forum" ) ) {
 		if( !Util::IsDigits( c->Args()[2] ) ) return;
