@@ -7,6 +7,7 @@
 #include "forwards.h"
 #include "endpoint.h"
 #include "querybuilder.h"
+#include "util/feed.h"
 
 //-----------------------------------------------------------------------------
 namespace DB {

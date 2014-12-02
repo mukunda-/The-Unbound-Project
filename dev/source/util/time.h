@@ -3,6 +3,8 @@
 
 namespace Util {
 
-	int GetTime() { return (int)std::time( nullptr ); }
+	namespace {
+		int GetTime() { return (int)std::time( nullptr ); }
+	}
 
 }

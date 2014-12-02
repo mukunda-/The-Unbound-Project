@@ -131,7 +131,7 @@ void NetHandler::Receive( Net::StreamPtr &netstream,
 	auto &stream = netstream->Cast<Stream>();
 	auto &msg = netmsg.Cast<Net::TextStream::Message>();
 
-	System::Log( msg() );
+	System::Log( "[" + netstream->GetHostname() + "] " + msg() );
 	stream.RunProc( msg() );
 }
 

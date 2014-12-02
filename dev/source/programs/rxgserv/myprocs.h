@@ -1,8 +1,37 @@
 #pragma once
 
 #include "procs.h"
+#include "responses.h"
+#include "db/transaction.h"
 
 namespace User { namespace RXGServ { namespace MyProcs {
+	
+	using CT = Procs::Context::ptr;
+
+	//-------------------------------------------------------------------------
+	class ContextTransaction : public DB::Transaction {
+
+	public:
+		ContextTransaction( CT &ct ) : m_ct(ct) {}
+
+	protected:
+		virtual void OnSuccess( DB::TransactionPtr ptr ) = 0;
+
+		CT m_ct;
+
+	private:
+		
+		void Completed( DB::TransactionPtr ptr, bool failed ) override {
+			if( failed ) {
+				m_ct->RespondDBError();
+			} else {
+				OnSuccess( std::move(ptr) );
+			}
+		}
+
+	};
+
+
 
 #define DEFPROC( type, command, reqargs )	\
 	class type : public Procs::Proc {								\
