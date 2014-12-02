@@ -46,6 +46,7 @@ namespace DB {
 				const std::string &statement,
 				Args ... args ) {
 			FlushResultSets();
+
 			return std::unique_ptr<sql::ResultSet>( m_base->executeQuery( 
 					m_parent.BuildQueryEx( statement, args... )));
 		}

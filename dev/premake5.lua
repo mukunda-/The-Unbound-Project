@@ -216,7 +216,6 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
 	
 project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 	defines {"UB_SERVER"}
-	platforms { "x64" }
 	
 	files {
 		"source/pch/*.cpp",
@@ -236,3 +235,27 @@ project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 		"protocol/compiled/**.cc",
 		"source/**.h"
 	}
+	 
+project_path = CreateProject( "unit", "UNIT", "ConsoleApp", true )
+	defines {"UB_TESTING"}
+	
+	files {
+		"source/pch/*.cpp",
+		"source/io/*.cpp",
+		"source/net/*.cpp",
+		"source/db/*.cpp",
+		"source/asev/*.cpp",
+		"source/system/*.cpp",
+		"source/system/server/*.cpp",
+		"source/util/*.cpp",
+		"source/mem/*.cpp",
+		"source/mem/arena/*.cpp",
+		"source/tests/*.cpp",
+		"source/programs/rxgserv/*.cpp",
+		"source/main_unit.cpp",
+		
+		"protocol/compiled/**.cc",
+		"source/**.h"
+	}
+	
+	

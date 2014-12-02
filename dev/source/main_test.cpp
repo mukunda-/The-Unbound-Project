@@ -21,7 +21,7 @@
 #include "db/endpoint.h"
 #include "db/querybuilder.h"
 #include "db/statement.h"
-#include "db2/callbacktransaction.h"
+#include "db/callbacktransaction.h"
 
 #include "mem/arena/arena.h"
 
@@ -29,31 +29,7 @@
 
 #include "system/callback.h"
 #include "util/stringles.h"
-
-//-----------------------------------------------------------------------------
-class TestX : public DB::CallbackTransaction {
-public:
-	
-	TestX( Callback handler ) : DB::CallbackTransaction( handler ) {
-
-	}
-
-	//-------------------------------------------------------------------------
-	PostAction Actions( DB::Line &line ) override { 
-		auto statement = line.CreateStatement();
-		//statement->
-	//	statement->execute( "CREATE TABLE IF NOT EXISTS Test ( test INT )" );
-		
-		statement->ExecuteUpdate( "INSERT INTO Test VALUES ( %d )", 252 );
-
-		System::Console::Print( "yo!" );
-		return NOP; 
-	}
-
-private:
-	
-};
-
+ 
 class MyStream : public Net::TextStream {
 
 };
@@ -190,7 +166,7 @@ public:
 	void Test( std::shared_ptr<DB::Transaction> &t, bool failed ) {}
 };
 	 
-	sql::Connection *testes;
+sql::Connection *testes;
 
 //-------------------------------------------------------------------------------------------------
 void RunProgram() {

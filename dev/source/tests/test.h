@@ -25,17 +25,20 @@ namespace Tests {
 	protected:
 		
 		/// -------------------------------------------------------------------
-		/// Create a test case.
+		/// Create a test case. 
 		///
-		/// @param name Name of test. Printed to identify the test.
-		///
-		Test( std::string name );
+		Test();
 
 		/// -------------------------------------------------------------------
-		/// Function for test actions
+		/// Function for test actions.
 		///
 		/// @returns true if the test passed.
 		///
 		virtual bool Execute() = 0;
+
+		/// -------------------------------------------------------------------
+		/// Returns the name of this test.
+		///
+		virtual std::string Name() { return "Unnamed test"; }
 	};
 }

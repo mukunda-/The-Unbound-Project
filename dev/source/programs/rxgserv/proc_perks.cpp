@@ -14,7 +14,7 @@ using namespace std;
 namespace User { namespace RXGServ { namespace MyProcs {
 
 //-----------------------------------------------------------------------------
-class PerksTransaction : public ContextTransaction {
+class PerksQuery : public ContextTransaction {
 
 public:
 	enum class Type {
@@ -23,17 +23,24 @@ public:
 	};
 
 	/// -----------------------------------------------------------------------
-	/// @param ct   Procedure context
-	/// @param type Type of query
-	/// @param id   Steam Account ID or forum user id.
+	/// @param ct      Procedure context
+	/// @param type    Type of query
+	/// @param userids IDs for each request
+	/// @param query   List of Steam or Forum IDs to look up.
 	///
-	PerksTransaction( CT &ct, Type type, long long id ) : 
-			ContextTransaction(ct), m_type(type), m_id(id)
+	PerksQuery( CT &ct, Type type, std::vector<int> &&userids, 
+					  std::vector<long long> &&query ) : 
+			ContextTransaction(ct), m_type(type), 
+			m_userids( std::move(userids) ), m_query( std::move(query) )
 	{}
 
-	static DB::TransactionPtr Create( CT &ct, Type type, long long id ) {
+	static DB::TransactionPtr Create( CT &ct, Type type, 
+									  std::vector<int> &&userids, 
+									  std::vector<long long> &&query ) {
 
-		return DB::TransactionPtr( new PerksTransaction( ct, type, id ));
+		return DB::TransactionPtr(
+			new PerksQuery( ct, type, std::move(userids), 
+								  std::move(query) ));
 	}
 		
 	//-------------------------------------------------------------------------
@@ -41,68 +48,131 @@ private:
 	PostAction Actions( DB::Line &line ) {
 
 		auto statement = line.CreateStatement(); 
-		unique_ptr<sql::ResultSet> result;
+
+		DB::QueryBuilder query( line, 
+			"SELECT %s, expires1, expires5 FROM %s WHERE %s IN (%s)" );
 
 		if( m_type == Type::STEAM ) {
-			result = statement->ExecuteQuery( 
-				"SELECT expires1, expires5 "
-				"FROM SteamDonationCache "
-				"WHERE steamid=%d ", m_id );
-
+			query % DB::RS( "steamid" )
+				  % DB::RS( "SteamDonationCache" )
+				  % DB::RS( "steamid" );
 		} else if( m_type == Type::FORUM ) {
-			result = statement->ExecuteQuery(
-				"SELECT expires1, expires5 "
-				"FROM UserDonationCache "
-				"WHERE userid=%d ", m_id );
+			query % DB::RS( "userid" )
+				  % DB::RS( "UserDonationCache" )
+				  % DB::RS( "userid" );
+		} else {
+			return NOP;
 		}
-		
-		if( result->next() ) {
 
-			m_expires1 = result->getInt( 1 );
-			m_expires5 = result->getInt( 2 );
+		std::string idlist;
+		for( long long id : m_query ) {
+			if( idlist.empty() ) {
+				idlist = std::to_string(id);
+			} else {
+				idlist += ",";
+				idlist += std::to_string(id);
+			}
+		}
+
+		if( idlist.empty() ) return NOP;
+		query % DB::RS(idlist);
+
+		auto result = statement->ExecuteQuery( query.String() );
+		
+		while( result->next() ) {
+
+			m_results.push_back( result->getInt64( 1 ) );
+			m_results.push_back( result->getInt( 2 ) );
+			m_results.push_back( result->getInt( 3 ) ); 
 		}
 				
-
 		return NOP;
 	}
 
 	//-------------------------------------------------------------------------
 	void OnSuccess( DB::TransactionPtr ptr ) override {
+		
+		ListResponse response; 
+		std::vector<bool> found;
+		for( int i = 0; i < m_query.size(); i++ ) {
+			found.push_back( false );
+		}
+
+		for( int i = 0; i < m_results.size(); i+=3 ) {
 			
-		KVResponse()
-			.Put( "expires1", m_expires1 )
-			.Put( "expires5", m_expires5 )
-			.Write( m_ct );
+			for( int request_index = 0; request_index < m_query.size(); 
+													request_index++ ) {
+
+				if( m_results[i] != m_query[request_index] ) continue;
+
+				response << Util::Format( "%d %d %d", 
+								m_userids[request_index], 
+								(int)m_results[i+1], 
+								(int)m_results[i+2] );
+
+				found[ request_index ] = true;
+				break;
+			}
+		}
+		
+		for( int i = 0; i < m_query.size(); i++ ) {
+			if( found[i] ) continue;
+
+			// default response for missing results
+			response << Util::Format( "%d 0 0", m_userids[i] );
+		}
+
+		response.Write( m_ct );
 	}
 		
-	Type m_type;
-	long long m_id;
+	Type m_type;  
+	std::vector<int>       m_userids;
+	std::vector<long long> m_query;
 
-	int m_expires1 = 0;
-	int m_expires5 = 0;
+	std::vector<long long> m_results;
 };
 	  
 //-----------------------------------------------------------------------------
 void Perks::Run( CT &c ) {
 	DB::Connection &connection = DB::Get( "FORUMS" );
-	if( boost::iequals( c->Args()[1], "steam" ) ) {
-		SteamID steamid( c->Args()[2] );
-		if( !steamid ) return;
 
-		// steamid lookup
-		connection.Execute( PerksTransaction::Create( 
-					c, PerksTransaction::Type::STEAM, 
-					steamid.To64() ));
+	std::vector<int> userids;
+	std::vector<long long> queries;
 
-	} else if( boost::iequals( c->Args()[1], "forum" ) ) {
-		if( !Util::IsDigits( c->Args()[2] ) ) return;
-
-		// forumid lookup
-
-		connection.Execute( PerksTransaction::Create( 
-					c, PerksTransaction::Type::FORUM, 
-					std::stoi( c->Args()[2] )));
+	bool steam = false;
+	if( boost::iequals( c->Args()[1], "steam" )) {
+		steam = true;
+	} else if( boost::iequals( c->Args()[1], "forum" )) {
+		steam = false;
+	} else {
+		return;
 	}
+
+	try {
+
+		for( int i = 2; i < c->Args().Count()-1; i += 2 ) {
+			userids.push_back( std::stoi( c->Args()[i] ));
+			 
+			if( steam ) {
+				SteamID steamid( c->Args()[i+1], SteamID::Formats::AUTO,true );
+				if( !steamid ) return;
+				queries.push_back( steamid.To64() );
+
+			} else {
+				queries.push_back( std::stoi( c->Args()[i+1] ));
+			}
+		}
+
+	} catch( std::logic_error & ) {
+		// when an invalid number is passed.
+		return;
+	}
+	
+	DB::Get( "FORUMS" ).Execute( 
+		PerksQuery::Create( c, 
+			steam ? PerksQuery::Type::STEAM : PerksQuery::Type::FORUM,
+			std::move( userids ),
+			std::move( queries )));
 }
 
 }}}

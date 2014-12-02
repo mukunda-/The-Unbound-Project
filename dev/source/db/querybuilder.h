@@ -23,6 +23,8 @@ namespace DB {
 		RawString( const std::string &value ) : m_value(value) {}
 		const std::string &Get() const { return m_value; }
 	};
+
+	using RS = DB::RawString;
 	
 	class QueryBuilder final {
 		boost::format m_formatter;

@@ -55,7 +55,7 @@ namespace DB {
 		template < typename ... Args >
 		sql::SQLString BuildQueryEx( const std::string &format, Args ... args ) {
 			if( sizeof...(args) == 0 ) {
-				return format.c_str();
+				return format;
 			} else {
 				QueryBuilder builder( *this, format );
 				Util::Feed( builder, args... );

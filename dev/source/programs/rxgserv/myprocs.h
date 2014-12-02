@@ -49,7 +49,7 @@ namespace User { namespace RXGServ { namespace MyProcs {
 	DEFPROC( Unknown,   ""          ,-1 );
 	DEFPROC( Test,      "TEST"      , 0 );
 	DEFPROC( Auth,      "AUTH"      , 3 );
-	DEFPROC( Perks,     "PERKS"     , 2 );
+	DEFPROC( Perks,     "PERKS"     , 3 );
 	DEFPROC( Member,    "MEMBER"    , 1 );
 
 	//-------------------------------------------------------------------------

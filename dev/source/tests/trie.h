@@ -11,5 +11,7 @@ namespace Tests {
 	class Trie : public Test {
 		Trie();
 		bool Execute() override;
+
+		std::string Name() { return "Trie test"; }
 	};
 }
