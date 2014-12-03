@@ -3,88 +3,86 @@
 //========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include <stdafx.h>
-#include "trie.h"
 #include "util/trie.h"
 #include "util/stringles.h"
-#include "system/console.h"
 
 //-----------------------------------------------------------------------------
-namespace Tests {
-	Trie::Trie() {}
+TEST( UtilTests, TrieTest ) {
+	Util::Trie<int> test;
+	
+	EXPECT_TRUE( test.Set( "abc", 5 ) );
 
-	//-------------------------------------------------------------------------
-	bool Trie::Execute() {
-		using System::Console::Print;
+	int value;
+	EXPECT_TRUE( test.Get( "abc", value ));
+	EXPECT_EQ( value, 5 );
+	
+	
+	EXPECT_TRUE( test.Set( "abc", 75, true ));
+	EXPECT_TRUE( test.Get( "abc", value ));
+	EXPECT_EQ( value, 75 );
+
+	EXPECT_FALSE( test.Set( "abc", 12, false ));
+	EXPECT_TRUE( test.Get( "abc", value ));
+	EXPECT_EQ( value, 75 );
+
+	test.Clear();
+	EXPECT_FALSE( test.Get( "abc", value ));
+
+	// test2..
+	std::string base = Util::StringGarbage( 4 );
+	EXPECT_EQ( base.size(), 4 );
+
+	for( int i = 0; i < 20; i++ ) {
+		std::string key = base + Util::StringGarbage( 128 );
+		EXPECT_EQ( key.size(), 128+4 );
 		
-		{
-			Print( "test1..." );
-			Util::Trie<int> test;
-			test.Set( "abc", 5 );
-			int value;
-			if( !test.Get( "abc",value ) ) return false;
-			if( value != 5 ) return false;
+		value = rand();
+		
+		EXPECT_TRUE( test.Set( key, value ));
 
-			test.Set( "abc", 75, true );
-			if( !test.Get( "abc", value ) ) return false;
-			if( value != 75 ) return false;
-
-			test.Set( "abc", 12, false );
-			if( !test.Get( "abc", value ) ) return false;
-			if( value != 75 ) return false;
-
-			test.Clear();
-			if( test.Get( "abc", value ) ) return false;
-
-			Print( "test2..." );
-			std::string base = Util::StringGarbage( 4 );
-
-			for( int i = 0; i < 20; i++ ) {
-				std::string key = base + Util::StringGarbage( 16 );
-				value = rand();
-				test.Set( key, value );
-				int value2;
-				if( !test.Get( key, value2 ) ) return false;
-				if( value2 != value ) return false;
-			}
-			test.Clear();
-			Print( "test3..." );
-			for( int i = 0; i < 20; i++ ) {
-				std::string key = base + Util::StringGarbage( 16 );
-				value = rand();
-				test.Set( key, value );
-				if( !test.Reset( key ) ) return false;
-				if( test.Reset( key ) ) return false;
-			}
-			
-			test.Clear();
-			Print( "test4..." );
-			for( int i = 0; i < 20; i++ ) {
-				std::string key = base + Util::StringGarbage( 16 );
-				value = rand();
-				test.Set( key, value );
-				if( !test.Reset( key ) ) return false;
-				if( test.Get( key, value ) ) return false;
-				if( test.Reset( key ) ) return false;
-			}
-			
-			test.Clear();
-			Print( "test5..." );
-			for( int i = 0; i < 20; i++ ) {
-				std::string key = base + Util::StringGarbage( 16 );
-				value = rand();
-				test.Set( key, value );
-				value = rand();
-				int value2;
-				if( !test.Set( key, value ) ) return false;
-				if( test.Set( key, value, false ) ) return false;
-				if( test.Get( key.substr(0,4), value ) ) return false;
-				if( !test.Get( key, value2 ) ) return false;
-				if( value2 != value ) return false;
-				if( !test.Reset( key ) ) return false;
-				if( test.Reset( key ) ) return false;
-			}
-			
-		}
-		return true;
+		int value2;
+		EXPECT_TRUE( test.Get( key, value2 ));
+		EXPECT_EQ( value, value2 );
 	}
-}
+
+	test.Clear();
+	for( int i = 0; i < 20; i++ ) {
+		std::string key = base + Util::StringGarbage( 99 );
+		EXPECT_EQ( key.size(), 99+4 );
+
+		value = rand();
+		EXPECT_TRUE( test.Set( key, value ));
+		EXPECT_TRUE( test.Reset( key ));
+		EXPECT_FALSE( test.Reset( key ));
+	}
+			
+	test.Clear();
+	
+	for( int i = 0; i < 20; i++ ) {
+		std::string key = base + Util::StringGarbage( 57 );
+		EXPECT_EQ( key.size(), 4+57 );
+		value = rand();
+		EXPECT_TRUE( test.Set( key, value ));
+		EXPECT_TRUE( test.Reset( key ));
+		EXPECT_FALSE( test.Get( key, value ));
+		EXPECT_FALSE( test.Reset( key ));
+	}
+			
+	test.Clear();
+	
+	for( int i = 0; i < 20; i++ ) {
+		std::string key = base + Util::StringGarbage( 16 );
+		EXPECT_EQ( key.size(), 4+16 );
+		value = rand();
+		EXPECT_TRUE( test.Set( key, value ));
+		value = rand();
+		int value2;
+		EXPECT_TRUE( test.Set( key, value ));
+		EXPECT_FALSE( test.Set( key, value, false ));
+		EXPECT_FALSE( test.Get( key.substr(0,4), value ));
+		EXPECT_TRUE( test.Get( key, value2 ));
+		EXPECT_EQ( value, value2 );
+		EXPECT_TRUE( test.Reset( key ));
+		EXPECT_FALSE( test.Reset( key ));
+	}
+} 
