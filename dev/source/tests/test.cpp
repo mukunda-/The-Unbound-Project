@@ -10,8 +10,7 @@
 namespace Tests {
 
 	//-------------------------------------------------------------------------
-	Test::Test( std::string name ) : 
-			m_name(name) {
+	Test::Test() {
 		
 	}
 

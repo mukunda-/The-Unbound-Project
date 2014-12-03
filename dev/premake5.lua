@@ -251,7 +251,6 @@ project_path = CreateProject( "unit", "UNIT", "ConsoleApp", true )
 		"source/mem/*.cpp",
 		"source/mem/arena/*.cpp",
 		"source/tests/*.cpp",
-		"source/programs/rxgserv/*.cpp",
 		"source/main_unit.cpp",
 		
 		"protocol/compiled/**.cc",

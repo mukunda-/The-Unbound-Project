@@ -1,0 +1,80 @@
+-- RECOVERABLE --
+
+1081	08S01	ER_IPSOCK_ERROR: Can't create IP socket
+1152	08S01	ER_ABORTING_CONNECTION: Aborted connection %ld to db: '%s' user: '%s' (%s)
+1154	08S01	ER_NET_READ_ERROR_FROM_PIPE: Got a read error from the connection pipe
+1155	08S01	ER_NET_FCNTL_ERROR: Got an error from fcntl()
+1156	08S01	ER_NET_PACKETS_OUT_OF_ORDER: Got packets out of order
+1157	08S01	ER_NET_UNCOMPRESS_ERROR: Couldn't uncompress communication packet
+1158	08S01	ER_NET_READ_ERROR: Got an error reading communication packets
+1159	08S01	ER_NET_READ_INTERRUPTED: Got timeout reading communication packets
+1160	08S01	ER_NET_ERROR_ON_WRITE: Got an error writing communication packets
+1161	08S01	ER_NET_WRITE_INTERRUPTED: Got timeout writing communication packets
+1180	HY000	ER_ERROR_DURING_COMMIT: Got error %d during COMMIT
+1181	HY000	ER_ERROR_DURING_ROLLBACK: Got error %d during ROLLBACK
+1183	HY000	ER_ERROR_DURING_CHECKPOINT: Got error %d during CHECKPOINT
+1184	08S01	ER_NEW_ABORTING_CONNECTION: Aborted connection %ld to db: '%s' user: '%s' host: '%s' (%s)
+1189	08S01	ER_MASTER_NET_READ: Net error reading from master
+1190	08S01	ER_MASTER_NET_WRITE: Net error writing to master
+1196	HY000	ER_WARNING_NOT_COMPLETE_ROLLBACK: Some non-transactional changed tables couldn't be rolled back
+1218	08S01	ER_CONNECT_TO_MASTER: Error connecting to master: %s
+1219	HY000	ER_QUERY_ON_MASTER: Error running query on master: %s
+1220	HY000	ER_ERROR_WHEN_EXECUTING_COMMAND: Error when executing command %s: %s
+1317	70100	ER_QUERY_INTERRUPTED: Query execution was interrupted
+1376	HY000	ER_FSEEK_FAIL: Failed on fseek()
+1412	HY000	ER_TABLE_DEF_CHANGED: Table definition has changed, please retry transaction
+1429	HY000	ER_CONNECT_TO_FOREIGN_DATA_SOURCE: Unable to connect to foreign data source: %s
+1430	HY000	ER_QUERY_ON_FOREIGN_DATA_SOURCE: There was a problem processing the query on the foreign data source. Data source error: %s
+
+2000	CR_UNKNOWN_ERROR: Unknown MySQL error
+2001	CR_SOCKET_CREATE_ERROR: Can't create UNIX socket (%d)
+2002	CR_CONNECTION_ERROR: Can't connect to local MySQL server through socket '%s' (%d)
+2003	CR_CONN_HOST_ERROR: Can't connect to MySQL server on '%s' (%d)
+2004	CR_IPSOCK_ERROR: Can't create TCP/IP socket (%d)
+2006	CR_SERVER_GONE_ERROR: MySQL server has gone away
+2008	CR_OUT_OF_MEMORY: MySQL client ran out of memory
+2012	CR_SERVER_HANDSHAKE_ERR: Error in server handshake
+2013	CR_SERVER_LOST: Lost connection to MySQL server during query
+2014	CR_COMMANDS_OUT_OF_SYNC: Commands out of sync; you can't run this command now
+2024	CR_PROBE_SLAVE_CONNECT: Error connecting to slave:
+2025	CR_PROBE_MASTER_CONNECT: Error connecting to master:
+2027	CR_MALFORMED_PACKET: Malformed packet
+2055	CR_SERVER_LOST_EXTENDED: Lost connection to MySQL server at '%s', system error: %d
+
+-- RETRY --
+
+1205	HY000	ER_LOCK_WAIT_TIMEOUT: Lock wait timeout exceeded; try restarting transaction
+1213	40001	ER_LOCK_DEADLOCK: Deadlock found when trying to get lock; try restarting transaction
+
+-- SOFT FAILURE --
+
+1040	08004	ER_CON_COUNT_ERROR: Too many connections
+1053	08S01	ER_SERVER_SHUTDOWN: Server shutdown in progress
+1203	42000	ER_TOO_MANY_USER_CONNECTIONS: User %s already has more than 'max_user_connections' active connections
+
+2016	CR_NAMEDPIPEWAIT_ERROR: Can't wait for named pipe to host: %s pipe: %s (%lu)
+2017	CR_NAMEDPIPEOPEN_ERROR: Can't open named pipe to host: %s pipe: %s (%lu)
+
+-- HARD FAILURE --
+
+1045	28000	ER_ACCESS_DENIED_ERROR: Access denied for user '%s'@'%s' (using password: %s)
+1129	HY000	ER_HOST_IS_BLOCKED: Host '%s' is blocked because of many connection errors; unblock with 'mysqladmin flush-hosts'
+1130	HY000	ER_HOST_NOT_PRIVILEGED: Host '%s' is not allowed to connect to this MySQL server
+2005	CR_UNKNOWN_HOST: Unknown MySQL server host '%s' (%d)
+2007	CR_VERSION_ERROR: Protocol mismatch; server version = %d, client version = %d
+2009	CR_WRONG_HOST_INFO: Wrong host info
+2018	CR_NAMEDPIPESETSTATE_ERROR: Can't set state of named pipe to host: %s pipe: %s (%lu)
+
+-- UNKNOWN --
+
+1076	HY000	ER_READY: %s: ready for connections. Version: '%s' socket: '%s' port: %d
+1188*	HY000	ER_MASTER: Error from master: '%s'
+1329	02000	ER_SP_FETCH_NO_DATA: No data - zero rows fetched, selected, or processed
+
+-------------------------------------------------------------------------------
+RECOVERABLE: close the existing connection and retry with a new one
+RETRY: retry the transaction.
+SOFT FAILURE: discard the existing connection and fail (may be retried later).
+HARD FAILURE: shutdown the connection and do not allow any more transactions.
+UNKNOWN: Vague description, treat as soft failure.
+OTHER:   

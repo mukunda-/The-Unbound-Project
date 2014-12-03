@@ -71,6 +71,10 @@
 #elif PROJECT_RXGSERV
 
 #include "pch_rxgserv.h"
+
+#elif PROJECT_UNIT
+
+#include "pch_unit.h"
  
 #endif
 
