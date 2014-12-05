@@ -4,20 +4,18 @@
 
 #pragma once
 
+#include "util/feed.h"
 
-namespace System { namespace Console {
+namespace Console {
 
-/// ---------------------------------------------------------------------------
-/// Execute a command.
-///
-void Execute( const char *command_string );
+template <typename ...T>
+void Print( const std::string &format, T...args ) {
+	boost::format formatter( format );
+	Util::Feed( formatter, args... );
 
-/// ---------------------------------------------------------------------------
-/// Execute a script file
-///
-/// \param file Path to script file, relative to game contents folder.
-///
-bool ExecuteScript( const char *file );
+}
+
+void Print( const std::string &text );
 
 /// ---------------------------------------------------------------------------
 /// Print newline+text to the console
@@ -35,4 +33,4 @@ void PrintExS( const char *text );
 void PrintExS( const char *format, va_list args );
 void PrintEx( const char *format, ... );
 
-}}
+}

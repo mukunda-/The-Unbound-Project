@@ -16,7 +16,6 @@ TEST( UtilTests, TrieTest ) {
 	EXPECT_TRUE( test.Get( "abc", value ));
 	EXPECT_EQ( value, 5 );
 	
-	
 	EXPECT_TRUE( test.Set( "abc", 75, true ));
 	EXPECT_TRUE( test.Get( "abc", value ));
 	EXPECT_EQ( value, 75 );
@@ -76,6 +75,7 @@ TEST( UtilTests, TrieTest ) {
 		value = rand();
 		EXPECT_TRUE( test.Set( key, value ));
 		value = rand();
+
 		int value2;
 		EXPECT_TRUE( test.Set( key, value ));
 		EXPECT_FALSE( test.Set( key, value, false ));
