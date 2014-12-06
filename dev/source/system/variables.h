@@ -6,6 +6,7 @@
 
 #include "util/stringles.h"
 #include "system/console.h"
+#include "console/console.h"
 
 namespace System { 
 
@@ -69,7 +70,7 @@ private:
 		}
 
 		if( warn ) {
-			System::Console::Print( "Warning: Reading INT from %s variable \"%s\"", TYPENAMES[m_type], m_name );
+			::Console::Print( "Warning: Reading INT from %s variable \"%s\"", TYPENAMES[m_type], m_name );
 		}
 
 		if( m_type == T_FLOAT ) {
@@ -89,7 +90,7 @@ private:
 		}
 
 		if( warn ) {
-			System::Console::Print( "Warning: Reading FLOAT from %s variable \"%s\"", TYPENAMES[m_type], m_name );
+			::Console::Print( "Warning: Reading FLOAT from %s variable \"%s\"", TYPENAMES[m_type], m_name );
 		}
 
 		if( m_type == T_INT ) {
@@ -109,7 +110,7 @@ private:
 		}
 
 		if( warn ) {
-			System::Console::Print( "Warning: Reading STRING from %s variable \"%s\"", TYPENAMES[m_type], m_name );
+			::Console::Print( "Warning: Reading STRING from %s variable \"%s\"", TYPENAMES[m_type], m_name );
 		}
 
 		if( m_type == T_INT ) {
@@ -251,7 +252,7 @@ public:
 		}
 
 		if( warn ) {
-			System::Console::Print( "Warning: Writing INT to %s variable \"%s\"", TYPENAMES[m_type], m_name );
+			::Console::Print( "Warning: Writing INT to %s variable \"%s\"", TYPENAMES[m_type], m_name );
 		}
 
 		if( m_type == T_FLOAT ) {
@@ -278,7 +279,7 @@ public:
 		}
 
 		if( warn ) {
-			System::Console::Print( "Warning: Writing FLOAT to %s variable \"%s\"", TYPENAMES[m_type], m_name );
+			::Console::Print( "Warning: Writing FLOAT to %s variable \"%s\"", TYPENAMES[m_type], m_name );
 		}
 
 		if( m_type == T_INT ) {
@@ -305,7 +306,7 @@ public:
 		}
 
 		if( warn ) {
-			System::Console::Print( "Warning: Writing STRING to %s variable \"%s\"", TYPENAMES[m_type], m_name );
+			::Console::Print( "Warning: Writing STRING to %s variable \"%s\"", TYPENAMES[m_type], m_name );
 		}
 
 		if( m_type == T_INT ) {

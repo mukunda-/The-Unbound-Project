@@ -11,6 +11,7 @@
 #include "net/listener.h"
 #include "net/core.h"
 #include "net/textstream.h"
+#include "console/console.h"
 
 #include "protocol.h"
 #include "proto/auth/login.pb.h"
@@ -41,27 +42,27 @@ class TestProgram : public System::Program {
 		TestProgram &m_parent;
 		
 			virtual void Accepted( Net::Stream::ptr &stream ) {
-				System::Console::Print( "ACCEPTED" );
+				Console::Print( "ACCEPTED" );
 			}
 			virtual void AcceptError( 
 					Net::Stream::ptr &stream,
 					const boost::system::error_code &error ) {
-				System::Console::Print( "ACCEPTERROR", error.message().c_str() );
+				Console::Print( "ACCEPTERROR", error.message().c_str() );
 			}
 			
 			virtual void Disconnected( 
 					Net::Stream::ptr &stream,
 					const boost::system::error_code &error ) {
-				System::Console::Print( "DISCONNECTED", error.message().c_str() );
+				Console::Print( "DISCONNECTED", error.message().c_str() );
 			}
 			virtual void SendFailed( 
 					Net::Stream::ptr &stream,
 					const boost::system::error_code &error ) {
-				System::Console::Print( "SENDFAILED %s", error.message().c_str() );
+				Console::Print( "SENDFAILED %s", error.message().c_str() );
 			}
 			void ConnectError( Net::Stream::ptr &stream,
 							   const boost::system::error_code &error ) {
-				System::Console::Print( "Couldn't connect : %s", error.message().c_str() );
+				Console::Print( "Couldn't connect : %s", error.message().c_str() );
 			}
 			/*
 			virtual void Connected( Net::Stream::ptr &str ) {
@@ -87,18 +88,18 @@ class TestProgram : public System::Program {
 
 				auto &stream = str->Cast<MyStream>();
 				
-				System::Console::Print( "Connected... Sending login." );
+				Console::Print( "Connected... Sending login." );
 				 
 				stream.Write().Formatted( "Hello %s", "world." );
 				
-				System::Console::Print( "ok!" );
+				Console::Print( "ok!" );
 			}
 
 			//-----------------------------------------------------------------
 			void Receive( Net::Stream::ptr &str, Net::Message &netmsg ) override {
 				auto &msg = netmsg.Cast<Net::TextStream::Message>();
 				
-				System::Console::Print( "Received message: %s", msg().c_str() );
+				Console::Print( "Received message: %s", msg().c_str() );
 				
 			}
 
@@ -178,6 +179,7 @@ void RunProgram() {
 
 //-------------------------------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) { 
+	Console::Instance i_console;
 	System::Instance i_system(2); 
 	System::ServerConsole::Instance i_serverconsole( "TESTING" );
 	Net::Instance i_net(1);

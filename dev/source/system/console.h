@@ -6,31 +6,20 @@
 
 #include "util/feed.h"
 
-namespace Console {
+namespace System { namespace Console {
 
-template <typename ...T>
-void Print( const std::string &format, T...args ) {
-	boost::format formatter( format );
-	Util::Feed( formatter, args... );
 
-}
-
-void Print( const std::string &text );
 
 /// ---------------------------------------------------------------------------
-/// Print newline+text to the console
+/// Execute a command.
 ///
-void PrintS( const char *text );
-void PrintS( const char *format, va_list args );
-void Print( const char *format, ... );
+void Execute( const char *command_string );
 
 /// ---------------------------------------------------------------------------
-/// Print text to the console without updating the terminal.
+/// Execute a script file
 ///
-/// i.e. doesn't actually print anything until an update.
+/// \param file Path to script file, relative to game contents folder.
 ///
-void PrintExS( const char *text );
-void PrintExS( const char *format, va_list args );
-void PrintEx( const char *format, ... );
+bool ExecuteScript( const char *file );
 
-}
+}}

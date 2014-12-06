@@ -6,6 +6,7 @@
 #include "system/system.h"
 #include "system/console.h"
 #include "system/commands.h"
+#include "console/console.h"
 
 #pragma warning( disable : 4996 )
 
@@ -112,30 +113,20 @@ void RunProgram( Program &program ) {
 
 //-----------------------------------------------------------------------------
 void Shutdown() {
-	System::Console::Print( "Shutting down..." );
+	::Console::Print( "Shutting down..." );
 	g_instance->Shutdown();
 }
 
 //-----------------------------------------------------------------------------
 void Log( const std::string &message ) {
-//	va_list argptr;
-//	va_start(argptr, format);
-//	char text[4096];
-//	vsnprintf( text, sizeof text, format, argptr );
-	System::Console::PrintS( message.c_str() );
+	::Console::Print( message );
 	// todo: log to file
-//	va_end(argptr);
 } 
 
 //-----------------------------------------------------------------------------
 void LogError( const std::string &message ) {
-//	va_list argptr;
-//	va_start(argptr, format);
-//	char text[4096];
-//	vsnprintf( text, sizeof text, format, argptr );
-	System::Console::PrintS( message.c_str() );
+	::Console::PrintErr( message );
 	// todo: log to error file
-//	va_end(argptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -160,7 +151,7 @@ Instance::Instance( int threads ) : m_strand( m_service() ) {
 	m_service.Run( threads );
 	m_live = true;
 
-	System::Console::AddGlobalCommand( "quit", Command_Quit );
+	Console::AddGlobalCommand( "quit", Command_Quit );
 }
 
 //-----------------------------------------------------------------------------

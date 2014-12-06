@@ -205,8 +205,7 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
 		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp",
-		"source/tests/*.cpp",
+		"source/mem/arena/*.cpp", 
 		"source/main_test.cpp",
 		
 		
@@ -227,8 +226,7 @@ project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 		"source/system/server/*.cpp",
 		"source/util/*.cpp",
 		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp",
-		"source/tests/*.cpp",
+		"source/mem/arena/*.cpp", 
 		"source/programs/rxgserv/*.cpp",
 		"source/main_rxgserv.cpp",
 		

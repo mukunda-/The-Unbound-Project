@@ -6,7 +6,7 @@
 #include "stdafx.h"
 #include "keyvalues.h"
 #include "fopen2.h"
-#include "system/console.h"
+#include "console/console.h"
 
 //-------------------------------------------------------------------------------------------------
 namespace Util {
@@ -153,7 +153,7 @@ foundterm:
 			KeyValue kv;
 			Util::CopyString( kv.name, term );
 			current_section->values.push_back( kv );
-			current_index = current_section->values.size()-1;
+			current_index = (int)current_section->values.size()-1;
 
 			state = 1;
 		} else if( state == 1 ) {
@@ -184,7 +184,7 @@ foundterm:
 //-------------------------------------------------------------------------------------------------
 bool KeyValues::LoadFromFile( const char *file ) {
 	if( !ParseKVFile( file ) ) {
-		System::Console::Print( "*** Error parsing KeyValues from: %s", file );
+		Console::Print( "*** Error parsing KeyValues from: %s", file );
 		Erase();
 		return false;
 	}
@@ -353,7 +353,7 @@ void KeyValues::Insert( const char *key, const char *value, bool section, bool e
 	Util::CopyString( kv.name, key );
 	Util::CopyString( kv.value, value );
 	current_section->values.push_back( kv );
-	current_index = current_section->values.size() - 1;
+	current_index = (int)current_section->values.size() - 1;
 	if( section ) {
 		// enter will create a new section if it doesn't exist (yes in this case)
 		Enter( true );

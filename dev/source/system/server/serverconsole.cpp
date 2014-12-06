@@ -7,11 +7,21 @@
 #include "system/console.h"
 #include "system/system.h"
 #include "system/server/linereader.h"
+
+#include "console/console.h"
  
 namespace System { namespace ServerConsole {
 	
 //-----------------------------------------------------------------------------
 Instance *g_instance;
+
+class MyPrintHandler : public ::Console::PrintHandler {
+	
+	void Print( const char *text, bool error ) override {
+		PrintToWindow( text, false );
+	}
+
+};
  
 //-----------------------------------------------------------------------------
 void Instance::SetTitle( const char *text ) {
@@ -51,25 +61,6 @@ void Instance::InitializeWindows() {
 void Instance::ClearInputWindow() {
 	werase( m_windows[WINDOW_INPUT] );
 }
-/*
-//-----------------------------------------------------------------------------
-void Instance::GetInputEx( const char *prompt, char *input, int maxlen ) {
-	{
-		boost::lock_guard<boost::mutex> lock(console_mutex);
-		mvwprintw( windows[WINDOW_INPUT], 0, 0, prompt );
-	}
-	wgetnstr( windows[WINDOW_INPUT], input, maxlen );
-	{
-		boost::lock_guard<boost::mutex> lock(console_mutex);
-		ClearInputWindow();
-	}
-}*/
-
-/*
-//-----------------------------------------------------------------------------
-void GetInput( char *input, int maxlen ) {
-	GetInputEx( "$ ", input, maxlen );
-}*/
 
 //-----------------------------------------------------------------------------
 void Instance::PrintToWindow( const char * text, bool newline ) {
@@ -95,26 +86,6 @@ void Instance::PrintToWindow( const char * format, bool newline, va_list args ) 
 	update_panels();
 	doupdate();
 }
-/*
-//----------------------------------------------------------------------------
-void Print( const char *format, ... ) {
-	va_list argptr;
-	va_start(argptr, format);
-	PrintToWindow( format, true, true, argptr );
-	va_end(argptr);
-} 
-
-void Print( const char *text ) {
-
-}
-
-//-----------------------------------------------------------------------------
-void PrintEx( const char *format, ... ) {
-	va_list argptr;
-	va_start(argptr, format);
-	PrintToWindow( format, false, false, argptr );
-	va_end(argptr);
-}*/
 
 //-----------------------------------------------------------------------------
 void Instance::SetMenuItem( int line, const char *format, bool update, va_list argptr ) {
@@ -232,6 +203,8 @@ exit_for:;
 Instance::Instance( const std::string &window_title ) {
 
 	g_instance = this;
+
+	::Console::SetPrintHandler( std::make_shared<MyPrintHandler>() );
 
 	memset( m_vkey_map, 0, sizeof( m_vkey_map ) );
 

@@ -35,11 +35,11 @@ void Execute( const char *command_string ) {
 	char name[64];
 	const char *next = Util::BreakString( command_string, name );
 	if( name[0] == 0 ) {
-		System::Console::Print( "" );
+		::Console::Print( "" );
 		return;
 	}
 
-	System::Console::Print( "\n>>> %s", command_string );
+	::Console::Print( "\n>>> %s", command_string );
 	
 	if( TryExecuteCommand( command_string ) ) {
 		return;
@@ -48,7 +48,7 @@ void Execute( const char *command_string ) {
 	System::Variable *var = System::Variable::Find( name );
 	if( !var ) {
 
-		System::Console::Print( "Unknown command: \"%s\"", name );
+		::Console::Print( "Unknown command: \"%s\"", name );
 		return;
 	} 
 
@@ -69,12 +69,12 @@ void Execute( const char *command_string ) {
 bool ExecuteScript( const char *file ) {
 	FILE *f = fopen2( file, "r" );
 	if( !f ) {
-		System::Console::Print( "Script not found: \"%s\"", file );
+		::Console::Print( "Script not found: \"%s\"", file );
 		return false;
 	}
 
 	char line[1024];
-	System::Console::Print( "Executing script: \"%s\"", file );
+	::Console::Print( "Executing script: \"%s\"", file );
 
 	Util::CodeTimer timer;
 
@@ -83,7 +83,7 @@ bool ExecuteScript( const char *file ) {
 		Execute( line );
 	}
 
-	System::Console::Print( "Finished executing script: \"%s\", time=%s", file, 
+	::Console::Print( "Finished executing script: \"%s\", time=%s", file, 
 		Util::RoundDecimal( timer.Duration(),2 ).c_str() );
 
 	return true;

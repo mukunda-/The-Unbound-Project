@@ -50,24 +50,7 @@ void PrintToWindow( const char * format, bool newline, va_list args );
 /// @param text    Text to print
 /// @param newline if true, append a newline to the text
 ///
-void PrintToWindow( const char * text, bool newline  );
-
-/// ---------------------------------------------------------------------------
-/// Read a string from the input box.
-///
-/// @param input  Buffer to store input.
-/// @param maxlen Size of buffer.
-///
-void GetInput( char *input, int maxlen );
-
-/// ---------------------------------------------------------------------------
-/// Read a string from the input box.
-///
-/// @param prompt Prompt to display on the left side of the input box.
-/// @param input  Input storage buffer.
-/// @param maxlen Size of input buffer.
-///
-void GetInputEx( const char *prompt, char *input, int maxlen );
+void PrintToWindow( const char * text, bool newline );
 
 /// ---------------------------------------------------------------------------
 /// Redraw the windows.

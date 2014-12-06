@@ -46,7 +46,7 @@ Variable *Variable::Find( const char *name ) {
 
 //---------------------------------------------------------------------------------------
 void Variable::PrintInfo() {
-	System::Console::Print( "%s [%s]: \"%s\" | %s", 
+	::Console::Print( "%s [%s]: \"%s\" | %s", 
 		m_name, TYPENAMES[m_type], GetString(false).c_str(), m_description.c_str() );
 }
 

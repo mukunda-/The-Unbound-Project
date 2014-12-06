@@ -190,17 +190,4 @@ namespace Util {
 	///         
 	bool IsDigits( const std::string &test );
 
-	/// -----------------------------------------------------------------------
-	/// Format a string.
-	///
-	/// @param format Template.
-	/// @param args   Formatted arguments.
-	/// @returns      Formatted string.
-	///
-	template< typename ... Args >
-	std::string Format( const std::string &format, Args ... args ) {
-		boost::format formatter(format);
-		Util::Feed( formatter, args... );
-		return formatter.str();
-	}
 }
