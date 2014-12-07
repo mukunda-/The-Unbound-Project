@@ -106,26 +106,24 @@ void Instance::SetMenuItem( int line, const char *format, bool update, va_list a
 		doupdate();
 	}
 }
-
-
+ 
 //-----------------------------------------------------------------------------
 void Instance::Update() {
 	ConsoleLock lock(this);
 	update_panels();
 	doupdate();
 }
-
-
+ 
 //-----------------------------------------------------------------------------
 WINDOW *Instance::GetWindowHandle( int index ) {
 	return m_windows[index];
 }
-
+ 
 //-----------------------------------------------------------------------------
 void Instance::InputChar( char c ) {
 
 }
-
+ 
 //-----------------------------------------------------------------------------
 void Instance::HandleConsoleInput() {
 
