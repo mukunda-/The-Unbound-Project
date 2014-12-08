@@ -8,9 +8,29 @@
 #include "system/console.h"
 #include "console/console.h"
 
-namespace System { 
+namespace System {  
 
-#define PRINT_VARIABLE_WARNINGS
+/// ---------------------------------------------------------------------------
+/// Base for a class that holds a system variable.
+///
+class Variable {
+
+public:
+	using OnChange = std::function<void(Variable&)>;
+	virtual void TypeInfo() = 0;
+
+	enum {
+		FLAG_GLOBAL = 1	// is owned by the global variable list
+						// (and cannot be destroyed during runtime)
+	};
+
+private:
+
+	std::vector<OnChange> m_change_handlers;
+	int m_flags;
+
+	
+};
 
 //---------------------------------------------------------------------------------------
 class Variable {
