@@ -17,19 +17,91 @@ class Variable {
 
 public:
 	using OnChange = std::function<void(Variable&)>;
-	virtual void TypeInfo() = 0;
 
 	enum {
 		FLAG_GLOBAL = 1	// is owned by the global variable list
 						// (and cannot be destroyed during runtime)
 	};
 
+	enum class Types {
+		INT,
+		FLOAT,
+		STRING
+	};
+	
+	/// --------------------------------------------------------------------------
+	/// Returns the type of this variable.
+	///
+	virtual Types Type() = 0;
+
+	/// --------------------------------------------------------------------------
+	/// Read the value of this variable.
+	///
+	/// @param warn If true, print a warning to the console if the value has to 
+	///             be coerced to the return type.
+	///
+	int         GetInt( bool warn = true );
+	double      GetFloat( bool warn = true );
+	std::string GetString( bool warn = true );
+
+	/// --------------------------------------------------------------------------
+	/// Get the value as a C string. This only works for compatible
+	/// variable types.
+	///
+	const char *GetCString();
+
+	/// --------------------------------------------------------------------------
+	/// Get the previously set value for this variable.
+	///
+	/// Ideally used when handling a value change and comparing with the
+	/// new value.
+	///
+	int         PreviousInt( bool warn = true );
+	double      PreviousFloat( bool warn = true );
+	std::string PreviousString( bool warn = true );
+
+	/// --------------------------------------------------------------------------
+	/// Set the value of this variable.
+	///
+	/// @param warn If true, print a warning to the console if the value has to 
+	///             be coerced to the internal type.
+	///
+	int         SetInt( bool warn = true );
+	double      SetFloat( bool warn = true );
+	std::string SetString( bool warn = true );
+
+protected:
+	Variable();
+	virtual ~Variable();
+
+	// implementation
+	virtual void GetValue( Types type, bool warn, Glob &value );
+	virtual void SetValue( Types type, bool warn, void *value );
+	
+	struct Glob {
+		std::string m_string;
+		int         m_int;
+		double      m_float;
+	};
 private:
 
+	// registered callbacks for when the value of this variable changes.
 	std::vector<OnChange> m_change_handlers;
+
+	// FLAG_* bits
 	int m_flags;
 
+	// the name used to reference this variable
+	std::string m_name;
+
+	// brief description of this variable
+	std::string m_description;
 	
+	
+};
+
+class IntVariable {
+
 };
 
 //---------------------------------------------------------------------------------------
@@ -79,7 +151,7 @@ private:
 	enum {
 		FCVAR_GLOBAL=1
 	};
-	static const int a = 5;
+ 
 	//---------------------------------------------------------------------------------------
 	static const char *TYPENAMES[];
 
