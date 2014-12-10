@@ -5,26 +5,23 @@
 //-----------------------------------------------------------------------------
 
 #include "stdafx.h"
+#include "system.h"
 #include "variables.h"
 #include "util/trie.h"
 
 //---------------------------------------------------------------------------------------
 namespace System {
 
+extern Instance *g_instance;
+
 const char *Variable::TYPENAMES[] = {
 	"INT",
 	"FLOAT",
 	"STRING"
 };
-
+ 
 //---------------------------------------------------------------------------------------
-namespace {
-	std::vector<Variable> variables; // todo, move this into manager!
-	Util::Trie<Variable*> references;
-}
-
-//---------------------------------------------------------------------------------------
-Variable &Variable::Create( const char *name, Variable::Type type, 
+Variable &CreateVariable( const char *name, Variable::Type type, 
 					  const char *default_value, const char *description, int flags ) {
 
 	Variable *cvar = Find( name );

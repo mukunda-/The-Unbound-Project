@@ -16,7 +16,8 @@ namespace System {
 class Variable {
 
 public:
-	using OnChange = std::function<void(Variable&)>;
+	using ptr = std::unique_ptr<Variable>;
+	using ChangeHandler = std::function<void(Variable&)>;
 
 	enum {
 		FLAG_GLOBAL = 1	// is owned by the global variable list
@@ -69,24 +70,54 @@ public:
 	int         SetInt( bool warn = true );
 	double      SetFloat( bool warn = true );
 	std::string SetString( bool warn = true );
+	
+	/// -----------------------------------------------------------------------
+	/// Called when the variable is changed by the system.
+	///
+	/// This executes the "on-changed" handler sequence.
+	///
+	void OnChange();
+
+	/// -----------------------------------------------------------------------
+	/// Add an "on-change" handler.
+	///
+	/// When this variable is changed, your callback will be triggered.
+	///
+	/// @param callback Callback function to add to the on-changed 
+	///                 handler list
+	///
+	void HookChange( ChangeHandler callback );
+
+	/// -----------------------------------------------------------------------
+	/// Remove an "on-change" handler.
+	///
+	/// @param callback Callback that was registered with HookChange
+	///
+	void UnhookChange( ChangeHandler callback );
+	
+	/// -----------------------------------------------------------------------
+	/// Return the name of this variable.
+	///
+	std::string Name() { return m_name; }
+	
+	/// -----------------------------------------------------------------------
+	/// Print the name, type and description of this variable to the console.
+	///
+	void PrintInfo();
 
 protected:
-	Variable();
+	Variable( const std::string &name, const std::string &description,
+			  int flags );
 	virtual ~Variable();
 
 	// implementation
-	virtual void GetValue( Types type, bool warn, Glob &value );
-	virtual void SetValue( Types type, bool warn, void *value );
+	virtual int GetValue( void *value, Types type, bool prev );
+	virtual int SetValue( void *value, Types type );
 	
-	struct Glob {
-		std::string m_string;
-		int         m_int;
-		double      m_float;
-	};
 private:
 
 	// registered callbacks for when the value of this variable changes.
-	std::vector<OnChange> m_change_handlers;
+	std::vector<ChangeHandler> m_change_handlers;
 
 	// FLAG_* bits
 	int m_flags;
@@ -100,10 +131,13 @@ private:
 	
 };
 
-class IntVariable {
+class IntVariable : public Variable {
 
+protected:
+	int GetValue( void *value, Variable::Types type, bool prev ) override;
+	int SetValue( void *value, Types type ) override;
 };
-
+/*
 //---------------------------------------------------------------------------------------
 class Variable {
 
@@ -458,27 +492,6 @@ public:
 	///
 	void PrintInfo();
 
-	/// -----------------------------------------------------------------------
-	/// Create a new sysvar
-	/// 
-	/// This checks for an existing variable first and simply returns it if so.
-	/// If it doesnt exist, a new variable is created and initialized with the 
-	/// arguments given.
-	///
-	/// \param name Name of variable to create. The name is used to reference
-	///             the variable later on.
-	/// \param type Type of variable to create, see Variable::Type enum.
-	///
-	/// \param default_value Value to initialize the variable with. Only used
-	///                      when a new variable is created.
-	///
-	/// \param description Description to assign to the variable. Only used
-	///                    when a new variable is created.
-	///
-	/// \param flags Creation flags (reserved for later use)
-	///
-	/// \return Existing Variable or newly created Variable.
-	///
 	static Variable &Create( const char *name, Variable::Type type, 
 							const char *default_value, 
 							const char *description = nullptr, 
@@ -494,6 +507,32 @@ public:
 
 };
 
- 
+ */
+
+/// -----------------------------------------------------------------------
+/// Create a new sysvar
+/// 
+/// This checks for an existing variable first and simply returns it if so.
+/// If it doesnt exist, a new variable is created and initialized with the 
+/// arguments given.
+///
+/// @param name Name of variable to create. The name is used to reference
+///             the variable later on.
+/// @param type Type of variable to create, see Variable::Type enum.
+///
+/// @param default_value Value to initialize the variable with. Only used
+///                      when a new variable is created.
+///
+/// @param description Description to assign to the variable. Only used
+///                    when a new variable is created.
+///
+/// @param flags Creation flags (reserved for later use)
+///
+/// @return Existing Variable or newly created Variable.
+///
+Variable &CreateVariable( const std::string &name,
+					      const std::string &default_value = "",
+						  const std::string &description = "",
+						  int flags = 0 );
 
 }

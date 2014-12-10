@@ -7,6 +7,7 @@
 #include "system/program.h"
 #include "mem/arena/arena.h"
 #include "util/feed.h"
+#include "system/variables.h"
 
 namespace System {
 
@@ -202,6 +203,10 @@ private:
 	Service  m_service;
 	boost::asio::strand m_strand;
 	Program *m_program;
+
+	std::vector<Variable::ptr> m_variables;
+	Util::Trie<Variable*> m_variable_map;
+	
 
 public: 
 	bool Live() { return m_live; }
