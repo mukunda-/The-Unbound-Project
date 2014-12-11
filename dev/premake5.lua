@@ -196,6 +196,7 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
 	defines {"UB_TESTING"}
 	
 	files {
+		"source/console/*.cpp",
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
 		"source/net/*.cpp",
@@ -217,6 +218,7 @@ project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 	defines {"UB_SERVER"}
 	
 	files {
+		"source/console/*.cpp",
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
 		"source/net/*.cpp",
@@ -238,6 +240,7 @@ project_path = CreateProject( "unit", "UNIT", "ConsoleApp", true )
 	defines {"UB_TESTING"}
 	
 	files {
+		"source/console/*.cpp",
 		"source/pch/*.cpp",
 		"source/io/*.cpp",
 		"source/net/*.cpp",

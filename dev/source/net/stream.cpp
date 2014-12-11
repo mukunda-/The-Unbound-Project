@@ -38,7 +38,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	}
 	
 	m_read_buffer.commit( bytes_transferred );
-	m_read_avail += bytes_transferred;
+	m_read_avail += (int)bytes_transferred;
 
 	if( m_read_avail > 0 ) {
 		std::istream is( &m_read_buffer );

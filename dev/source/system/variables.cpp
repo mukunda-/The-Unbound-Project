@@ -9,42 +9,157 @@
 #include "variables.h"
 #include "util/trie.h"
 
+using namespace std;
+using Util::StringRef;
+
 //---------------------------------------------------------------------------------------
 namespace System {
 
 extern Instance *g_instance;
+  
+//---------------------------------------------------------------------------------------
+Variable &Instance::CreateVariable( const StringRef &name, 
+									const StringRef &default_value,
+									const StringRef &description, int flags ) {
 
-const char *Variable::TYPENAMES[] = {
-	"INT",
-	"FLOAT",
-	"STRING"
-};
+	try {
+		return *m_variables.at( name ); 
+	} catch( std::out_of_range& ) {}
+	 
+	auto var = new Variable( name, description, default_value, flags );
+
+	m_variables[ name ] = Variable::ptr(var);
+	return *var;
+}
+
+//-----------------------------------------------------------------------------
+bool Instance::DeleteVariable( const StringRef &name ) { 
+
+	try {
+		m_variables.erase( name );
+		return true;
+	} catch( std::out_of_range& ) {}
+
+	return false;
+}
  
-//---------------------------------------------------------------------------------------
-Variable &CreateVariable( const char *name, Variable::Type type, 
-					  const char *default_value, const char *description, int flags ) {
-
-	Variable *cvar = Find( name );
-	if( cvar ) return *cvar;
-	
-	cvar = new Variable( name, type, description, flags );
-	if( default_value ) cvar->SetString( default_value, false );
-
-	references.Set( name, cvar );
-	return *cvar;
+//-----------------------------------------------------------------------------
+Variable *Instance::FindVariable( const StringRef &name ) {
+	try {
+		return m_variables.at( name ).get();
+	} catch( std::out_of_range& ) {}
+	return nullptr;
 }
 
-//---------------------------------------------------------------------------------------
-Variable *Variable::Find( const char *name ) {
-	Variable *cvar;
-	if( !references.Get( name, cvar ) ) return nullptr;
-	return cvar;
+namespace Variables {
+
+	//-------------------------------------------------------------------------
+	Variable &Create( const StringRef &name, const StringRef &default_value,
+					  const StringRef &description, int flags ) {
+
+		return g_instance->CreateVariable( 
+				name, default_value, description, flags );
+	}
+
+	//-------------------------------------------------------------------------
+	Variable *Find( const StringRef &name ) {
+		return g_instance->FindVariable( name );
+	}
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Variable::PrintInfo() {
-	::Console::Print( "%s [%s]: \"%s\" | %s", 
-		m_name, TYPENAMES[m_type], GetString(false).c_str(), m_description.c_str() );
+	::Console::Print( "%s: \"%s\" | %s", m_name, GetCString(), m_description );
+}
+
+//-----------------------------------------------------------------------------
+Variable::Variable( const StringRef &name, 
+			const StringRef &description,
+			const StringRef &init,
+			int flags ) {
+
+	m_name = name;
+	m_description = description;
+	m_flags = flags;
+	SetString( init );
+}
+
+//-----------------------------------------------------------------------------
+Variable::~Variable() {}
+
+//-----------------------------------------------------------------------------
+bool Variable::SetInt( int value ) {
+	m_prev = m_value;
+
+	m_value.m_int = value;
+	m_value.m_float = (double)value;
+	m_value.m_string = std::to_string( value );
+
+	return OnChanged();
+}
+
+//-----------------------------------------------------------------------------
+bool Variable::SetFloat( double value ) {
+	m_prev = m_value;
+
+	m_value.m_int = (int)floor(value);
+	m_value.m_float = value;
+	m_value.m_string = std::to_string( value );
+
+	return OnChanged();
+}
+
+//-----------------------------------------------------------------------------
+bool Variable::SetString( const StringRef &value ) {
+	m_prev = m_value;
+
+	try {
+		m_value.m_int = 0;
+		m_value.m_int = std::stoi( value );
+	} catch( std::invalid_argument& ) {
+	} catch( std::out_of_range& ) {}
+	
+	try {
+		m_value.m_float = 0;
+		m_value.m_float = std::stod( value );
+	} catch( std::invalid_argument& ) {
+	} catch( std::out_of_range& ) {}
+
+	m_value.m_string = value.Copy();
+	
+	return OnChanged();
+}
+
+//-----------------------------------------------------------------------------
+int Variable::HookChange( ChangeHandler callback ) {
+	int id = m_changehandler_nextid++;
+	m_change_handlers.push_back( std::pair<int,ChangeHandler>( id, callback ));
+	return id;
+}
+
+//-----------------------------------------------------------------------------
+void Variable::UnhookChange( int id ) {
+	for( auto handler = m_change_handlers.begin(); 
+			  handler != m_change_handlers.end(); handler++ ) {
+
+		if( (*handler).first == id ) {
+			m_change_handlers.erase( handler );
+			return;
+		}
+	}
+
+	throw std::runtime_error( 
+		"Tried to unhook nonexistant sysvar change handler." );
+}
+
+//-----------------------------------------------------------------------------
+bool Variable::OnChanged() {
+	if( m_value == m_prev ) return false;
+
+	for( auto &handler : m_change_handlers ) {
+		handler.second( *this );
+	}
+	return true;
 }
 
 }

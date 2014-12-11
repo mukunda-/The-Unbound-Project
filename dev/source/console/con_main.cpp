@@ -15,25 +15,25 @@ Instance *g_instance;
 //-----------------------------------------------------------------------------
 void Print( const Util::StringRef &text ) {
 	assert( g_instance );
-	g_instance->Print( text, true, false );
+	g_instance->Print( text.CStr(), true, false );
 }
  
 //-----------------------------------------------------------------------------
 void PrintErr( const Util::StringRef &text ) {
 	assert( g_instance );
-	g_instance->Print( text, true, true );
+	g_instance->Print( text.CStr(), true, true );
 }
  
 //-----------------------------------------------------------------------------
 void PrintEx( const Util::StringRef &text ) {
 	assert( g_instance );
-	g_instance->Print( text, false, false );
+	g_instance->Print( text.CStr(), false, false );
 } 
 
 //-----------------------------------------------------------------------------
 void PrintErrEx( const Util::StringRef &text ) {
 	assert( g_instance );
-	g_instance->Print( text, false, true );
+	g_instance->Print( text.CStr(), false, true );
 }
 
 //-----------------------------------------------------------------------------

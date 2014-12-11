@@ -87,7 +87,7 @@ int StringTable::Add( const char *text, void *data ) {
 	StringTableEntry e;
 	e.data = data;
 	e.hashcode = hash;
-	e.text_length = strlen(text);
+	e.text_length = (int)strlen(text);
 	e.text_offset = AddTextData( text );
 	AddEntry( e );
 	return ADDSTRING_COMPLETED;
@@ -115,7 +115,7 @@ int StringTable::Remove( const char *text, void *data ) {
 
 //-------------------------------------------------------------------------------------------------
 int StringTable::AddTextData( const char *text ) {
-	int offset = text_data.size();
+	int offset = (int)text_data.size();
 	text_data += text;
 	return offset;
 }

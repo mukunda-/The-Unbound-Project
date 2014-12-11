@@ -15,6 +15,7 @@
 #pragma warning( disable : 4351 )
 
 #include "mem/memorylib.h"
+#include "util/stringref.h"
 
 //-----------------------------------------------------------------------------
 namespace Util {
@@ -101,10 +102,10 @@ public:
 	/// @returns true if set, false if the key was already set and `replace`
 	///          was false.
 	///
-	bool Set( const char *key, Type value, bool replace=true ) {
+	bool Set( const Util::StringRef &key, Type value, bool replace=true ) {
 		Branch *b = &trunk;
 
-		for( auto k = key; *k; k++ ) {
+		for( auto k = *key; *k; k++ ) {
 			int index = (*k) - ASCII_BASE;
 			assert( index >= 0 && index < BRANCH_ENTRIES );
 			if( !b->m_branches[index] ) {
@@ -118,11 +119,6 @@ public:
 		return true;
 	}
 
-	//-------------------------------------------------------------------------
-	bool Set( std::string &key, Type value, bool replace=true ) {
-		return Set( key.c_str(), value, replace );
-	}
-
 	/// -----------------------------------------------------------------------
 	/// Reset a key value.
 	///
@@ -133,8 +129,8 @@ public:
 	///              a smart pointer.
 	/// @returns true if the key was reset, false if the key was not set.
 	///
-	bool Reset( const char *key, Type value = 0 ) {
-		Branch *b = FindKey(key);
+	bool Reset( const Util::StringRef &key, Type value = 0 ) {
+		Branch *b = FindKey( *key );
 		if( !b ) return false;
 		b->m_data = value;
 		b->m_isset = false;

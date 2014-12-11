@@ -19,37 +19,35 @@ public:
 	using ptr = std::unique_ptr<Variable>;
 	using ChangeHandler = std::function<void(Variable&)>;
 
+	//-------------------------------------------------------------------------
 	enum {
-		FLAG_GLOBAL = 1	// is owned by the global variable list
-						// (and cannot be destroyed during runtime)
+		
 	};
 
-	enum class Types {
-		INT,
-		FLOAT,
-		STRING
+	//-------------------------------------------------------------------------
+	struct Value {
+		int m_int;
+		double m_float;
+		std::string m_string;
+
+		bool operator ==(Value &other) {
+			return
+				m_int == other.m_int && 
+				m_float == other.m_float &&
+				m_string == other.m_string;
+		}
 	};
 	
-	/// --------------------------------------------------------------------------
-	/// Returns the type of this variable.
-	///
-	virtual Types Type() = 0;
-
+	Value m_value; // current value
+	Value m_prev;  // previous value
+	
 	/// --------------------------------------------------------------------------
 	/// Read the value of this variable.
-	///
-	/// @param warn If true, print a warning to the console if the value has to 
-	///             be coerced to the return type.
-	///
-	int         GetInt( bool warn = true );
-	double      GetFloat( bool warn = true );
-	std::string GetString( bool warn = true );
-
-	/// --------------------------------------------------------------------------
-	/// Get the value as a C string. This only works for compatible
-	/// variable types.
-	///
-	const char *GetCString();
+	/// 
+	int                GetInt() const     { return m_value.m_int;            }
+	double             GetFloat() const   { return m_value.m_float;          }
+	const std::string &GetString() const  { return m_value.m_string;         }
+	const char        *GetCString() const { return m_value.m_string.c_str(); }
 
 	/// --------------------------------------------------------------------------
 	/// Get the previously set value for this variable.
@@ -57,27 +55,20 @@ public:
 	/// Ideally used when handling a value change and comparing with the
 	/// new value.
 	///
-	int         PreviousInt( bool warn = true );
-	double      PreviousFloat( bool warn = true );
-	std::string PreviousString( bool warn = true );
+	int                PreviousInt() const    { return m_prev.m_int;    }
+	double             PreviousFloat() const  { return m_prev.m_float;  }
+	const std::string &PreviousString() const { return m_prev.m_string; }
 
 	/// --------------------------------------------------------------------------
 	/// Set the value of this variable.
 	///
-	/// @param warn If true, print a warning to the console if the value has to 
-	///             be coerced to the internal type.
+	/// @param value Value to set
+	/// @returns true if the value of the variable was changed.
 	///
-	int         SetInt( bool warn = true );
-	double      SetFloat( bool warn = true );
-	std::string SetString( bool warn = true );
+	bool SetInt( int value );
+	bool SetFloat( double value );
+	bool SetString( const Util::StringRef &value );
 	
-	/// -----------------------------------------------------------------------
-	/// Called when the variable is changed by the system.
-	///
-	/// This executes the "on-changed" handler sequence.
-	///
-	void OnChange();
-
 	/// -----------------------------------------------------------------------
 	/// Add an "on-change" handler.
 	///
@@ -85,39 +76,47 @@ public:
 	///
 	/// @param callback Callback function to add to the on-changed 
 	///                 handler list
+	/// @returns Handle for unhooking later.
 	///
-	void HookChange( ChangeHandler callback );
+	int HookChange( ChangeHandler callback );
 
 	/// -----------------------------------------------------------------------
 	/// Remove an "on-change" handler.
 	///
-	/// @param callback Callback that was registered with HookChange
+	/// This cannot be used during an on-changed callback.
 	///
-	void UnhookChange( ChangeHandler callback );
+	/// @param callback ID that was returned from HookChange.
+	///
+	void UnhookChange( int id );
 	
 	/// -----------------------------------------------------------------------
 	/// Return the name of this variable.
 	///
 	std::string Name() { return m_name; }
+	std::string Description() { return m_description; }
 	
 	/// -----------------------------------------------------------------------
-	/// Print the name, type and description of this variable to the console.
+	/// Print the name and description of this variable to the console.
 	///
 	void PrintInfo();
 
-protected:
-	Variable( const std::string &name, const std::string &description,
-			  int flags );
+	//-------------------------------------------------------------------------
 	virtual ~Variable();
 
-	// implementation
-	virtual int GetValue( void *value, Types type, bool prev );
-	virtual int SetValue( void *value, Types type );
-	
+protected:
+	friend class Instance;
+	Variable( const Util::StringRef &name, 
+			  const Util::StringRef &description,
+			  const Util::StringRef &init,
+			  int flags );
+
+	//-------------------------------------------------------------------------
 private:
+	
+	bool OnChanged();
 
 	// registered callbacks for when the value of this variable changes.
-	std::vector<ChangeHandler> m_change_handlers;
+	std::vector<std::pair<int, ChangeHandler>> m_change_handlers;
 
 	// FLAG_* bits
 	int m_flags;
@@ -126,17 +125,11 @@ private:
 	std::string m_name;
 
 	// brief description of this variable
-	std::string m_description;
-	
-	
-};
+	std::string m_description; 
 
-class IntVariable : public Variable {
-
-protected:
-	int GetValue( void *value, Variable::Types type, bool prev ) override;
-	int SetValue( void *value, Types type ) override;
+	int m_changehandler_nextid = 0;
 };
+ 
 /*
 //---------------------------------------------------------------------------------------
 class Variable {
@@ -509,30 +502,50 @@ public:
 
  */
 
-/// -----------------------------------------------------------------------
-/// Create a new sysvar
-/// 
-/// This checks for an existing variable first and simply returns it if so.
-/// If it doesnt exist, a new variable is created and initialized with the 
-/// arguments given.
-///
-/// @param name Name of variable to create. The name is used to reference
-///             the variable later on.
-/// @param type Type of variable to create, see Variable::Type enum.
-///
-/// @param default_value Value to initialize the variable with. Only used
-///                      when a new variable is created.
-///
-/// @param description Description to assign to the variable. Only used
-///                    when a new variable is created.
-///
-/// @param flags Creation flags (reserved for later use)
-///
-/// @return Existing Variable or newly created Variable.
-///
-Variable &CreateVariable( const std::string &name,
-					      const std::string &default_value = "",
-						  const std::string &description = "",
-						  int flags = 0 );
+
+namespace Variables {
+
+	/// -----------------------------------------------------------------------
+	/// Create a new system variable.
+	/// 
+	/// This checks for an existing variable first and simply returns it if so.
+	/// If it doesnt exist, a new variable is created and initialized with the 
+	/// arguments given.
+	///
+	/// @param name Name of variable to create. The name is used to reference
+	///             the variable later on. 
+	///
+	/// @param default_value Value to initialize the variable with. Only used
+	///                      when a new variable is created.
+	///
+	/// @param description Description to assign to the variable. Only used
+	///                    when a new variable is created.
+	///
+	/// @param flags Creation flags (reserved for later use)
+	///
+	/// @return Existing Variable or newly created Variable.
+	///
+	Variable &Create( const Util::StringRef &name, 
+					  const Util::StringRef &default_value = "",
+					  const Util::StringRef &description = "",
+					  int flags = 0 );
+
+	/// -----------------------------------------------------------------------
+	/// Delete a variable.
+	///
+	/// @param name Name of variable to delete
+	/// @returns true if a variable was deleted. false if the name was not
+	///          registered.
+	///
+	bool Delete( const Util::StringRef &name );
+
+	/// -----------------------------------------------------------------------
+	/// Find a variable.
+	///
+	/// @param name Name of variable
+	/// @returns Variable or nullptr if none exists.
+	///
+	Variable *Find( const Util::StringRef &name );
+}
 
 }

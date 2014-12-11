@@ -45,7 +45,7 @@ void Execute( const char *command_string ) {
 		return;
 	}
 	 
-	System::Variable *var = System::Variable::Find( name );
+	System::Variable *var = System::Variables::Find( name );
 	if( !var ) {
 
 		::Console::Print( "Unknown command: \"%s\"", name );
@@ -60,7 +60,7 @@ void Execute( const char *command_string ) {
 	if( Util::StrEmpty( value ) ) {
 		var->PrintInfo();
 	} else {
-		var->SetString( value, false );
+		var->SetString( value );
 		//System::Console::Print( "cvar \"%s\" set to \"%s\".", var->Name().c_str(), value );
 	}
 }

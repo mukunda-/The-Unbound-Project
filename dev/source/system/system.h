@@ -195,6 +195,13 @@ public:
 	///
 	Instance( int threads ); 
 	~Instance();
+	bool Live() { return m_live; }
+	void PostSystem( std::function<void()> handler, 
+					 bool main = true, int delay = 0 );
+	void Shutdown();
+
+	void RunProgram( Program &program );
+	Service &GetService();
 
 private: 
 	bool m_live; 
@@ -204,18 +211,15 @@ private:
 	boost::asio::strand m_strand;
 	Program *m_program;
 
-	std::vector<Variable::ptr> m_variables;
-	Util::Trie<Variable*> m_variable_map;
-	
+	std::unordered_map<std::string, Variable::ptr> m_variables;
 
 public: 
-	bool Live() { return m_live; }
-	void PostSystem( std::function<void()> handler, 
-					 bool main = true, int delay = 0 );
-	void Shutdown();
-
-	void RunProgram( Program &program );
-	Service &GetService();
+	Variable &CreateVariable( const Util::StringRef &name, 
+							  const Util::StringRef &default_value,
+							  const Util::StringRef &description, int flags );
+	bool DeleteVariable( const Util::StringRef &name );
+	
+	Variable *FindVariable( const Util::StringRef &name );
 };
 
 } // namespace System

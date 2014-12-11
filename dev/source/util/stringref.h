@@ -11,34 +11,57 @@ namespace Util {
 ///
 class StringRef {
 	const char *m_text;
+	const std::string *m_str = nullptr;
+
+	std::string m_localstr;
 
 public:
 
 	/// -----------------------------------------------------------------------
 	/// Construct from string source. obtains const reference.
 	///
-	StringRef( const std::string &str ) : m_text( str.c_str() ) {}
-	StringRef( const char *str        ) : m_text( str         ) {}
+	StringRef( const std::string &str ) : 
+		m_text( str.c_str() ), m_str( &str ) {}
+
+	StringRef( const char *str ) : 
+		m_text( str ) {}
 	
-	/// -----------------------------------------------------------------------
-	/// Get string.
-	///
-	const char * operator *() const {
-		return m_text;
-	}
 
 	/// -----------------------------------------------------------------------
 	/// Convert to const char *
-	///
-	operator const char*() const {
+	/// -----------------------------------------------------------------------
+
+	// named function
+	const char *CStr() const {
+		return m_text;
+	}
+
+	// dereference
+	const char * operator *() const {
 		return m_text;
 	}
 	
 	/// -----------------------------------------------------------------------
 	/// Copy to std::string
-	///
+	/// -----------------------------------------------------------------------
+	
+	// assignment
 	operator std::string() const {
+		return std::string(m_text);
+	}
+	
+	// named function
+	std::string Copy() const {
 		return m_text;
+	}
+
+	const std::string &Str() const {
+		if( m_str ) {
+			return *m_str;
+		} else {
+			const_cast<StringRef*>(this)->m_localstr = m_text;
+			return m_localstr;
+		}
 	}
 };
 
