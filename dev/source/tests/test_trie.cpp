@@ -6,6 +6,8 @@
 #include "util/trie.h"
 #include "util/stringles.h"
 
+namespace Tests {
+
 //-----------------------------------------------------------------------------
 TEST( UtilTests, TrieTest ) {
 	Util::Trie<int> test;
@@ -86,3 +88,5 @@ TEST( UtilTests, TrieTest ) {
 		EXPECT_FALSE( test.Reset( key ));
 	}
 } 
+
+}

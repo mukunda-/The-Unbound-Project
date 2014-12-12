@@ -8,6 +8,8 @@
 #include "system/console.h"
 #include "console/console.h"
 
+namespace Tests { class SystemTests; }
+
 namespace System {  
 
 /// ---------------------------------------------------------------------------
@@ -26,8 +28,8 @@ public:
 
 	//-------------------------------------------------------------------------
 	struct Value {
-		int m_int;
-		double m_float;
+		int m_int = 0;
+		double m_float = 0.0;
 		std::string m_string;
 
 		bool operator ==(Value &other) {
@@ -62,7 +64,8 @@ public:
 	/// --------------------------------------------------------------------------
 	/// Set the value of this variable.
 	///
-	/// @param value Value to set
+	/// @param value Value to set.
+	///
 	/// @returns true if the value of the variable was changed.
 	///
 	bool SetInt( int value );
@@ -75,7 +78,7 @@ public:
 	/// When this variable is changed, your callback will be triggered.
 	///
 	/// @param callback Callback function to add to the on-changed 
-	///                 handler list
+	///                 handler list.
 	/// @returns Handle for unhooking later.
 	///
 	int HookChange( ChangeHandler callback );
@@ -110,10 +113,17 @@ protected:
 			  const Util::StringRef &init,
 			  int flags );
 
+
+	Variable( Variable&  ) = delete;
+	Variable( Variable&& ) = delete;
+	Variable& operator=( Variable&  ) = delete;
+	Variable& operator=( Variable&& ) = delete;
+
 	//-------------------------------------------------------------------------
 private:
 	
 	bool OnChanged();
+	bool SetStringI( const Util::StringRef &value, bool skipchg );
 
 	// registered callbacks for when the value of this variable changes.
 	std::vector<std::pair<int, ChangeHandler>> m_change_handlers;
@@ -128,6 +138,8 @@ private:
 	std::string m_description; 
 
 	int m_changehandler_nextid = 0;
+
+	friend class ::Tests::SystemTests;
 };
  
 /*

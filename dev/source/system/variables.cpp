@@ -29,6 +29,7 @@ Variable &Instance::CreateVariable( const StringRef &name,
 	auto var = new Variable( name, description, default_value, flags );
 
 	m_variables[ name ] = Variable::ptr(var);
+
 	return *var;
 }
 
@@ -51,6 +52,18 @@ Variable *Instance::FindVariable( const StringRef &name ) {
 	return nullptr;
 }
 
+//-----------------------------------------------------------------------------
+namespace {
+
+	std::string FormatFloat( double d ) {
+		std::string str = std::to_string(d);
+		str.erase( str.find_last_not_of('0') + 1, std::string::npos );
+		if( str.back() == '.' ) str += '0';
+		return str;
+	}
+}
+
+//-----------------------------------------------------------------------------
 namespace Variables {
 
 	//-------------------------------------------------------------------------
@@ -81,7 +94,7 @@ Variable::Variable( const StringRef &name,
 	m_name = name;
 	m_description = description;
 	m_flags = flags;
-	SetString( init );
+	SetStringI( init, true );
 }
 
 //-----------------------------------------------------------------------------
@@ -104,13 +117,13 @@ bool Variable::SetFloat( double value ) {
 
 	m_value.m_int = (int)floor(value);
 	m_value.m_float = value;
-	m_value.m_string = std::to_string( value );
+	m_value.m_string = FormatFloat( value );
 
 	return OnChanged();
 }
 
 //-----------------------------------------------------------------------------
-bool Variable::SetString( const StringRef &value ) {
+bool Variable::SetStringI( const StringRef &value, bool skipchg ) {
 	m_prev = m_value;
 
 	try {
@@ -126,8 +139,13 @@ bool Variable::SetString( const StringRef &value ) {
 	} catch( std::out_of_range& ) {}
 
 	m_value.m_string = value.Copy();
-	
-	return OnChanged();
+
+	return skipchg ? false : OnChanged();
+}
+
+//-----------------------------------------------------------------------------
+bool Variable::SetString( const StringRef &value ) {
+	return SetStringI( value, false );
 }
 
 //-----------------------------------------------------------------------------
@@ -155,7 +173,6 @@ void Variable::UnhookChange( int id ) {
 //-----------------------------------------------------------------------------
 bool Variable::OnChanged() {
 	if( m_value == m_prev ) return false;
-
 	for( auto &handler : m_change_handlers ) {
 		handler.second( *this );
 	}
