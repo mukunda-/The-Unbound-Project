@@ -75,6 +75,11 @@ namespace Variables {
 	}
 
 	//-------------------------------------------------------------------------
+	bool Delete( const StringRef &name ) {
+		return g_instance->DeleteVariable( name );
+	}
+
+	//-------------------------------------------------------------------------
 	Variable *Find( const StringRef &name ) {
 		return g_instance->FindVariable( name );
 	}

@@ -237,6 +237,15 @@ TEST_F( SystemTests, Test1 ) {
 
 	ExpectHooksSize( test3, 0 );
 
+	///////////////////////////////////////////////////////
+	// delete/recreate variables
+	///////////////////////////////////////////////////////
+	EXPECT_TRUE( System::Variables::Delete( "test1" ));
+	
+	auto &test4 = System::Variables::Create( "test1", "bar", "foo desc2" );
+	EXPECT_EQ( "bar", test4.GetString() );
+	EXPECT_EQ( "foo desc2", test4.Description() );
+
 }
 
 }

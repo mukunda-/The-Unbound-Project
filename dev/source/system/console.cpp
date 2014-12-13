@@ -14,8 +14,7 @@
 #if defined UB_SERVER
 #include "system/server/serverconsole.h" // todo?
 #endif
-
-
+ 
 //-------------------------------------------------------------------------------------------------
 namespace System { namespace Console {
 
