@@ -8,8 +8,6 @@
 
 namespace System { namespace Console {
 
-
-
 /// ---------------------------------------------------------------------------
 /// Execute a command.
 ///

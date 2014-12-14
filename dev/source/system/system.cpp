@@ -148,6 +148,9 @@ void Post( std::function<void()> handler, bool main, int delay ) {
 Instance::Instance( int threads ) : m_strand( m_service() ) {
 	assert( g_instance == nullptr );
 	g_instance = this;
+
+	m_console = std::unique_ptr<::Console::Instance>();
+
 	m_service.Run( threads );
 	m_live = true;
 

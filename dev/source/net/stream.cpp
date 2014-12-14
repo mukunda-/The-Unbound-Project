@@ -186,7 +186,7 @@ void Stream::SendNext() {
 	
 	m_socket.async_write_some( 
 		m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
-			boost::bind( &Stream::OnSend, this, 
+			boost::bind( &Stream::OnSend, shared_from_this(), 
 						 boost::asio::placeholders::error, 
 						 boost::asio::placeholders::bytes_transferred )));
 							
@@ -394,7 +394,7 @@ void Stream::Connect( const std::string &host, const std::string &service ) {
 		.Connected();
 
 	m_service.Post( m_strand.wrap( 
-			boost::bind( &Stream::SetConnected, this )));
+			boost::bind( &Stream::SetConnected, shared_from_this() )));
 }
 
 //-----------------------------------------------------------------------------

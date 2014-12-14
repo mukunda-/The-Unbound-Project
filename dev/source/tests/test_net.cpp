@@ -10,6 +10,7 @@
 #include "net/core.h"
 #include "net/listener.h"
 #include "net/textstream.h"
+#include "net/events.h"
 
 namespace Testing {
 
@@ -47,9 +48,18 @@ public:
 	}
 };
 
-///////////////////////////////////////////////////////////////////////////////
-TEST_F( NetTests, ConnectionTest ) {
-	Net::Listener listener( 44412, MyStream1::Factory );
+class StreamHandler1 : public Net::Events::Stream::Handler {
+
+public:
+	void OnConnected( Net::StreamPtr &stream ) {
+		stream->Close();
+	}
+};
+
+TEST_F( NetTests, SimpleConnectionTest ) {
+	StreamHandler1 handler;
+
+	Net::Listener listener( 44412, MyStream1::Factory, &handler );
 	Net::Connect( "127.0.0.1", "44412", MyStream1::Factory );
 }
 

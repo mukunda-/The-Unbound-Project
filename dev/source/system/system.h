@@ -8,6 +8,7 @@
 #include "mem/arena/arena.h"
 #include "util/feed.h"
 #include "system/variables.h"
+#include "console/forwards.h"
 
 namespace System {
 
@@ -204,6 +205,9 @@ public:
 	Service &GetService();
 
 private: 
+
+	std::unique_ptr<::Console::Instance> m_console;
+
 	bool m_live; 
 	
 	Mem::Arena::Manager i_arenas;
