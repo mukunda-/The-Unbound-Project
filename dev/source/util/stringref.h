@@ -6,7 +6,7 @@
 
 namespace Util {
 
-/// -----------------------------------------------------------------------
+/// ---------------------------------------------------------------------------
 /// A class that simplifies string handling to lessen function overloads.
 ///
 class StringRef {
@@ -16,6 +16,10 @@ class StringRef {
 	std::string m_localstr;
 
 public:
+	
+	StringRef() {
+		m_text = "";
+	}
 
 	/// -----------------------------------------------------------------------
 	/// Construct from string source. obtains const reference.
@@ -25,11 +29,20 @@ public:
 
 	StringRef( const char *str ) : 
 		m_text( str ) {}
-	
 
-	/// -----------------------------------------------------------------------
-	/// Convert to const char *
-	/// -----------------------------------------------------------------------
+	StringRef& operator=( const char *str ) {
+		m_text = str;
+		m_str  = nullptr;
+	}
+
+	StringRef& operator=( const std::string &str ) {
+		m_text = str.c_str();
+		m_str  = &str;
+	}
+
+	// ------------------------------------------------------------------------
+	// Convert to const char *
+	// ------------------------------------------------------------------------
 
 	// named function
 	const char *CStr() const {
@@ -41,9 +54,9 @@ public:
 		return m_text;
 	}
 	
-	/// -----------------------------------------------------------------------
-	/// Copy to std::string
-	/// -----------------------------------------------------------------------
+	// ------------------------------------------------------------------------
+	// Copy to std::string
+	// ------------------------------------------------------------------------
 	
 	// assignment
 	operator std::string() const {
@@ -62,6 +75,14 @@ public:
 			const_cast<StringRef*>(this)->m_localstr = m_text;
 			return m_localstr;
 		}
+	}
+
+	// ------------------------------------------------------------------------
+	// Some utility functions.
+	// ------------------------------------------------------------------------
+
+	bool Empty() {
+		return m_text[0] == 0;
 	}
 };
 

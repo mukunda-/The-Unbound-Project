@@ -141,8 +141,55 @@ private:
 
 	friend class ::Tests::SystemTests;
 };
- 
-/*
+  
+namespace Variables {
+
+	/// -----------------------------------------------------------------------
+	/// Create a new system variable.
+	/// 
+	/// This checks for an existing variable first and simply returns it if so.
+	/// If it doesnt exist, a new variable is created and initialized with the 
+	/// arguments given.
+	///
+	/// @param name Name of variable to create. The name is used to reference
+	///             the variable later on. 
+	///
+	/// @param default_value Value to initialize the variable with. Only used
+	///                      when a new variable is created.
+	///
+	/// @param description Description to assign to the variable. Only used
+	///                    when a new variable is created.
+	///
+	/// @param flags Creation flags (reserved for later use)
+	///
+	/// @return Existing Variable or newly created Variable.
+	///
+	Variable &Create( const Util::StringRef &name, 
+					  const Util::StringRef &default_value = "",
+					  const Util::StringRef &description = "",
+					  int flags = 0 );
+
+	/// -----------------------------------------------------------------------
+	/// Delete a variable.
+	///
+	/// @param name Name of variable to delete
+	/// @returns true if a variable was deleted. false if the name was not
+	///          registered.
+	///
+	bool Delete( const Util::StringRef &name );
+
+	/// -----------------------------------------------------------------------
+	/// Find a variable.
+	///
+	/// @param name Name of variable
+	/// @returns Variable or nullptr if none exists.
+	///
+	Variable *Find( const Util::StringRef &name );
+}
+
+}
+
+/* old version, ill just leave this here for a while.
 //---------------------------------------------------------------------------------------
 class Variable {
 
@@ -513,51 +560,3 @@ public:
 };
 
  */
-
-
-namespace Variables {
-
-	/// -----------------------------------------------------------------------
-	/// Create a new system variable.
-	/// 
-	/// This checks for an existing variable first and simply returns it if so.
-	/// If it doesnt exist, a new variable is created and initialized with the 
-	/// arguments given.
-	///
-	/// @param name Name of variable to create. The name is used to reference
-	///             the variable later on. 
-	///
-	/// @param default_value Value to initialize the variable with. Only used
-	///                      when a new variable is created.
-	///
-	/// @param description Description to assign to the variable. Only used
-	///                    when a new variable is created.
-	///
-	/// @param flags Creation flags (reserved for later use)
-	///
-	/// @return Existing Variable or newly created Variable.
-	///
-	Variable &Create( const Util::StringRef &name, 
-					  const Util::StringRef &default_value = "",
-					  const Util::StringRef &description = "",
-					  int flags = 0 );
-
-	/// -----------------------------------------------------------------------
-	/// Delete a variable.
-	///
-	/// @param name Name of variable to delete
-	/// @returns true if a variable was deleted. false if the name was not
-	///          registered.
-	///
-	bool Delete( const Util::StringRef &name );
-
-	/// -----------------------------------------------------------------------
-	/// Find a variable.
-	///
-	/// @param name Name of variable
-	/// @returns Variable or nullptr if none exists.
-	///
-	Variable *Find( const Util::StringRef &name );
-}
-
-}

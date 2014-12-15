@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "commands.h"
@@ -8,18 +8,7 @@
 #include "util/argstring.h"
 
 //-----------------------------------------------------------------------------
-namespace System { namespace Console {
-	
-//-----------------------------------------------------------------------------
-namespace {
-	
-	// the command map
-	Util::Trie< Instance* > g_command_trie;
-
-	// "global" commands are commands that are added in a simpler fashion
-	// and cannot be removed.
-	std::vector<Command::Pointer> g_global_commands;
-}
+namespace System {
 
 /** ---------------------------------------------------------------------------
  * An Instance is created per each unique command name.
@@ -47,17 +36,15 @@ private:
 	/** -----------------------------------------------------------------------
 	 * Construct a new instance.
 	 *
-	 * \param name Name of command, the command trigger.
-	 * \param desc Brief description of command.
+	 * @param name Name of command, the command trigger.
+	 * @param desc Brief description of command.
 	 */
-	Instance( const char *name, const char *desc ) {
+	Instance( Util::StringRef name, Util::StringRef desc ) {
 		// this class is not created directly
 		// new instance, we push it into the trie,
+		assert( !name.Empty() );
 		 
-		if( desc != nullptr ) {
-			m_desc = desc;
-		}
-		assert( name );
+		m_desc = desc;
 		m_name = name;
 
 		// push the new instance into the trie

@@ -215,15 +215,23 @@ private:
 	boost::asio::strand m_strand;
 	Program *m_program;
 
-	std::unordered_map<std::string, Variable::ptr> m_variables;
+	std::unordered_map< std::string, Variable::ptr > m_variables;
+	
+	// the command map
+	std::unordered_map< std::string, Command::Instance* > m_command_map;
+
+	// "global" commands are commands that belong to the system 
+	// and cannot be deleted.
+	std::vector< Command::ptr > m_global_commands;
 
 public: 
 	Variable &CreateVariable( const Util::StringRef &name, 
 							  const Util::StringRef &default_value,
 							  const Util::StringRef &description, int flags );
 	bool DeleteVariable( const Util::StringRef &name );
-	
 	Variable *FindVariable( const Util::StringRef &name );
+
+
 };
 
 } // namespace System
