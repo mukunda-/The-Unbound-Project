@@ -7,8 +7,10 @@
 #include "system/program.h"
 #include "mem/arena/arena.h"
 #include "util/feed.h"
-#include "system/variables.h"
+#include "util/stringref.h"
 #include "console/forwards.h"
+#include "forwards.h"
+#include "variables.h"
 
 namespace System {
 
@@ -186,16 +188,16 @@ void RunProgram( Program &program );
 void Shutdown();
   
 /// ---------------------------------------------------------------------------
-/// System instance
+/// Main system class
 ///
-class Instance {
+class Main {
 	 
 public:
 	/// -----------------------------------------------------------------------
 	/// @param threads Number of threads to start the main service with.
 	///
-	Instance( int threads ); 
-	~Instance();
+	Main( int threads );
+	~Main();
 	bool Live() { return m_live; }
 	void PostSystem( std::function<void()> handler, 
 					 bool main = true, int delay = 0 );
@@ -209,29 +211,40 @@ private:
 	std::unique_ptr<::Console::Instance> m_console;
 
 	bool m_live; 
+
+	int m_next_command_id = 0;
 	
 	Mem::Arena::Manager i_arenas;
 	Service  m_service;
 	boost::asio::strand m_strand;
 	Program *m_program;
 
-	std::unordered_map< std::string, Variable::ptr > m_variables;
+	std::unordered_map< std::string, VariablePtr > m_variables;
 	
 	// the command map
-	std::unordered_map< std::string, Command::Instance* > m_command_map;
+	std::unordered_map< std::string, Commands::Instance* > m_command_map;
 
 	// "global" commands are commands that belong to the system 
 	// and cannot be deleted.
-	std::vector< Command::ptr > m_global_commands;
+	std::vector< CommandPtr > m_global_commands;
 
 public: 
+	// internal use by the global functions:
 	Variable &CreateVariable( const Util::StringRef &name, 
 							  const Util::StringRef &default_value,
 							  const Util::StringRef &description, int flags );
 	bool DeleteVariable( const Util::StringRef &name );
 	Variable *FindVariable( const Util::StringRef &name );
+	bool TryExecuteCommand( Util::StringRef command_string );
+	void SaveCommand( CommandPtr &&cmd );
 
+private:
+	Commands::Instance *FindCommandInstance( const Util::StringRef &name );
 
+	int AllocCommandID() { return ++m_next_command_id; }
+
+	friend class Commands::Instance;
+	friend class Command;
 };
 
 } // namespace System

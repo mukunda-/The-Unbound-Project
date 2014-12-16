@@ -12,7 +12,7 @@
 
 namespace System {
 
-Instance *g_instance;
+Main *g_main;
 
 //-----------------------------------------------------------------------------
 namespace {
@@ -97,8 +97,8 @@ void Service::PostDelayedHandler(
   
 //-----------------------------------------------------------------------------
 Service &GetService() {
-	assert(g_instance);
-	return g_instance->GetService();
+	assert(g_main);
+	return g_main->GetService();
 }
 
 //-----------------------------------------------------------------------------
@@ -108,13 +108,13 @@ void Finish() {
 
 //-----------------------------------------------------------------------------
 void RunProgram( Program &program ) {
-	g_instance->RunProgram( program );
+	g_main->RunProgram( program );
 }
 
 //-----------------------------------------------------------------------------
 void Shutdown() {
 	::Console::Print( "Shutting down..." );
-	g_instance->Shutdown();
+	g_main->Shutdown();
 }
 
 //-----------------------------------------------------------------------------
@@ -131,42 +131,42 @@ void LogError( const std::string &message ) {
 
 //-----------------------------------------------------------------------------
 bool Live() {
-	return g_instance->Live();
+	return g_main->Live();
 }
 
 //-----------------------------------------------------------------------------
 void Join() {
-	g_instance->GetService().Join();
+	g_main->GetService().Join();
 }
 
 //-----------------------------------------------------------------------------
 void Post( std::function<void()> handler, bool main, int delay ) {
-	g_instance->PostSystem( handler, main, delay );
+	g_main->PostSystem( handler, main, delay );
 }
 
 //-----------------------------------------------------------------------------
-Instance::Instance( int threads ) : m_strand( m_service() ) {
-	assert( g_instance == nullptr );
-	g_instance = this;
+Main::Main( int threads ) : m_strand( m_service() ) {
+	assert( g_main == nullptr );
+	g_main = this;
 
 	m_console = std::unique_ptr<::Console::Instance>();
 
 	m_service.Run( threads );
 	m_live = true;
 
-	Console::AddGlobalCommand( "quit", Command_Quit );
+	AddGlobalCommand( "quit", Command_Quit );
 }
 
 //-----------------------------------------------------------------------------
-Instance::~Instance() {
+Main::~Main() {
 	m_live = false;
 	m_service.Finish( true );
 
-	g_instance = nullptr;
+	g_main = nullptr;
 }
 
 //-----------------------------------------------------------------------------
-void Instance::PostSystem( std::function<void()> handler, 
+void Main::PostSystem( std::function<void()> handler, 
 						   bool main, int delay ) {
 
 	if( main ) {
@@ -177,19 +177,19 @@ void Instance::PostSystem( std::function<void()> handler,
 }
 
 //-----------------------------------------------------------------------------
-void Instance::RunProgram( Program &program ) {
+void Main::RunProgram( Program &program ) {
 	m_program = &program;
 	PostSystem( std::bind( &Program::OnStart, &program ) );
 	System::Join();
 }
 
 //-----------------------------------------------------------------------------
-Service &Instance::GetService() {
+Service &Main::GetService() {
 	return m_service;
 }
 
 //-----------------------------------------------------------------------------
-void Instance::Shutdown() {
+void Main::Shutdown() {
 	m_live = false;
 	m_service.Finish( false );
 }

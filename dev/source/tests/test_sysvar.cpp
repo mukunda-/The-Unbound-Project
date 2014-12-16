@@ -9,12 +9,12 @@
 namespace Tests {
 
 class SystemTests : public ::testing::Test {
-	static System::Instance *i_system;
+	static System::Main *i_system;
 
 
 protected:
 	static void SetUpTestCase() {
-		i_system = new System::Instance(1);
+		i_system = new System::Main(1);
 		counter = 0;
 	}
 	
@@ -32,7 +32,7 @@ public:
 	}
 };
 
-System::Instance* SystemTests::i_system = nullptr;
+System::Main* SystemTests::i_system = nullptr;
 int SystemTests::counter;
 
 namespace {

@@ -17,12 +17,12 @@ namespace Testing {
 ///////////////////////////////////////////////////////////////////////////////
 
 class NetTests : public ::testing::Test {
-	static System::Instance *i_system;
+	static System::Main *i_system;
 	static Net::Instance *i_net;
 	
 protected:
 	static void SetUpTestCase() {
-		i_system = new System::Instance(1);
+		i_system = new System::Main(1);
 		i_net = new Net::Instance(1);
 	}
 	
@@ -36,8 +36,8 @@ protected:
 
 };
 
-System::Instance *NetTests::i_system = nullptr;
-Net::Instance    *NetTests::i_net = nullptr;
+System::Main  *NetTests::i_system = nullptr;
+Net::Instance *NetTests::i_net = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////////
 class MyStream1 : public Net::TextStream {

@@ -15,10 +15,10 @@ using Util::StringRef;
 //---------------------------------------------------------------------------------------
 namespace System {
 
-extern Instance *g_instance;
+extern Main *g_main;
   
 //---------------------------------------------------------------------------------------
-Variable &Instance::CreateVariable( const StringRef &name, 
+Variable &Main::CreateVariable( const StringRef &name, 
 									const StringRef &default_value,
 									const StringRef &description, int flags ) {
 
@@ -34,7 +34,7 @@ Variable &Instance::CreateVariable( const StringRef &name,
 }
 
 //-----------------------------------------------------------------------------
-bool Instance::DeleteVariable( const StringRef &name ) { 
+bool Main::DeleteVariable( const StringRef &name ) { 
 
 	try {
 		m_variables.erase( name );
@@ -45,7 +45,7 @@ bool Instance::DeleteVariable( const StringRef &name ) {
 }
  
 //-----------------------------------------------------------------------------
-Variable *Instance::FindVariable( const StringRef &name ) {
+Variable *Main::FindVariable( const StringRef &name ) {
 	try {
 		return m_variables.at( name ).get();
 	} catch( std::out_of_range& ) {}
@@ -70,18 +70,18 @@ namespace Variables {
 	Variable &Create( const StringRef &name, const StringRef &default_value,
 					  const StringRef &description, int flags ) {
 
-		return g_instance->CreateVariable( 
+		return g_main->CreateVariable( 
 				name, default_value, description, flags );
 	}
 
 	//-------------------------------------------------------------------------
 	bool Delete( const StringRef &name ) {
-		return g_instance->DeleteVariable( name );
+		return g_main->DeleteVariable( name );
 	}
 
 	//-------------------------------------------------------------------------
 	Variable *Find( const StringRef &name ) {
-		return g_instance->FindVariable( name );
+		return g_main->FindVariable( name );
 	}
 }
 

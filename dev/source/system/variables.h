@@ -107,7 +107,7 @@ public:
 	virtual ~Variable();
 
 protected:
-	friend class Instance;
+	friend class Main;
 	Variable( const Util::StringRef &name, 
 			  const Util::StringRef &description,
 			  const Util::StringRef &init,

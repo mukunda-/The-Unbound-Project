@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/stringles.h"
+#include "util/stringref.h"
 
 //-----------------------------------------------------------------------------
 namespace Util {
@@ -15,14 +16,13 @@ namespace Util {
 class ArgString {
 	std::vector<std::string> args;
 
-	
 public:
 
 	/// -----------------------------------------------------------------------
 	/// Parse an argument string.
 	///
-	ArgString( const std::string &input ) {
-		const char *source = input.c_str();
+	ArgString( const Util::StringRef input ) {
+		const char *source = *input;
 		char dest[256];
 		for(;;) {
 			source = Util::BreakString( source, dest );

@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include "system/forwards.h"
 #include "util/argstring.h"
+#include "util/stringref.h"
 
 //-----------------------------------------------------------------------------
 namespace System { 
@@ -14,10 +16,6 @@ enum {
 	COMMAND_CONTINUE,
 	COMMAND_STOP
 };
-
-namespace Commands {
-	class Instance;
-}
 
 /// -----------------------------------------------------------------------
 /// A Command is created for each Command handler existing in the command
@@ -35,14 +33,17 @@ public:
 private:
 
 	// shared with other commands with same name.
-	std::shared_ptr<Commands::Instance> m_inst;
+	std::shared_ptr< Commands::Instance > m_inst;
 
 	// handler for this command.
 	Handler m_handler;
-	 
+
+	// unique id for instance management
+	int m_id;
+	
 public:
 
-	typedef std::shared_ptr<Command> ptr;
+	typedef std::unique_ptr<Command> ptr;
 	
 	/// -------------------------------------------------------------------
 	/// Construct a new Command.
@@ -61,7 +62,7 @@ public:
 
 	~Command();
 
-	// non-copyable
+	// non-copyable, non-moveable
 	Command( Command& ) = delete;
 	Command( Command&& ) = delete;
 	Command& operator=( Command& ) = delete;
@@ -71,8 +72,7 @@ public:
 	static ptr Create( Util::StringRef name, Handler handler, 
 					   Util::StringRef desc, bool high_priority ) {
 
-		return ptr( 
-			new Command( name, handler, desc, high_priority ));
+		return ptr( new Command( name, handler, desc, high_priority ));
 	}
 };
 
