@@ -10,59 +10,10 @@
 #include "util/stringles.h"
 #include "util/codetimer.h"
 #include "util/fopen2.h"
-
-#if defined UB_SERVER
-#include "system/server/serverconsole.h" // todo?
-#endif
  
 //-------------------------------------------------------------------------------------------------
 namespace System { namespace Console {
 
-//-------------------------------------------------------------------------------------------------
-void Execute( const char *command_string ) {
-
-	// copy command
-	char command[1024];
-	Util::CopyString( command, command_string );
-	Util::TrimString(command);
-	{
-		// strip comment
-		char *comment = strstr( command, "//" );
-		if( comment ) comment[0] = 0;
-	}
-
-	char name[64];
-	const char *next = Util::BreakString( command_string, name );
-	if( name[0] == 0 ) {
-		::Console::Print( "" );
-		return;
-	}
-
-	::Console::Print( "\n>>> %s", command_string );
-	
-	if( TryExecuteCommand( command_string ) ) {
-		return;
-	}
-	 
-	System::Variable *var = System::Variables::Find( name );
-	if( !var ) {
-
-		::Console::Print( "Unknown command: \"%s\"", name );
-		return;
-	} 
-
-	char value[512];
-	Util::CopyString( value, next );
-	Util::TrimString( value );
-	Util::StripQuotes( value );
-	
-	if( Util::StrEmpty( value ) ) {
-		var->PrintInfo();
-	} else {
-		var->SetString( value );
-		//System::Console::Print( "cvar \"%s\" set to \"%s\".", var->Name().c_str(), value );
-	}
-}
 
 //-------------------------------------------------------------------------------------------------
 bool ExecuteScript( const char *file ) {
@@ -88,6 +39,7 @@ bool ExecuteScript( const char *file ) {
 	return true;
 }
 
+/*
 //-------------------------------------------------------------------------------------------------
 void PrintS( const char *text ) {
 #if defined UB_SERVER
@@ -141,6 +93,7 @@ void PrintEx( const char *format, ... ) {
 	va_end( argptr );
 }
 
+*/
 
 //-------------------------------------------------------------------------------------------------
 }}

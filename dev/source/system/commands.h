@@ -28,7 +28,8 @@ class Command {
 public:
 
 	// handler type
-	using Handler = std::function< int( Util::ArgString & ) >;
+	using Handler = std::function< void( Util::ArgString & )>;
+	using ptr     = std::unique_ptr<Command>;
 
 private:
 
@@ -40,40 +41,43 @@ private:
 
 	// unique id for instance management
 	int m_id;
-	
-public:
 
-	typedef std::unique_ptr<Command> ptr;
+	int ID() { return m_id; }
+	friend class Instance;
+	
+protected:
+
+	Command( Util::StringRef name, Util::StringRef desc, 
+			 Handler handler, bool high_priority );
+
+public:
+	~Command();
+
+	// non-copyable, non-moveable
+	Command( Command& )  = delete;
+	Command( Command&& ) = delete;
+	Command& operator=( Command& )  = delete;
+	Command& operator=( Command&& ) = delete;
 	
 	/// -------------------------------------------------------------------
 	/// Construct a new Command.
 	///
 	/// @param name    Name of command/the command trigger.
+	/// @param desc    Brief description of command.
 	/// @param handler Command handler to be called when the command is
 	///                executed.
-	/// @param desc    Brief description of command.
 	/// @param high_priority 
 	///                If an Instance already exists, add the 
 	///                command handler to the beginning of the handler
 	///                list, otherwise it is appended.
 	/// 
-	Command( Util::StringRef name, Handler handler, 
-			 Util::StringRef desc, bool high_priority );
+	static ptr Create( Util::StringRef name, Util::StringRef desc, 
+					   Handler handler, bool high_priority = false ) {
 
-	~Command();
-
-	// non-copyable, non-moveable
-	Command( Command& ) = delete;
-	Command( Command&& ) = delete;
-	Command& operator=( Command& ) = delete;
-	Command& operator=( Command&& ) = delete;
-
-	// helper function to create a new command pointer
-	static ptr Create( Util::StringRef name, Handler handler, 
-					   Util::StringRef desc, bool high_priority ) {
-
-		return ptr( new Command( name, handler, desc, high_priority ));
+		return ptr( new Command( name, desc, handler, high_priority ));
 	}
+
+	void Execute( Util::ArgString &args );
 };
 
 /// ---------------------------------------------------------------------------
@@ -91,14 +95,14 @@ bool TryExecuteCommand( Util::StringRef command_string );
 /// This adds a permanent command which cannot be removed later.
 ///
 /// @param name Name of command, the command trigger.
-/// @param handler Command handler to handle this command.
 /// @param desc Brief description of command.
+/// @param handler Command handler to handle this command.
 /// @param high_priority If an existing command instance is found, this
 ///                      handler will take priority over any existing
 ///                      handlers.
 ///
-void AddGlobalCommand( Util::StringRef name, Command::Handler handler, 
-					   Util::StringRef desc = "", 
+void AddGlobalCommand( Util::StringRef name, Util::StringRef desc, 
+					   Command::Handler handler, 
 					   bool high_priority = false );
 
 //-----------------------------------------------------------------------------

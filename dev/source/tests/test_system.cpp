@@ -5,36 +5,17 @@
 #include <stdafx.h>
 #include "system/variables.h"
 #include "system/system.h"
+#include "system/commands.h"
+#include "systemtests.h"
 
+///////////////////////////////////////////////////////////////////////////////
 namespace Tests {
 
-class SystemTests : public ::testing::Test {
-	static System::Main *i_system;
-
-
-protected:
-	static void SetUpTestCase() {
-		i_system = new System::Main(1);
-		counter = 0;
-	}
-	
-	static void TearDownTestCase() {
-		delete i_system;
-		i_system = nullptr;
-	}
-
-public:
-	
-	static int counter;
-
-	static void ExpectHooksSize( System::Variable &v, size_t size ) {
-		EXPECT_EQ( size, v.m_change_handlers.size() );
-	}
-};
-
+///////////////////////////////////////////////////////////////////////////////
 System::Main* SystemTests::i_system = nullptr;
 int SystemTests::counter;
 
+///////////////////////////////////////////////////////////////////////////////
 namespace {
 
 	void OnChanged1( System::Variable &v ) {
@@ -53,8 +34,8 @@ namespace {
 	}
 }
 
-//-----------------------------------------------------------------------------
-TEST_F( SystemTests, Test1 ) {
+///////////////////////////////////////////////////////////////////////////////
+TEST_F( SystemTests, VariableTests ) {
 
 	auto &test1 = System::Variables::Create( "test1", "foo", "foo desc" );
 	auto &test2 = System::Variables::Create( "test2", "5",   "bar desc" );
@@ -246,6 +227,18 @@ TEST_F( SystemTests, Test1 ) {
 	EXPECT_EQ( "bar", test4.GetString() );
 	EXPECT_EQ( "foo desc2", test4.Description() );
 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TEST_F( SystemTests, CommandTest ) {
+
+	auto cmd = System::Command::Create( "test1", "test command 1", 
+		[]( Util::ArgString &args ) {
+			
+		}
+	);
+
+	//System::TryExecuteCommand( 
 }
 
 }

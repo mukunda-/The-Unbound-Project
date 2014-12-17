@@ -8,6 +8,7 @@ namespace System {
 
 	namespace Commands {
 		class Instance;
+		using InstancePtr = std::shared_ptr<Instance>;
 	}
 
 	class Command;

@@ -186,6 +186,23 @@ void RunProgram( Program &program );
 /// Start clean program exit sequence.
 ///
 void Shutdown();
+
+/// ---------------------------------------------------------------------------
+/// Execute a system command.
+///
+/// @param command_string Command to execute.
+/// @param command_only   If true, only try to execute a command, and do not
+///                       change system variables.
+///
+void ExecuteCommand( Util::StringRef command_string, 
+					 bool command_only = false );
+
+/// ---------------------------------------------------------------------------
+/// Execute a script file.
+///
+/// @param file Path to script file, relative to game contents folder.
+///
+bool ExecuteScript( Util::StringRef file );
   
 /// ---------------------------------------------------------------------------
 /// Main system class
@@ -237,9 +254,11 @@ public:
 	Variable *FindVariable( const Util::StringRef &name );
 	bool TryExecuteCommand( Util::StringRef command_string );
 	void SaveCommand( CommandPtr &&cmd );
+	void ExecuteCommand( Util::StringRef command_string, 
+					     bool command_only = false ); 
 
 private:
-	Commands::Instance *FindCommandInstance( const Util::StringRef &name );
+	Commands::InstancePtr FindCommandInstance( const Util::StringRef &name );
 
 	int AllocCommandID() { return ++m_next_command_id; }
 

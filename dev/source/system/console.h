@@ -7,7 +7,7 @@
 #include "util/feed.h"
 
 namespace System { namespace Console {
-
+/*
 /// ---------------------------------------------------------------------------
 /// Execute a command.
 ///
@@ -19,5 +19,5 @@ void Execute( const char *command_string );
 /// \param file Path to script file, relative to game contents folder.
 ///
 bool ExecuteScript( const char *file );
-
+*/
 }}

@@ -18,10 +18,9 @@ Main *g_main;
 namespace {
 	
 	//-------------------------------------------------------------------------
-	int Command_Quit( Util::ArgString &args ) {
+	void Command_Quit( Util::ArgString &args ) {
 
-		System::Shutdown(); 
-		return 0;
+		System::Shutdown();
 	}
 
 }
@@ -154,7 +153,7 @@ Main::Main( int threads ) : m_strand( m_service() ) {
 	m_service.Run( threads );
 	m_live = true;
 
-	AddGlobalCommand( "quit", Command_Quit );
+	AddGlobalCommand( "quit", "Quit program.", Command_Quit );
 }
 
 //-----------------------------------------------------------------------------
@@ -192,6 +191,57 @@ Service &Main::GetService() {
 void Main::Shutdown() {
 	m_live = false;
 	m_service.Finish( false );
+}
+
+//-----------------------------------------------------------------------------
+void ExecuteCommand( Util::StringRef command_string, bool command_only ) {
+	g_main->ExecuteCommand( command_string, command_only );
+}
+
+//-----------------------------------------------------------------------------
+void Main::ExecuteCommand( Util::StringRef command_string, 
+						   bool command_only ) {
+
+	// copy command
+	char command[1024];
+	Util::CopyString( command, *command_string );
+	Util::TrimString(command);
+	{
+		// strip comment
+		char *comment = strstr( command, "//" );
+		if( comment ) comment[0] = 0;
+	}
+
+	char name[64];
+	const char *next = Util::BreakString( command, name );
+	if( name[0] == 0 ) {
+		::Console::Print( "" );
+		return;
+	}
+
+	::Console::Print( "\n>>> %s", command_string );
+	
+	if( TryExecuteCommand( command_string ) ) {
+		return;
+	}
+	 
+	System::Variable *var = System::Variables::Find( name );
+	if( !var || command_only ) {
+
+		::Console::Print( "Unknown command: \"%s\"", name );
+		return;
+	} 
+
+	char value[512];
+	Util::CopyString( value, next );
+	Util::TrimString( value );
+	Util::StripQuotes( value );
+	
+	if( Util::StrEmpty( value ) ) {
+		var->PrintInfo();
+	} else {
+		var->SetString( value );
+	}
 }
 
 }

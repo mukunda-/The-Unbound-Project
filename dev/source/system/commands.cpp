@@ -22,7 +22,7 @@ namespace Commands {
 	 *
 	 * The handlers have a choice to break the execution sequence.
 	 */
-	class Instance {
+	class Instance : public std::enable_shared_from_this<Instance> {
 
 	private:
 
@@ -33,17 +33,10 @@ namespace Commands {
 		std::string m_desc;
 	
 		// handler list
-		std::vector<Command::Handler> m_handlers;
+		std::vector<Command*> m_handlers;
 
-		using sptr = std::shared_ptr<Instance>;
+		using ptr = std::shared_ptr<Instance>;
 	
-		/** -----------------------------------------------------------------------
-		 * Construct a new instance.
-		 *
-		 * @param name Name of command, the command trigger.
-		 * @param desc Brief description of command.
-		 */
-		Instance( Util::StringRef name, Util::StringRef desc );
 
 		/** -----------------------------------------------------------------------
 		 * Add a new handler.
@@ -54,10 +47,27 @@ namespace Commands {
 		 *                 beginning of the handler list, so it gets
 		 *                 processed before any existing handlers.
 		 */
-		void AddHandler( Command::Handler handler, bool highprio );
+		void AddHandler( Command &handler, bool highprio );
+		
+		/** -------------------------------------------------------------------
+		 * Remove a handler from the handler list.
+		 *
+		 * @param handler Command handler to remove.
+		 */
+		void RemoveHandler( Command &handler );
+
+		friend class Command;
 
 	public:
 		~Instance();
+
+		/** -----------------------------------------------------------------------
+		 * Construct a new instance.
+		 *
+		 * @param name Name of command, the command trigger.
+		 * @param desc Brief description of command.
+		 */
+		Instance( Util::StringRef name, Util::StringRef desc );
 
 		/** -------------------------------------------------------------------
 		 * Get an Instance for a command.
@@ -76,15 +86,8 @@ namespace Commands {
 		 *
 		 * @returns Pointer to new or existing Instance.
 		 */
-		static sptr Create( Util::StringRef name, Command::Handler handler, 
-							Util::StringRef desc, bool highprio );
-
-		/** -------------------------------------------------------------------
-		 * Remove a handler from the handler list.
-		 *
-		 * @param handler Command handler to remove.
-		 */
-		void Remove( Command::Handler handler );
+		static ptr Create( Util::StringRef name, Command &handler, 
+						   Util::StringRef desc, bool highprio );
 
 		/** -------------------------------------------------------------------
 		 * Execute a command string with this Instance.
@@ -95,29 +98,39 @@ namespace Commands {
 	};
 
 	//-------------------------------------------------------------------------
-	auto Instance::Create( Util::StringRef name, 
-						   Command::Handler handler, 
-						   Util::StringRef desc, bool highprio ) -> sptr {
+	auto Instance::Create( Util::StringRef name, Command &handler, 
+						   Util::StringRef desc, bool highprio ) -> ptr {
 
-		Instance *inst = g_main->FindCommandInstance( name );
+		auto inst = g_main->FindCommandInstance( name );
 		if( inst ) {
 			inst->AddHandler( handler, highprio );
-			return sptr(inst);
+			return inst;
 		}
 		
-		inst = new Instance( name, desc );
+		inst = std::make_shared<Instance>( name, desc );
 		inst->AddHandler( handler, highprio );
-		return sptr( inst );
+		return ptr( inst );
+	}
+	
+	//-------------------------------------------------------------------------
+	void Instance::AddHandler( Command &handler, bool highprio ) {
+		if( highprio ) {
+			m_handlers.insert( m_handlers.begin(), &handler );
+		} else {
+			m_handlers.push_back( &handler );
+		}
 	}
 
 	//-------------------------------------------------------------------------
-	void Instance::Remove( Command &cmd ) {
+	void Instance::RemoveHandler( Command &handler ) {
 		for( auto i = m_handlers.begin(); i != m_handlers.end(); i++ ) {
-			if( *i == handler ) {
+			if( *i == &handler ) {
 				m_handlers.erase( i );
 				return;
 			}
 		}
+
+		assert( !"Tried to remove nonexistant handler." );
 	}
 
 	//-------------------------------------------------------------------------
@@ -126,17 +139,7 @@ namespace Commands {
 
 		for( auto handler : m_handlers ) {
 		
-			int result = handler(args);	
-			if( result == COMMAND_STOP ) break;
-		}
-	}
-
-	//-------------------------------------------------------------------------
-	void Instance::AddHandler( Command::Handler handler, bool highprio ) {
-		if( highprio ) {
-			m_handlers.insert( m_handlers.begin(), handler );
-		} else {
-			m_handlers.push_back( handler );
+			handler->Execute( args );	 
 		}
 	}
 
@@ -167,21 +170,26 @@ namespace Commands {
 }
 
 //---------------------------------------------------------------------------------------
-Command::Command( Util::StringRef name, Handler handler, 
-				  Util::StringRef desc, bool high_priority ) {
+Command::Command( Util::StringRef name, Util::StringRef desc, 
+				  Handler handler, bool high_priority ) {
 
 	m_id = g_main->AllocCommandID();
 	m_handler = handler;
-	m_inst = Commands::Instance::Create( name, handler, desc, high_priority );
+	m_inst = Commands::Instance::Create( name, *this, desc, high_priority );
 }
 
 //---------------------------------------------------------------------------------------
 Command::~Command() {
-	m_inst->Remove( m_handler );
+	m_inst->RemoveHandler( *this );
+}
+
+//---------------------------------------------------------------------------------------
+void Command::Execute( Util::ArgString &args ) {
+	m_handler( args );
 }
 	
 //---------------------------------------------------------------------------------------
-bool TryExecuteCommand( Util::StringRef command_string ) {
+bool ExecuteCommand( Util::StringRef command_string ) {
 	return g_main->TryExecuteCommand( command_string );
 }
 
@@ -191,7 +199,7 @@ bool Main::TryExecuteCommand( Util::StringRef command_string ) {
 	char name[64];
 	Util::BreakString( *command_string, name );
 
-	Commands::Instance *inst = FindCommandInstance(name);
+	auto inst = FindCommandInstance(name);
 	if( !inst ) return false;
 
 	inst->Execute( command_string );
@@ -199,11 +207,23 @@ bool Main::TryExecuteCommand( Util::StringRef command_string ) {
 }
 
 //---------------------------------------------------------------------------------------
-void AddGlobalCommand( Util::StringRef name, Command::Handler handler, 
-					   Util::StringRef desc, bool high_priority ) {
+void AddGlobalCommand( Util::StringRef name, Util::StringRef desc, 
+					   Command::Handler handler, bool high_priority ) {
 	
-	g_main->SaveCommand( Command::Create( name, handler, desc, high_priority ));
+	g_main->SaveCommand( Command::Create( name, desc, handler, high_priority ));
 }
 
 //---------------------------------------------------------------------------------------
+Commands::InstancePtr Main::FindCommandInstance( const Util::StringRef &name ) {
+	try {
+		return m_command_map.at( name )->shared_from_this();
+	} catch( const std::out_of_range& ) {}
+	return nullptr;
+}
+
+//---------------------------------------------------------------------------------------
+void Main::SaveCommand( CommandPtr &&cmd ) {
+	m_global_commands.push_back( std::move( cmd ));
+}
+
 }
