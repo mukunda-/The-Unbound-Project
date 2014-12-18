@@ -7,6 +7,8 @@
 #include "system/console.h"
 #include "system/commands.h"
 #include "console/console.h"
+#include "util/fopen2.h"
+#include "util/codetimer.h"
 
 #pragma warning( disable : 4996 )
 
@@ -219,7 +221,7 @@ void Main::ExecuteCommand( Util::StringRef command_string,
 		return;
 	}
 
-	::Console::Print( "\n>>> %s", command_string );
+	::Console::Print( "\n>>> %s", *command_string );
 	
 	if( TryExecuteCommand( command_string ) ) {
 		return;
@@ -242,6 +244,35 @@ void Main::ExecuteCommand( Util::StringRef command_string,
 	} else {
 		var->SetString( value );
 	}
+}
+
+//-----------------------------------------------------------------------------
+bool ExecuteScript( Util::StringRef file ) {
+	return g_main->ExecuteScript( file );
+}
+
+//-----------------------------------------------------------------------------
+bool Main::ExecuteScript( Util::StringRef file ) {
+	FILE *f = fopen2( *file, "r" );
+	if( !f ) {
+		::Console::Print( "Script not found: \"%s\"", *file );
+		return false;
+	}
+
+	char line[1024];
+	::Console::Print( "Executing script: \"%s\"", *file );
+
+	Util::CodeTimer timer;
+
+	while( !feof(f) ) {
+		fgets( line, sizeof line, f );
+		ExecuteCommand( line );
+	}
+
+	::Console::Print( "Finished executing script: \"%s\", time=%s", file, 
+		Util::RoundDecimal( timer.Duration(), 2 ));
+
+	return true;
 }
 
 }

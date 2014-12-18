@@ -8,36 +8,11 @@
 #include "system/commands.h"
 #include "system/variables.h"
 #include "util/stringles.h"
-#include "util/codetimer.h"
-#include "util/fopen2.h"
  
 //-------------------------------------------------------------------------------------------------
 namespace System { namespace Console {
 
 
-//-------------------------------------------------------------------------------------------------
-bool ExecuteScript( const char *file ) {
-	FILE *f = fopen2( file, "r" );
-	if( !f ) {
-		::Console::Print( "Script not found: \"%s\"", file );
-		return false;
-	}
-
-	char line[1024];
-	::Console::Print( "Executing script: \"%s\"", file );
-
-	Util::CodeTimer timer;
-
-	while( !feof(f) ) {
-		fgets( line, sizeof line, f );
-		Execute( line );
-	}
-
-	::Console::Print( "Finished executing script: \"%s\", time=%s", file, 
-		Util::RoundDecimal( timer.Duration(),2 ).c_str() );
-
-	return true;
-}
 
 /*
 //-------------------------------------------------------------------------------------------------

@@ -84,6 +84,11 @@ public:
 	bool Empty() {
 		return m_text[0] == 0;
 	}
+
+	friend std::ostream& operator<<(std::ostream &os, const StringRef &str ) {
+		os << str.CStr();
+		return os;
+	}
 };
 
 }

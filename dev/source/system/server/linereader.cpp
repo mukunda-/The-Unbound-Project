@@ -21,6 +21,7 @@ LineReader::LineReader( WINDOW  *window ) {
 	}
 }
 
+//-----------------------------------------------------------------------------
 void LineReader::SetWindow( WINDOW *window ) {
 	m_window = window; 
 	getmaxyx( m_window, m_height, m_width );
@@ -78,7 +79,7 @@ void LineReader::DrawCursorChar( char c ) {
 
 //-----------------------------------------------------------------------------
 static void ExecuteCommand( std::string buffer ) {
-	System::Console::Execute( buffer.c_str() );
+	System::ExecuteCommand( buffer.c_str() );
 }
 
 //-----------------------------------------------------------------------------

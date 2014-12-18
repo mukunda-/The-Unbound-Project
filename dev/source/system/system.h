@@ -256,6 +256,7 @@ public:
 	void SaveCommand( CommandPtr &&cmd );
 	void ExecuteCommand( Util::StringRef command_string, 
 					     bool command_only = false ); 
+	bool ExecuteScript( Util::StringRef file );
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Util::StringRef &name );
