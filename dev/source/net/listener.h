@@ -28,11 +28,12 @@ namespace Net {
 		StreamFactory m_factory;
 
 		Events::Stream::Handler *m_user_handler;
+
 		EventHandler m_accept_handler;
-		StreamPtr m_current_stream;
-		std::mutex m_mutex;
-		bool m_started = false;
-		bool m_ignore_errors = false;
+		StreamPtr    m_current_stream;
+		std::mutex   m_mutex;
+		bool         m_started = false;
+		bool         m_ignore_errors = false;
 
 		void Accept();
 		void OnCompleted();
@@ -48,9 +49,13 @@ namespace Net {
 		/// @param handler Event handler to associate with the stream object. 
 		///                You can also hook your event handler in the 
 		///                factory and/or leave this omitted.
+		/// @param start   false to not start the listener until Start() is
+		///                called.
 		///
 		Listener( unsigned short port, StreamFactory factory, 
-				  Events::Stream::Handler *handler = nullptr );
+				  Events::Stream::Handler *handler = nullptr, 
+				  bool start = true );
+
 		~Listener();
 
 		/// -------------------------------------------------------------------

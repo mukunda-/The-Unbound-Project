@@ -232,11 +232,23 @@ TEST_F( SystemTests, VariableTests ) {
 ///////////////////////////////////////////////////////////////////////////////
 TEST_F( SystemTests, CommandTest ) {
 
-	auto cmd = System::Command::Create( "test1", "test command 1", 
-		[]( Util::ArgString &args ) {
-			
+	int test1 = 1;
+
+	auto cmd_test1 = System::Command::Create( "test1", "test command 1", 
+		[&test1]( Util::ArgString &args ) {
+			test1 = args.GetInt(0);
 		}
 	);
+
+	/////////////////////////////////////////////////////////////////
+	auto &var_test1 = System::Variables::Create( "vtest1", "3" );
+	EXPECT_EQ( 3, var_test1.GetInt() );
+	System::ExecuteCommand( "vtest1 5" );
+	EXPECT_EQ( 5, var_test1.GetInt() );
+	System::ExecuteCommand( "vtest1 1", true );
+	EXPECT_EQ( 5, var_test1.GetInt() );
+
+	System::ExecuteCommand( "test1 35" );
 
 	//System::TryExecuteCommand( 
 }

@@ -238,12 +238,12 @@ private:
 
 	std::unordered_map< std::string, VariablePtr > m_variables;
 	
-	// the command map
-	std::unordered_map< std::string, Commands::Instance* > m_command_map;
-
 	// "global" commands are commands that belong to the system 
 	// and cannot be deleted.
 	std::vector< CommandPtr > m_global_commands;
+	
+	// the command map
+	std::unordered_map< std::string, Commands::Instance* > m_command_map;
 
 public: 
 	// internal use by the global functions:

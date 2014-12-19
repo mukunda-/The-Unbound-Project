@@ -150,7 +150,7 @@ Main::Main( int threads ) : m_strand( m_service() ) {
 	assert( g_main == nullptr );
 	g_main = this;
 
-	m_console = std::unique_ptr<::Console::Instance>();
+	m_console.reset( new ::Console::Instance() );
 
 	m_service.Run( threads );
 	m_live = true;
@@ -162,6 +162,10 @@ Main::Main( int threads ) : m_strand( m_service() ) {
 Main::~Main() {
 	m_live = false;
 	m_service.Finish( true );
+
+	// we clear this here because the command instance destructors
+	// need access to Main.
+	m_global_commands.clear();
 
 	g_main = nullptr;
 }
@@ -221,7 +225,7 @@ void Main::ExecuteCommand( Util::StringRef command_string,
 		return;
 	}
 
-	::Console::Print( "\n>>> %s", *command_string );
+	::Console::Print( "\n>>> %s", command_string );
 	
 	if( TryExecuteCommand( command_string ) ) {
 		return;

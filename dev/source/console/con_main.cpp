@@ -44,8 +44,18 @@ void SetPrintHandler( PrintHandler::ptr handler ) {
 
 //-----------------------------------------------------------------------------
 Instance::Instance() {
+	
+	if( g_instance != nullptr ) {
+		throw std::runtime_error( 
+			"Cannot create multiple console instances." );
+	}
 	g_instance = this;
 	m_printhandler = make_shared<PrintHandler>();
+}
+
+//-----------------------------------------------------------------------------
+Instance::~Instance() {
+	g_instance = nullptr;
 }
 
 //-----------------------------------------------------------------------------

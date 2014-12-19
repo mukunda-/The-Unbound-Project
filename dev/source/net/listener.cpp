@@ -12,13 +12,15 @@ namespace Net {
 	//-------------------------------------------------------------------------
 	Listener::Listener( unsigned short port, 
 						StreamFactory factory, 
-						Events::Stream::Handler *handler ) :
+						Events::Stream::Handler *handler, bool start ) :
 			BasicListener(port), 
 			m_factory( factory ), 
 			m_user_handler(handler),
 			m_accept_handler(*this)  { 
-	}
 
+		if( start ) Start();
+	}
+	 
 	//-------------------------------------------------------------------------
 	Listener::~Listener() {
 		Stop();

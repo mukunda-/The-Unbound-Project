@@ -80,6 +80,7 @@ private:
 
 public:
 	Instance();
+	~Instance();
 	
 	void Print( const char *text, bool newline, bool error );
 	void SetPrintHandler( PrintHandler::ptr handler );
