@@ -106,6 +106,9 @@ namespace Asev {
 		/// an event can occur during destruction and cause undefined
 		/// behavior.
 		///
+		/// NOTE that this also guarantees that no handlers will be in the 
+		/// middle of execution after the function returns.
+		///
 		virtual void Disable();
 
 		Handler();
@@ -122,12 +125,23 @@ namespace Asev {
 		friend class Dispatcher;
 		friend class Handler;
 
-		std::mutex m_mutex;
+		std::recursive_mutex m_mutex;
+
+		// if we are inside a dispatcher.
+		bool m_handler_is_executing = false;
 
 		// subscribed handlers
 		std::vector<std::shared_ptr<Handler::Pipe>> m_pipes;
 
+		// pipes getting added
+		std::vector<std::shared_ptr<Handler::Pipe>> m_newpipes;
+
+		// pipes being removed
+		std::vector<std::shared_ptr<Handler::Pipe>> m_removepipes;
+
 		bool m_disabled = false;
+
+		void ModifyPipes();
 		 
 	public: 
 		Source();
@@ -136,14 +150,14 @@ namespace Asev {
 		/// -------------------------------------------------------------------
 		/// Add an event handler to this source.
 		///
-		/// @param handler Event handler instance.
+		/// @param handler   Event handler instance. 
 		///
 		virtual void AsevSubscribe( Handler &handler );
 		
 		/// -------------------------------------------------------------------
 		/// Remove an event handler from this source.
 		///
-		/// @param handler Event handler instance.
+		/// @param handler   Event handler instance.
 		///
 		virtual void AsevUnsubscribe( Handler &handler );
 
@@ -163,7 +177,9 @@ namespace Asev {
 	///
 	class Dispatcher {
 		Source &m_source;
-		std::lock_guard<std::mutex> m_lock; 
+		
+		// dispatcher has a lock on a source when it is constructed.
+		std::lock_guard<std::recursive_mutex> m_lock; 
 
 	public:
 		/// -------------------------------------------------------------------

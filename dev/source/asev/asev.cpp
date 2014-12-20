@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "asev.h"
 
+using std::lock_guard;
+using std::mutex;
+using std::recursive_mutex;
+
 namespace Asev {
 
 namespace {
@@ -87,34 +91,71 @@ bool Handler::Lock::IsClosed() const {
 
 //-----------------------------------------------------------------------------
 Source::Source() {
+
 }
 
 //-----------------------------------------------------------------------------
 void Source::AsevSubscribe( Handler &handler ) {
-	std::lock_guard<std::mutex> lock( m_mutex );
-	std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
+
+	lock_guard<recursive_mutex> lock( m_mutex );
+	m_newpipes.push_back( handler.m_pipe ); 
+	ModifyPipes();
+
+	/*
+	std::unique_lock<std::mutex> lock(m_mutex, std::defer_lock);
 	
-	if( ListContains( m_pipes, handler.m_pipe ) ) return; 
-	m_pipes.push_back( handler.m_pipe ); 
+	if( !inhandler ) {
+		std::lock_guard<std::mutex> lock( m_mutex );
+
+		// why was this locked? we are not accessing the internals.
+		//std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
+		
+		m_pipes.push_back( handler.m_pipe ); 
+	} else {
+		m_newpipes.push_back( handler.m_pipe );
+	}*/
+
 }
 
 //-----------------------------------------------------------------------------
 void Source::AsevUnsubscribe( Handler &handler ) {
-	std::lock_guard<std::mutex> lock( m_mutex );
-	std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
+	lock_guard<recursive_mutex> lock( m_mutex );
+	m_removepipes.push_back( handler.m_pipe );
+	ModifyPipes();
 
-	RemoveFromList( m_pipes, handler.m_pipe );
+	/*
+	std::lock_guard<std::mutex> lock( m_mutex );
+	//std::lock_guard<std::mutex> lock2( handler.m_pipe->GetLock() );
+
+	RemoveFromList( m_pipes, handler.m_pipe );*/
+}
+
+//-----------------------------------------------------------------------------
+void Source::ModifyPipes() {
+	if( m_handler_is_executing ) return; // defer!
+
+	for( auto &pipe : m_newpipes ) { 
+		m_pipes.push_back( pipe );
+	}
+
+	m_newpipes.clear();
+
+	for( auto &pipe : m_removepipes ) {
+		RemoveFromList( m_pipes, pipe );
+	}
+
+	m_removepipes.clear();
 }
 
 //-----------------------------------------------------------------------------
 void Source::AsevDisable() {
-	std::lock_guard<std::mutex> lock( m_mutex );
+	lock_guard<recursive_mutex> lock( m_mutex );
 	m_disabled = true;
 }
 
 //-----------------------------------------------------------------------------
 void Source::AsevEnable() {
-	std::lock_guard<std::mutex> lock( m_mutex );
+	lock_guard<recursive_mutex> lock( m_mutex );
 	m_disabled = false;
 }
 
@@ -132,6 +173,7 @@ int Dispatcher::Send( Event &e ) {
 
 	if( m_source.m_disabled ) return 0;
 
+	m_source.m_handler_is_executing = true;
 	for( auto pipe = m_source.m_pipes.begin(); 
 			pipe != m_source.m_pipes.end(); ) {
 
@@ -149,6 +191,9 @@ int Dispatcher::Send( Event &e ) {
 		// this pipe is closed. remove it.
 		pipe = m_source.m_pipes.erase( pipe );
 	}
+	m_source.m_handler_is_executing = false;
+	m_source.ModifyPipes(); // flush newpipes and removepipes
+	
 	return result;
 }
 
