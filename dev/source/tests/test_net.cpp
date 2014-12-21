@@ -53,9 +53,14 @@ std::mutex    *NetTests::m_lock = nullptr;
 ///////////////////////////////////////////////////////////////////////////////
 class MyStream1 : public Net::TextStream {
 public:
-	int m_expected = 0;
+	int m_expected = 4;
 	static Net::StreamPtr Factory() {
 		return std::make_shared<MyStream1>();
+	}
+
+	~MyStream1() {
+		NETLOCKGUARD;
+		EXPECT_EQ( 4, m_expected );
 	}
 };
 
@@ -63,18 +68,20 @@ public:
 class StreamHandler1 : public Net::Events::Stream::Handler {
 	
 public:
-	void Accepted( Net::StreamPtr &stream ) override {
-		NETLOCKGUARD;
+	void Accepted( Net::StreamPtr &nstream ) override {
+//		NETLOCKGUARD;
+		auto &stream = nstream->Cast<MyStream1>();
+		stream.m_expected = 0;
 	}
 	void Connected( Net::StreamPtr &stream ) override {
-		NETLOCKGUARD;
+//		NETLOCKGUARD;
 	}
 
 	void Receive( Net::StreamPtr &nstream, Net::Message &nmsg ) override { 
 		NETLOCKGUARD;
 		auto &stream = nstream->Cast<MyStream1>();
 		auto &msg    = nmsg.Cast<Net::TextStream::Message>();
-
+		std::cout << msg() << std::endl;
 		switch( stream.m_expected ) {
 		case 0:
 			EXPECT_EQ( "Test Message 1", msg() );
@@ -87,6 +94,7 @@ public:
 			break;
 		case 3:
 			EXPECT_EQ( "Test 4", msg() );
+			
 			break;
 		case 4:
 			FAIL();
@@ -103,16 +111,20 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 	Net::Listener listener( 44412, MyStream1::Factory, &handler );
 
 	for( int i = 0; i < 10; i++ ) {
+		
 		auto stream = std::static_pointer_cast<MyStream1>(
 			Net::Connect( "127.0.0.1", "44412", MyStream1::Factory ));
 
 		{
-			NETLOCKGUARD;
-			stream->Write() << "Test Message 1\n" << "Test 2\n"; 
+		
+			stream->Write() << "Test Message 1\n" << "Test 2\n";
 			stream->Write() << "Test Message 3\n" << "Test 4\n";
 		}
+		
+		stream->Close();
 	
 	}
+
 	handler.Disable();
 }
 
