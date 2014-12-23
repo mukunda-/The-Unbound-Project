@@ -81,6 +81,9 @@ private:
 	// shutdown is FALSE upon construction
 	// and TRUE after Close is called.
 	bool m_shutdown = false;
+
+	// true if this stream was created from accepting a connection.
+	bool m_accepted = false;
 	
 	virtual void OnReceive( const boost::system::error_code& error, 
 					size_t bytes_transferred );
@@ -133,6 +136,12 @@ public:
 	Stream( System::Service &service );
 	Stream();
 	~Stream();
+
+	Stream( Stream&  ) = delete;
+	Stream( Stream&& ) = delete;
+	Stream& operator=( Stream&  ) = delete;
+	Stream& operator=( Stream&& ) = delete;
+
 		  
 	/// -----------------------------------------------------------------------
 	/// Close the stream.

@@ -95,24 +95,18 @@ namespace Asev {
 		 
 	public:
 
-		/// -------------------------------------------------------------------
-		/// Disable the event handler.
-		///
-		/// This should be called when you are no longer expecting events
-		/// to trigger. After this is called, the callbacks will not be
-		/// triggered.
-		///
-		/// This MUST be called before the handler is destructed, since
-		/// an event can occur during destruction and cause undefined
-		/// behavior.
-		///
-		/// NOTE that this also guarantees that no handlers will be in the 
-		/// middle of execution after the function returns.
-		///
-		virtual void Disable();
-
+		// construct a handler
 		Handler();
-		~Handler();
+
+		/// -------------------------------------------------------------------
+		/// Destruct a handler.
+		///
+		/// This method calls Close.
+		///
+		virtual ~Handler();
+
+		/// -------------------------------------------------------------------
+		void Close();
 
 		typedef std::shared_ptr<Handler> ptr;
 

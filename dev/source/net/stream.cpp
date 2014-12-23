@@ -143,10 +143,13 @@ void Stream::OnSend( const boost::system::error_code& error,
 /// [PRIVATE] Stop the sending thread and signal waiters.
 ///
 void Stream::StopSend() {
+	using namespace boost::asio::ip; 
 	m_sending = false;
 	m_cv_send_complete.notify_all();
 
 	if( m_close_after_send ) {
+		boost::system::error_code ec;
+		m_socket.shutdown( tcp::socket::shutdown_both, ec );  
 		m_socket.close();
 	}
 	return;
@@ -248,7 +251,8 @@ void Stream::DoClose() {
 		
 		// TODO: do we need to linger here for the data to be sent? 
 	}
-
+	
+	m_socket.shutdown( tcp::socket::shutdown_both, ec );  
 	m_socket.close();
 }
 
@@ -271,6 +275,7 @@ void Stream::SetConnected() {
 void Stream::OnAccept( const boost::system::error_code &error ) {
 
 	if( !error ) {
+		m_accepted = true;
 		m_hostname = m_socket.remote_endpoint().address().to_string();
 
 		Events::Stream::Dispatcher( shared_from_this() )

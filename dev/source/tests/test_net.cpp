@@ -69,12 +69,28 @@ class StreamHandler1 : public Net::Events::Stream::Handler {
 	
 public:
 	void Accepted( Net::StreamPtr &nstream ) override {
-//		NETLOCKGUARD;
+		NETLOCKGUARD;
 		auto &stream = nstream->Cast<MyStream1>();
 		stream.m_expected = 0;
 	}
+	
+	void SendFailed( 
+			Net::StreamPtr &stream,
+			const boost::system::error_code &error ) override {
+
+		NETLOCKGUARD;
+		 
+		std::cout << error.message();
+	}
+
 	void Connected( Net::StreamPtr &stream ) override {
-//		NETLOCKGUARD;
+		NETLOCKGUARD;
+	}
+
+	void Disconnected( Net::StreamPtr &stream, 
+					   const boost::system::error_code &error ) override {
+		NETLOCKGUARD;
+		std::cout << error.message();
 	}
 
 	void Receive( Net::StreamPtr &nstream, Net::Message &nmsg ) override { 
@@ -110,21 +126,21 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 	StreamHandler1 handler;
 	Net::Listener listener( 44412, MyStream1::Factory, &handler );
 
-	for( int i = 0; i < 10; i++ ) {
+	for( int i = 0; i < 1; i++ ) {
 		
 		auto stream = std::static_pointer_cast<MyStream1>(
 			Net::Connect( "127.0.0.1", "44412", MyStream1::Factory ));
 
 		{
-		
-			stream->Write() << "Test Message 1\n" << "Test 2\n";
-			stream->Write() << "Test Message 3\n" << "Test 4\n";
+			// DEBUG single message.
+			stream->Write() << "Test Message 1\n" << "Test 2\n"
+			 << "Test Message 3\n" << "Test 4\n";
 		}
 		
 		stream->Close();
 	
 	}
-
+	// need to get rid of this DISABLE function, and make it a blocking destructor instead!
 	handler.Disable();
 }
 
