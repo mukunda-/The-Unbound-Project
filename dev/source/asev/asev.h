@@ -7,7 +7,7 @@
 #pragma once 
 
 #if !defined(_MUTEX_) || !defined(_MEMORY_) || !defined(_TYPEINFO_)
-#  error "Requires <mutex>, <memory>, <typeinfo>"
+#  error "Requires <mutex>, <memory>, <typeinfo>."
 #endif
 
 namespace Asev {
@@ -23,26 +23,12 @@ namespace Asev {
 		}
 
 		virtual ~Event() {}
-	};
-	
-	/// -----------------------------------------------------------------------
-	/// Events are passed to interfaces. 
-	///
-	class Interface {
-
-	protected:
-		virtual ~Interface() {}
-		
-		/// -------------------------------------------------------------------
-		/// Handle an event.
-		///
-		virtual int Handle( Event &e ) { return 0; }
-	};
+	}; 
 
 	/// -----------------------------------------------------------------------
-	/// A handler implements the base interface and listens to event sources.
+	/// A handler listens to event sources.
 	///
-	class Handler : public Interface { 
+	class Handler { 
 		
 		/// -------------------------------------------------------------------
 		/// A pipe is a medium between a handler and a source. It provides
@@ -92,24 +78,25 @@ namespace Asev {
 		friend class Dispatcher;
 		 
 		std::shared_ptr<Pipe> m_pipe;
-		 
-	public:
 
-		// construct a handler
+		//---------------------------------------------------------------------
+	protected:
+		/// -------------------------------------------------------------------
+		/// Construct a handler. Use make_shared.
+		///
 		Handler();
 
-		/// -------------------------------------------------------------------
-		/// Destruct a handler.
-		///
-		/// This method calls Close.
-		///
+		//---------------------------------------------------------------------
+	public: 
 		virtual ~Handler();
-
+		
 		/// -------------------------------------------------------------------
-		void Close();
-
-		typedef std::shared_ptr<Handler> ptr;
-
+		/// Handle an event.
+		///
+		virtual int Handle( Event &e ) { return 0; }
+		 
+		//---------------------------------------------------------------------
+		typedef std::shared_ptr<Handler> ptr; 
 	};
 
 	/// -----------------------------------------------------------------------
@@ -125,13 +112,13 @@ namespace Asev {
 		bool m_handler_is_executing = false;
 
 		// subscribed handlers
-		std::vector<std::shared_ptr<Handler::Pipe>> m_pipes;
+		std::vector<std::shared_ptr<Handler>> m_handlers;
 
-		// pipes getting added
-		std::vector<std::shared_ptr<Handler::Pipe>> m_newpipes;
+		// handlers to be added
+		std::vector<std::shared_ptr<Handler>> m_newhandlers;
 
-		// pipes being removed
-		std::vector<std::shared_ptr<Handler::Pipe>> m_removepipes;
+		// handlers to be removed
+		std::vector<std::shared_ptr<Handler>> m_removehandlers;
 
 		bool m_disabled = false;
 
