@@ -149,7 +149,7 @@ void Stream::StopSend() {
 
 	if( m_close_after_send ) {
 		boost::system::error_code ec;
-		m_socket.shutdown( tcp::socket::shutdown_both, ec );  
+		m_socket.shutdown( tcp::socket::shutdown_send, ec );  
 		m_socket.close();
 	}
 	return;
@@ -252,7 +252,7 @@ void Stream::DoClose() {
 		// TODO: do we need to linger here for the data to be sent? 
 	}
 	
-	m_socket.shutdown( tcp::socket::shutdown_both, ec );  
+	m_socket.shutdown( tcp::socket::shutdown_send, ec );  
 	m_socket.close();
 }
 

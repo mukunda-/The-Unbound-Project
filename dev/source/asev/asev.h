@@ -82,7 +82,7 @@ namespace Asev {
 		//---------------------------------------------------------------------
 	protected:
 		/// -------------------------------------------------------------------
-		/// Construct a handler. Use make_shared.
+		/// Construct a handler (abstract).
 		///
 		Handler();
 
@@ -118,7 +118,7 @@ namespace Asev {
 		std::vector<std::shared_ptr<Handler>> m_newhandlers;
 
 		// handlers to be removed
-		std::vector<std::shared_ptr<Handler>> m_removehandlers;
+		std::vector<Handler*> m_removehandlers;
 
 		bool m_disabled = false;
 
@@ -133,7 +133,7 @@ namespace Asev {
 		///
 		/// @param handler   Event handler instance. 
 		///
-		virtual void AsevSubscribe( Handler &handler );
+		virtual void AsevSubscribe( Handler::ptr &handler );
 		
 		/// -------------------------------------------------------------------
 		/// Remove an event handler from this source.
