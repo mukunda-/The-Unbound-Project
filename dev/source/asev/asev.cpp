@@ -49,19 +49,16 @@ namespace {
 
 //-----------------------------------------------------------------------------
 Handler::Handler() {
-	m_pipe = std::make_shared<Pipe>( *this );
+	//m_pipe = std::make_shared<Pipe>( *this );
 }
 
 //-----------------------------------------------------------------------------
 Handler::~Handler() {
-	if( !Lock(*m_pipe).IsClosed() ) {
+	/*if( !Lock(*m_pipe).IsClosed() ) {
 		throw std::runtime_error( "Attempt to destruct live event handler." );
-	}
-}
+	}*/
 
-//-----------------------------------------------------------------------------
-void Handler::Disable() {
-	Lock(*m_pipe).Close();
+	assert( m_sourcecount == 0 );
 }
 
 //-----------------------------------------------------------------------------

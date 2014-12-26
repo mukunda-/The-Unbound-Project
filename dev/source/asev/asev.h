@@ -34,7 +34,7 @@ namespace Asev {
 		/// A pipe is a medium between a handler and a source. It provides
 		/// safe access to the handler.
 		///
-		class Pipe {
+	/*	class Pipe {
 			friend class Lock;
 			friend class Handler;
 			Handler    *m_handler;
@@ -43,12 +43,12 @@ namespace Asev {
 		public:
 			Pipe( Handler &parent );
 			std::mutex &GetLock() { return m_mutex; }
-		};
+		};*/
 		
 		/// -------------------------------------------------------------------
 		/// A handler Lock secures a handler pipe for thread safe access.
 		///
-		class Lock {
+	/*	class Lock {
 			std::lock_guard<std::mutex> m_lock;
 			Pipe &m_pipe;
 		public:
@@ -72,12 +72,15 @@ namespace Asev {
 			///          have a live handler pointer.
 			///
 			bool IsClosed() const;
-		};
+		};*/
 
 		friend class Source;
 		friend class Dispatcher;
 		 
-		std::shared_ptr<Pipe> m_pipe;
+		//std::shared_ptr<Pipe> m_pipe;
+
+		std::mutex m_mutex;
+		int m_sourcecount = 0;
 
 		//---------------------------------------------------------------------
 	protected:
