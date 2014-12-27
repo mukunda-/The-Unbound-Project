@@ -6,10 +6,17 @@
  
 
 #ifdef _WIN32
-#define TARGET_WINDOWS
-#define WIN32_LEAN_AND_MEAN 
+#   define TARGET_WINDOWS
+#   define WIN32_LEAN_AND_MEAN 
 #else
-#define TARGET_LINUX
+#   define TARGET_LINUX
+#endif
+
+#ifdef _MSC_VER
+// vs2013 does not have "noexcept"
+#   define NOEXCEPT _NOEXCEPT
+#else
+#   define NOEXCEPT noexcept
 #endif
 
 #include <Eigen/Dense>

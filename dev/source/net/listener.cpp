@@ -8,51 +8,65 @@
 #include "core.h"
 
 namespace Net {
+//-----------------------------------------------------------------------------
+
+using errcode = const boost::system::error_code;
+
+//-----------------------------------------------------------------------------
+class Listener::EventHandler : public Events::Stream::Handler {
+
+	Listener &m_parent;
+
+public:
+	void Accepted( StreamPtr &stream ) override;
+	void AcceptError( StreamPtr &stream, errcode &error ) override;
+
+	EventHandler( Listener &parent );
+};
 	
-	//-------------------------------------------------------------------------
-	Listener::Listener( unsigned short port, 
-						StreamFactory factory, 
-						Events::Stream::Handler *handler ) :
-			BasicListener(port), 
-			m_factory( factory ), 
-			m_user_handler(handler),
-			m_accept_handler(*this)  { 
+//-----------------------------------------------------------------------------
+Listener::Listener( unsigned short port,
+					StreamFactory factory,
+					Events::Stream::Handler::ptr handler ) :
+		BasicListener(port),
+		m_factory( factory ),
+		m_user_handler(handler) {
 		
-		Accept();
-	}
+	m_accept_handler = std::make_shared<EventHandler>( *this );
+	Accept();
+}
 	 
-	//-------------------------------------------------------------------------
-	Listener::~Listener() {
-		m_accept_handler.Disable();
-	}
+//-----------------------------------------------------------------------------
+Listener::~Listener() {}
 
-	//-------------------------------------------------------------------------
-	void Listener::Accept() {
-		auto stream = m_factory();
+//-----------------------------------------------------------------------------
+void Listener::Accept() {
+	auto stream = m_factory();
 
-		stream->AsevSubscribe( m_accept_handler );
-		if( m_user_handler ) {
-			stream->AsevSubscribe( *m_user_handler );
-		}
-		stream->Listen( *this );
-	}
+	stream->AsevSubscribe( m_accept_handler );
+	stream->AsevSubscribe( m_user_handler );
 
-	//-------------------------------------------------------------------------
-	Listener::EventHandler::EventHandler( Listener &parent ) 
-			: m_parent(parent) {
-	}
+	stream->Listen( *this );
+}
 
-	//-------------------------------------------------------------------------
-	void Listener::EventHandler::Accepted( StreamPtr &stream ) {
+//-----------------------------------------------------------------------------
+Listener::EventHandler::EventHandler( Listener &parent ) 
+		: m_parent(parent) {
+}
 
-		m_parent.Accept();
-	}
+//-----------------------------------------------------------------------------
+void Listener::EventHandler::Accepted( StreamPtr &stream ) {
 
-	//-------------------------------------------------------------------------
-	void Listener::EventHandler::AcceptError( 
-					StreamPtr &stream, 
-					const boost::system::error_code &error ) {
+	stream->AsevUnsubscribe( m_parent.m_accept_handler );
+	m_parent.Accept();
+}
 
-		m_parent.Accept();
-	}
+//-----------------------------------------------------------------------------
+void Listener::EventHandler::AcceptError( StreamPtr &stream, errcode& ) {
+
+	stream->AsevUnsubscribe( m_parent.m_accept_handler );
+	m_parent.Accept();
+}
+
+//-----------------------------------------------------------------------------
 }

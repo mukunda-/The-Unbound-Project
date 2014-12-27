@@ -40,7 +40,7 @@ namespace Net {
 	///
 	void ConnectAsync( const std::string &host, 
 					   const std::string &service, 
-					   Asev::Handler &handler,
+					   Events::Stream::Handler::ptr &handler,
 					   StreamFactory factory );
 
 	//-------------------------------------------------------------------------

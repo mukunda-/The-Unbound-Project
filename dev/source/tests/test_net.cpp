@@ -123,8 +123,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 TEST_F( NetTests, SimpleConnectionTest ) {
 	
-	StreamHandler1 handler;
-	Net::Listener listener( 44412, MyStream1::Factory, &handler );
+	auto handler = std::make_shared<StreamHandler1>();
+	Net::Listener listener( 44412, MyStream1::Factory, handler );
 
 	for( int i = 0; i < 1; i++ ) {
 		
@@ -140,8 +140,7 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 		stream->Close();
 	
 	}
-	// need to get rid of this DISABLE function, and make it a blocking destructor instead!
-	handler.Disable();
+ 
 }
 
 ///////////////////////////////////////////////////////////////////////////////

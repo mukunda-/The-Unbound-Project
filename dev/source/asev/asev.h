@@ -29,74 +29,26 @@ namespace Asev {
 	/// A handler listens to event sources.
 	///
 	class Handler { 
-		
-		/// -------------------------------------------------------------------
-		/// A pipe is a medium between a handler and a source. It provides
-		/// safe access to the handler.
-		///
-	/*	class Pipe {
-			friend class Lock;
-			friend class Handler;
-			Handler    *m_handler;
-			std::mutex m_mutex; 
-
-		public:
-			Pipe( Handler &parent );
-			std::mutex &GetLock() { return m_mutex; }
-		};*/
-		
-		/// -------------------------------------------------------------------
-		/// A handler Lock secures a handler pipe for thread safe access.
-		///
-	/*	class Lock {
-			std::lock_guard<std::mutex> m_lock;
-			Pipe &m_pipe;
-		public:
-			Lock( Pipe &pipe );
-			
-			/// ---------------------------------------------------------------
-			/// @returns The handler for the locked pipe, or nullptr if the
-			///          pipe is closed.
-			///
-			Handler *operator()() const;
-
-			/// ---------------------------------------------------------------
-			/// Close the pipe.
-			///
-			void Close();
-			
-			/// ---------------------------------------------------------------
-			/// Check if the pipe is closed.
-			///
-			/// @returns true if the locked pipe is closed, i.e. it doesn't
-			///          have a live handler pointer.
-			///
-			bool IsClosed() const;
-		};*/
 
 		friend class Source;
 		friend class Dispatcher;
-		 
-		//std::shared_ptr<Pipe> m_pipe;
-
-		std::mutex m_mutex;
+		
+		std::recursive_mutex m_mutex;
 		int m_sourcecount = 0;
+		std::condition_variable_any m_on_unsub;
 
-		//---------------------------------------------------------------------
-	protected:
-		/// -------------------------------------------------------------------
-		/// Construct a handler (abstract).
-		///
-		Handler();
+		void IncrementSources();
+		void DecrementSources();
 
 		//---------------------------------------------------------------------
 	public: 
+		Handler();
 		virtual ~Handler();
 		
 		/// -------------------------------------------------------------------
 		/// Handle an event.
 		///
-		virtual int Handle( Event &e ) { return 0; }
+		virtual int Handle( Event &e ) = 0;
 		 
 		//---------------------------------------------------------------------
 		typedef std::shared_ptr<Handler> ptr; 
@@ -109,16 +61,35 @@ namespace Asev {
 		friend class Dispatcher;
 		friend class Handler;
 
+		//---------------------------------------------------------------------
+		// this container auto increments/decrements 
+		// the handler's source counter
+		class HandlerRef {
+			using T = std::shared_ptr<Handler>;
+			T m_ptr;
+			
+		public:
+			T& operator*() { return m_ptr; }
+			
+			HandlerRef( T &ptr );
+			HandlerRef( HandlerRef &other ) = delete;
+			HandlerRef( HandlerRef &&other ) NOEXCEPT;
+			HandlerRef& operator=( HandlerRef &&other ) NOEXCEPT;
+			HandlerRef& operator=( HandlerRef &other ) = delete;
+			~HandlerRef();
+		};
+
+		//---------------------------------------------------------------------
 		std::recursive_mutex m_mutex;
 
 		// if we are inside a dispatcher.
 		bool m_handler_is_executing = false;
-
+		
 		// subscribed handlers
-		std::vector<std::shared_ptr<Handler>> m_handlers;
+		std::vector<HandlerRef> m_handlers;
 
 		// handlers to be added
-		std::vector<std::shared_ptr<Handler>> m_newhandlers;
+		std::vector<HandlerRef> m_newhandlers;
 
 		// handlers to be removed
 		std::vector<Handler*> m_removehandlers;
@@ -126,24 +97,28 @@ namespace Asev {
 		bool m_disabled = false;
 
 		void ModifyPipes();
-		 
+		int  SendEvent( Event &e );
+		
+		//---------------------------------------------------------------------
 	public: 
 		Source();
-		virtual ~Source() {}
+		virtual ~Source();
 
 		/// -------------------------------------------------------------------
 		/// Add an event handler to this source.
 		///
-		/// @param handler   Event handler instance. 
+		/// @param handler Event handler pointer. If the pointer is null, this
+		///                function will do nothing
 		///
 		virtual void AsevSubscribe( Handler::ptr &handler );
 		
 		/// -------------------------------------------------------------------
 		/// Remove an event handler from this source.
 		///
-		/// @param handler   Event handler instance.
+		/// @param handler Event handler pointer. If null, this function will
+		///                do nothing.
 		///
-		virtual void AsevUnsubscribe( Handler &handler );
+		virtual void AsevUnsubscribe( Handler::ptr &handler );
 
 		/// -------------------------------------------------------------------
 		/// Stop any further events from being dispatched.

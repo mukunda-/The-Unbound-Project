@@ -48,77 +48,100 @@ namespace {
 }
 
 //-----------------------------------------------------------------------------
-Handler::Handler() {
-	//m_pipe = std::make_shared<Pipe>( *this );
+Handler::Handler() { 
 }
 
 //-----------------------------------------------------------------------------
-Handler::~Handler() {
-	/*if( !Lock(*m_pipe).IsClosed() ) {
-		throw std::runtime_error( "Attempt to destruct live event handler." );
-	}*/
+Handler::~Handler() { 
 
 	assert( m_sourcecount == 0 );
 }
-
+ 
 //-----------------------------------------------------------------------------
-Handler::Pipe::Pipe( Handler &parent ) {
-	m_handler = &parent;
+void Handler::IncrementSources() {
+	lock_guard<recursive_mutex> lock( m_mutex );
+	m_sourcecount++;
 }
 
 //-----------------------------------------------------------------------------
-Handler::Lock::Lock( Pipe &pipe ) : m_pipe(pipe), m_lock(pipe.m_mutex) {
-	
+void Handler::DecrementSources() {
+	lock_guard<recursive_mutex> lock( m_mutex );
+	m_sourcecount--;
+	m_on_unsub.notify_all(); 
 }
 
 //-----------------------------------------------------------------------------
-Handler *Handler::Lock::operator()() const {
-	return m_pipe.m_handler;
+Source::HandlerRef::HandlerRef( T &ptr ) {
+	m_ptr = ptr;
+	if( m_ptr ) {
+		m_ptr->IncrementSources();
+	}
 }
 
 //-----------------------------------------------------------------------------
-void Handler::Lock::Close() {
-	m_pipe.m_handler = nullptr;
+Source::HandlerRef::HandlerRef( HandlerRef &&other ) {
+	m_ptr = other.m_ptr;
+	other.m_ptr = nullptr;
 }
 
 //-----------------------------------------------------------------------------
-bool Handler::Lock::IsClosed() const {
-	return m_pipe.m_handler == nullptr;
+auto Source::HandlerRef::operator=( HandlerRef &&other ) -> HandlerRef& {
+	m_ptr = other.m_ptr;
+	other.m_ptr = nullptr;
+	return *this;
 }
 
 //-----------------------------------------------------------------------------
-Source::Source() {
-
+Source::HandlerRef::~HandlerRef() {
+	if( m_ptr ) {
+		m_ptr->DecrementSources();
+	}
 }
+
+//-----------------------------------------------------------------------------
+Source::Source() {}
+Source::~Source() {}
 
 //-----------------------------------------------------------------------------
 void Source::AsevSubscribe( Handler::ptr &handler ) {
-
+	if( !handler ) return;
 	lock_guard<recursive_mutex> lock( m_mutex );
 	m_newhandlers.push_back( handler ); 
 	ModifyPipes();
-	 
 }
 
 //-----------------------------------------------------------------------------
-void Source::AsevUnsubscribe( Handler &handler ) {
+void Source::AsevUnsubscribe( Handler::ptr &handler ) {
+	if( !handler ) return;
 	lock_guard<recursive_mutex> lock( m_mutex );
-	m_removehandlers.push_back( &handler );
+	m_removehandlers.push_back( handler.get() );
 	ModifyPipes(); 
 }
 
 //-----------------------------------------------------------------------------
 void Source::ModifyPipes() {
+	// we are locked from outside
+	// if we are inside an event handler, defer this call until after
+	// the handlers are executed
 	if( m_handler_is_executing ) return; // defer!
 
+	// otherwise, we update the handlers immediately
+
 	for( auto &handler : m_newhandlers ) { 
-		m_handlers.push_back( handler );
+		m_handlers.push_back( std::move(handler) );
 	}
 
 	m_newhandlers.clear();
 
-	for( auto &handler : m_removehandlers ) {
-		RemovePointer( m_handlers, handler );
+	for( auto &handler : m_removehandlers ) { 
+		for( auto &i = m_handlers.begin(); i != m_handlers.end(); i++ ) {
+
+			// iterator -> handler ref -> smart ptr -> raw ptr
+			if( (**i).get() == handler ) {
+				m_handlers.erase(i);
+				break;
+			}
+		} 
 	}
 
 	m_removehandlers.clear();
@@ -137,41 +160,33 @@ void Source::AsevEnable() {
 }
 
 //-----------------------------------------------------------------------------
+int Source::SendEvent( Event &e ) {
+	int result = 0; 
+
+	if( m_disabled ) return 0;
+
+	m_handler_is_executing = true;
+	for( auto &handler : m_handlers ) {
+
+		lock_guard<recursive_mutex> lock( m_mutex );
+		result = (*handler)->Handle( e ); 
+	}
+	m_handler_is_executing = false;
+	ModifyPipes(); // flush newpipes and removepipes
+	
+	return result;
+}
+
+//-----------------------------------------------------------------------------
 Dispatcher::Dispatcher( Source &source ) :
 	m_source( source ), 
 	m_lock( m_source.m_mutex )
 {
-
 }
 
 //-----------------------------------------------------------------------------
 int Dispatcher::Send( Event &e ) {
-	int result = 0; 
-
-	if( m_source.m_disabled ) return 0;
-
-	m_source.m_handler_is_executing = true;
-	for( auto pipe = m_source.m_handlers.begin(); 
-			pipe != m_source.m_handlers.end(); ) {
-
-		Handler *handler;
-		{
-			Handler::Lock lock( **pipe );
-			handler = lock();
-			if( handler ) {
-				result = handler->Handle( e );
-				pipe++;
-				continue;
-			}
-		}
-
-		// this pipe is closed. remove it.
-		pipe = m_source.m_pipes.erase( pipe );
-	}
-	m_source.m_handler_is_executing = false;
-	m_source.ModifyPipes(); // flush newpipes and removepipes
-	
-	return result;
+	return m_source.SendEvent( e );
 }
 
 //-----------------------------------------------------------------------------
