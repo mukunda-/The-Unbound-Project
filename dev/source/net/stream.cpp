@@ -28,6 +28,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		m_connected = false; 
 		
 		// send event
+		Disconnected( error );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Disconnected( error );
 		
@@ -61,6 +62,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		StopReceive();
 
 		// send event
+		Disconnected( boost::system::error_code() );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Disconnected( boost::system::error_code() );
 		return;
@@ -112,6 +114,7 @@ void Stream::OnSend( const boost::system::error_code& error,
 
 		{
 			// disconnect with error status
+			SendFailed( error );
 			Events::Stream::Dispatcher ev( shared_from_this() );
 			ev.SendFailed( error );
 			//ev.Disconnected( error );  this is called by the receive handler.
@@ -278,12 +281,14 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 		m_accepted = true;
 		m_hostname = m_socket.remote_endpoint().address().to_string();
 
+		Accepted();
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Accepted();
 		
 		SetConnected();
 	} else { 
 
+		AcceptError( error );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.AcceptError( error );
 		
@@ -298,6 +303,7 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 					boost::asio::ip::tcp::resolver::iterator endpoints ) {
 	
 	if( error_code ) {
+		ConnectError( error_code );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.ConnectError( error_code );
 

@@ -14,8 +14,8 @@ using errcode = const boost::system::error_code;
 
 //-----------------------------------------------------------------------------
 class Listener::EventHandler : public Events::Stream::Handler {
-
-	Listener &m_parent;
+	friend class Listener;
+	Listener *m_parent;
 
 public:
 	void Accepted( StreamPtr &stream ) override;
@@ -37,35 +37,39 @@ Listener::Listener( unsigned short port,
 }
 	 
 //-----------------------------------------------------------------------------
-Listener::~Listener() {}
+Listener::~Listener() {
+	std::lock_guard<std::recursive_mutex> lock( m_accept_handler->GetMutex());
+	auto &handler = static_cast<Listener::EventHandler&>(*m_accept_handler);
+	handler.m_parent = nullptr;
+}
 
 //-----------------------------------------------------------------------------
 void Listener::Accept() {
 	auto stream = m_factory();
 
 	stream->AsevSubscribe( m_accept_handler );
-	stream->AsevSubscribe( m_user_handler );
+	stream->AsevSubscribe( m_user_handler ); 
 
 	stream->Listen( *this );
 }
 
 //-----------------------------------------------------------------------------
-Listener::EventHandler::EventHandler( Listener &parent ) 
-		: m_parent(parent) {
+Listener::EventHandler::EventHandler( Listener &parent )
+		: m_parent(&parent) {
 }
 
 //-----------------------------------------------------------------------------
 void Listener::EventHandler::Accepted( StreamPtr &stream ) {
 
-	stream->AsevUnsubscribe( m_parent.m_accept_handler );
-	m_parent.Accept();
+	stream->AsevUnsubscribe( *this );
+	if( m_parent ) m_parent->Accept();
 }
 
 //-----------------------------------------------------------------------------
 void Listener::EventHandler::AcceptError( StreamPtr &stream, errcode& ) {
 
-	stream->AsevUnsubscribe( m_parent.m_accept_handler );
-	m_parent.Accept();
+	stream->AsevUnsubscribe( *this );
+	if( m_parent ) m_parent->Accept();
 }
 
 //-----------------------------------------------------------------------------

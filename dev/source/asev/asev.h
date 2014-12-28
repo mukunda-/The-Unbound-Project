@@ -49,6 +49,9 @@ namespace Asev {
 		/// Handle an event.
 		///
 		virtual int Handle( Event &e ) = 0;
+
+		//---------------------------------------------------------------------
+		std::recursive_mutex &GetMutex() { return m_mutex; }
 		 
 		//---------------------------------------------------------------------
 		typedef std::shared_ptr<Handler> ptr; 
@@ -119,6 +122,8 @@ namespace Asev {
 		///                do nothing.
 		///
 		virtual void AsevUnsubscribe( Handler::ptr &handler );
+		virtual void AsevUnsubscribe( Handler &handler ); // so much
+		virtual void AsevUnsubscribe( Handler *handler ); // convenience..
 
 		/// -------------------------------------------------------------------
 		/// Stop any further events from being dispatched.

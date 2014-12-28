@@ -10,6 +10,7 @@
 #include "net/core.h"
 #include "net/listener.h"
 #include "net/textstream.h"
+#include "net/lidstream.h"
 #include "net/events.h"
 
 namespace Tests {
@@ -89,15 +90,14 @@ public:
 
 	void Disconnected( Net::StreamPtr &stream, 
 					   const boost::system::error_code &error ) override {
-		NETLOCKGUARD;
-		std::cout << error.message();
+		NETLOCKGUARD; 
 	}
 
 	void Receive( Net::StreamPtr &nstream, Net::Message &nmsg ) override { 
 		NETLOCKGUARD;
 		auto &stream = nstream->Cast<MyStream1>();
 		auto &msg    = nmsg.Cast<Net::TextStream::Message>();
-		std::cout << msg() << std::endl;
+		
 		switch( stream.m_expected ) {
 		case 0:
 			EXPECT_EQ( "Test Message 1", msg() );
@@ -126,7 +126,7 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 	auto handler = std::make_shared<StreamHandler1>();
 	Net::Listener listener( 44412, MyStream1::Factory, handler );
 
-	for( int i = 0; i < 1; i++ ) {
+	for( int i = 0; i < 100; i++ ) {
 		
 		auto stream = std::static_pointer_cast<MyStream1>(
 			Net::Connect( "127.0.0.1", "44412", MyStream1::Factory ));
@@ -141,6 +141,35 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 	
 	}
  
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TEST_F( NetTests, ProtobufTest ) {
+	class MyStream : public Net::LidStream {
+		
+		void Receive( Net::Message &nmsg ) override {
+			auto msg = nmsg.Cast<Net::LidStream::Message>();
+
+			if( msg.Header() == 12 ) {
+				
+			} else if( msg.Header() == 25 ) {
+
+			} else if( msg.Header() == 0x1111 ) {
+			} else if( msg.Header() == 0x22222 ) {
+			} else if( msg.Header() == 0x333333 ) {
+			} else if( msg.Header() == 0x4444444 ) {
+			} else {
+				FAIL();
+			}
+		}
+	};
+
+	auto handler = std::make_shared<Handler>();
+	auto factory = []() -> Net::StreamPtr {
+		return std::make_shared<MyStream>();
+	};
+
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

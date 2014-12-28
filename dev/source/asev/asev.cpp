@@ -73,19 +73,19 @@ void Handler::DecrementSources() {
 //-----------------------------------------------------------------------------
 Source::HandlerRef::HandlerRef( T &ptr ) {
 	m_ptr = ptr;
-	if( m_ptr ) {
-		m_ptr->IncrementSources();
-	}
+	if( m_ptr ) m_ptr->IncrementSources();
 }
 
 //-----------------------------------------------------------------------------
 Source::HandlerRef::HandlerRef( HandlerRef &&other ) {
+	if( m_ptr ) m_ptr->DecrementSources();
 	m_ptr = other.m_ptr;
 	other.m_ptr = nullptr;
 }
 
 //-----------------------------------------------------------------------------
 auto Source::HandlerRef::operator=( HandlerRef &&other ) -> HandlerRef& {
+	if( m_ptr ) m_ptr->DecrementSources();
 	m_ptr = other.m_ptr;
 	other.m_ptr = nullptr;
 	return *this;
@@ -93,9 +93,7 @@ auto Source::HandlerRef::operator=( HandlerRef &&other ) -> HandlerRef& {
 
 //-----------------------------------------------------------------------------
 Source::HandlerRef::~HandlerRef() {
-	if( m_ptr ) {
-		m_ptr->DecrementSources();
-	}
+	if( m_ptr ) m_ptr->DecrementSources();
 }
 
 //-----------------------------------------------------------------------------
@@ -112,9 +110,19 @@ void Source::AsevSubscribe( Handler::ptr &handler ) {
 
 //-----------------------------------------------------------------------------
 void Source::AsevUnsubscribe( Handler::ptr &handler ) {
+	AsevUnsubscribe( handler.get() );
+}
+
+//-----------------------------------------------------------------------------
+void Source::AsevUnsubscribe( Handler &handler ) {
+	AsevUnsubscribe( &handler ); 
+}
+
+//-----------------------------------------------------------------------------
+void Source::AsevUnsubscribe( Handler *handler ) {
 	if( !handler ) return;
 	lock_guard<recursive_mutex> lock( m_mutex );
-	m_removehandlers.push_back( handler.get() );
+	m_removehandlers.push_back( handler );
 	ModifyPipes(); 
 }
 

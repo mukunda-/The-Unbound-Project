@@ -131,6 +131,18 @@ protected:
 	///
 	SendLock AcquireSendBuffer();
 	void ReleaseSendBuffer( bool start );
+	
+	/// -----------------------------------------------------------------------
+	/// These are called during certain events in addition to the 
+	/// ASEV interface.
+	///
+	virtual void Accepted() {}
+	virtual void AcceptError( const boost::system::error_code & ) {}
+	virtual void Connected() {}
+	virtual void ConnectError( const boost::system::error_code & ) {}
+	virtual void SendFailed( const boost::system::error_code & ) {}
+	virtual void Disconnected( const boost::system::error_code & ) {}
+	virtual void Receive( Net::Message &nmsg ) {}
 
 public:
 	Stream( System::Service &service );
