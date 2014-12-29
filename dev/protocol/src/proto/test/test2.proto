@@ -4,7 +4,8 @@
 
 package Net.Proto.Test; 
 
-message Test {
-	optional int32 test_int = 1;
-	optional string test_string = 2;
+message Test2 {
+	optional string aa = 1;
+	optional string bb = 2;
+	optional int64  cc = 3;
 }

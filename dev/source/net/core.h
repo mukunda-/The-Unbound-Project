@@ -34,13 +34,11 @@ namespace Net {
 	/// Make a remote connection asynchronously.
 	///
 	/// @param host    Remote address.
-	/// @param service Service/port number to connect to.
-	/// @param handler Event handler to handle completion or error.
+	/// @param service Service/port number to connect to. 
 	/// @param factory Factory to create the stream with.
 	///
 	void ConnectAsync( const std::string &host, 
-					   const std::string &service, 
-					   Events::Stream::Handler::ptr &handler,
+					   const std::string &service,  
 					   StreamFactory factory );
 
 	//-------------------------------------------------------------------------

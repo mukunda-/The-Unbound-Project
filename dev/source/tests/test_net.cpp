@@ -13,6 +13,10 @@
 #include "net/lidstream.h"
 #include "net/events.h"
 
+#include "proto/test/test.pb.h"
+#include "proto/test/test2.pb.h"
+#include "proto/test/test3.pb.h"
+
 namespace Tests {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,9 +59,6 @@ std::mutex    *NetTests::m_lock = nullptr;
 class MyStream1 : public Net::TextStream {
 public:
 	int m_expected = 4;
-	static Net::StreamPtr Factory() {
-		return std::make_shared<MyStream1>();
-	}
 
 	~MyStream1() {
 		NETLOCKGUARD;
@@ -124,7 +125,14 @@ public:
 TEST_F( NetTests, SimpleConnectionTest ) {
 	
 	auto handler = std::make_shared<StreamHandler1>();
-	Net::Listener listener( 44412, MyStream1::Factory, handler );
+
+	auto factory = [&handler]() -> Net::StreamPtr {
+		auto stream = std::make_shared<MyStream1>();
+		stream->AsevSubscribe( handler );
+		return stream;
+	}
+
+	Net::Listener listener( 44412, MyStream1::Factory );
 
 	for( int i = 0; i < 100; i++ ) {
 		
@@ -145,31 +153,77 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 
 ///////////////////////////////////////////////////////////////////////////////
 TEST_F( NetTests, ProtobufTest ) {
+
+#define teststr1  "abc123qb37ui5mo89,;7r8l6n7kbej6wh5e" 
+
 	class MyStream : public Net::LidStream {
+
+		int m_flags = 0;
+		bool m_accepted = false;
+
+		void Accepted() override {
+			m_accepted = true;
+		}
+
+		void Connected() override {
+			m_flags = 0xFFFF;
+		}
+
+		void SendFailed( const boost::system::error_code & ) override {
+			FAIL();
+		}
+
+		void Disconnected( const boost::system::error_code &err ) {
+			if( err ) {
+				if( err != boost::asio::error::eof ) {
+					FAIL();
+				}
+			}
+		}
 		
 		void Receive( Net::Message &nmsg ) override {
 			auto msg = nmsg.Cast<Net::LidStream::Message>();
 
 			if( msg.Header() == 12 ) {
-				
+				m_flags |= 1;
+				msg.Parse(
 			} else if( msg.Header() == 25 ) {
-
+				m_flags |= 2;
 			} else if( msg.Header() == 0x1111 ) {
+				m_flags |= 4;
 			} else if( msg.Header() == 0x22222 ) {
+				m_flags |= 8;
 			} else if( msg.Header() == 0x333333 ) {
+				m_flags |= 16;
 			} else if( msg.Header() == 0x4444444 ) {
+				m_flags |= 32;
 			} else {
 				FAIL();
 			}
+
+			if( m_accepted ) {
+				//Write() << msg;
+			}
+		}
+
+		~MyStream() {
+			
 		}
 	};
-
+ 
 	auto handler = std::make_shared<Handler>();
 	auto factory = []() -> Net::StreamPtr {
 		return std::make_shared<MyStream>();
 	};
 
+	for( int i = 0; i < 100; i++ ) {
+		Net::Proto::Test::Test testmsg1;
+		testmsg1.set_test_int( 33232535 );
+		testmsg1.set_test_string( teststr1 );
+		
+		Net::ConnectAsync( "localhost", "9021", nullptr, factory );
 
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////

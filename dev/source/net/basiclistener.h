@@ -5,7 +5,10 @@
 #pragma once
 
 namespace Net {
-	 
+
+/// ---------------------------------------------------------------------------
+/// A wrapper for an ASIO tcp acceptor.
+///
 class BasicListener {
 
 	boost::asio::ip::tcp::acceptor m_acceptor;
