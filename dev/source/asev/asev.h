@@ -50,6 +50,9 @@ namespace Asev {
 		///
 		virtual int Handle( Event &e ) = 0;
 
+		// TODO: function that waits until all of the handler's sources
+		// are destroyed
+
 		//---------------------------------------------------------------------
 		std::recursive_mutex &GetMutex() { return m_mutex; }
 		 

@@ -75,7 +75,7 @@ private:
 	// and FALSE after the connection ends
 	//
 	// that is the lifetime of the object,
-	// and it should not be revived.
+	// and it cannot be revived.
 	bool m_connected = false; 
 
 	// shutdown is FALSE upon construction

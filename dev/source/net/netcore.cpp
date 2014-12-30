@@ -25,11 +25,9 @@ Stream::ptr Connect( const std::string &host, const std::string &service,
 
 //-----------------------------------------------------------------------------
 void ConnectAsync( const std::string &host, const std::string &service, 
-				   Events::Stream::Handler::ptr &handler, 
 				   StreamFactory factory ) {
 
-	Stream::ptr stream = factory();
-	stream->AsevSubscribe( handler );
+	Stream::ptr stream = factory(); 
 	stream->ConnectAsync( host, service );
 }
 

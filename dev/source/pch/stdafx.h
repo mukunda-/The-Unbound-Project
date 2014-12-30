@@ -57,6 +57,8 @@
 #include <curses.h>
 #include <panel.h>
 
+// useful engine files that won't change:
+#include "util/countof.h"
 
 #if PROJECT_CLIENT
 #include "pch_client.h"
