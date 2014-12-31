@@ -27,124 +27,18 @@ namespace Net {
 class Stream : 
 		public std::enable_shared_from_this<Stream>, 
 		public Asev::Source {
-private:
-
-	class ReadError : public std::runtime_error {};
-
-	std::atomic<void*> m_userdata = nullptr; 
-
-	// where this connection is coming from/going to
-	std::string m_hostname;
-
-	System::Service &m_service;
-	
-	// strand used to synchronize operations
-	boost::asio::strand m_strand;
-		
-	// tcp socket
-	boost::asio::ip::tcp::socket m_socket;
-
-
-	// internal buffer size for storing data to be sent
-	static const int BUFFER_SIZE = 8*1024;
-	 
-	// new:
-	boost::asio::streambuf m_read_buffer;
-	// 0 = next read is length, nonzero = next read is payload.
-	
-	int m_read_avail = 0;
-	bool m_receiving = false;
-	
-	//std::mutex m_send_lock;
-	boost::asio::streambuf m_send_buffers[2];
-	int m_send_buffer_index = 0; // which buffer the outside writes to
-	bool m_send_buffer_locked = false;
-	bool m_sending = false; // if the write thread is active
-
-	bool m_close_after_send = false;
-
-	// when a writer has finished working.
-	std::condition_variable m_cond_sendbuffer_unlocked; 
-	 
-	// for safe outside access.
-	std::mutex m_lock;
-	std::condition_variable m_cv_send_complete;
-
-	// connected is FALSE upon construction
-	// TRUE upon connection
-	// and FALSE after the connection ends
-	//
-	// that is the lifetime of the object,
-	// and it cannot be revived.
-	bool m_connected = false; 
-
-	// shutdown is FALSE upon construction
-	// and TRUE after Close is called.
-	bool m_shutdown = false;
-
-	// true if this stream was created from accepting a connection.
-	bool m_accepted = false;
-	
-	virtual void OnReceive( const boost::system::error_code& error, 
-					size_t bytes_transferred );
-	virtual void OnSend( const boost::system::error_code& error,
-					size_t bytes_transferred );
-		 
-	void ReceiveNext(); 
-	void StopReceive();
-	void SendNext();
-	void StopSend();
-
-	void OnAccept( const boost::system::error_code &error );
-	void OnConnect( const boost::system::error_code &error );
-	void OnResolve( const boost::system::error_code& ec, 
-			boost::asio::ip::tcp::resolver::iterator it );
-
-	//bool ParseMessage( std::istream &is );
-	
-	void SetConnected();
-
-	void DoClose();
-	
-
-protected:
-	class SendLock;
-	friend class WriterBase;
-	 
-	/// -----------------------------------------------------------------------
-	/// Process input will be called repeatedly until you return zero or 
-	/// use all of the available bytes.
-	///
-	/// @param stream          Stream to read from.
-	/// @param bytes_available Number of bytes available in the stream.
-	///
-	/// @return Number of bytes read from stream.
-	///         (function will be repeated if this is zero
-	///          or less than bytes_available.)
-	///
-	/// @throws ParseError if the input is invalid.
-	///
-	virtual int ProcessInput( std::istream &stream, int bytes_available ) = 0;
-	
-	/// -----------------------------------------------------------------------
-	/// Create/release send locks.
-	///
-	SendLock AcquireSendBuffer();
-	void ReleaseSendBuffer( bool start );
-	
-	/// -----------------------------------------------------------------------
-	/// These are called during certain events in addition to the 
-	/// ASEV interface.
-	///
-	virtual void Accepted() {}
-	virtual void AcceptError( const boost::system::error_code & ) {}
-	virtual void Connected() {}
-	virtual void ConnectError( const boost::system::error_code & ) {}
-	virtual void SendFailed( const boost::system::error_code & ) {}
-	virtual void Disconnected( const boost::system::error_code & ) {}
-	virtual void Receive( Net::Message &nmsg ) {}
 
 public:
+
+	enum class StreamState {
+		NEW,
+		CONNECTING,
+		LISTENING,
+		CONNECTED,
+		CLOSING,
+		FAILURE
+	};
+
 	Stream( System::Service &service );
 	Stream();
 	~Stream();
@@ -205,43 +99,11 @@ public:
 	/// @returns The service object for this stream.
 	/// 
 	System::Service &GetService() { return m_service; }
-		
-	/// -----------------------------------------------------------------------
-	/// Block until data is received.
-	///
-	/// This will not return if the data is handled within a receive event.
-	///
-	/// @throws RemoteDisconnected if the socket is disconnected while it is
-	///         waiting.
-	///
-	//void WaitForData();
-
+	
 	/// -----------------------------------------------------------------------
 	/// Wait until all data in the output queue is put out on the line.
 	///
 	void WaitSend();
-
-	/// -----------------------------------------------------------------------
-	/// Read a buffered packet, and remove it from the queue
-	///
-	/// @returns A packet, or nullptr if the receive queue was empty. The
-	///          packet must be deleted with Packet::Delete()
-	///
-	//Packet *Read();
-
-	/// -----------------------------------------------------------------------
-	/// Place a packet in the output queue.
-	/// 
-	/// @param p Packet to queue.
-	///
-//	void Write( Packet *p );
-
-	/// -----------------------------------------------------------------------
-	/// Write a message to the output stream.
-	/// 
-	/// @param msg Message to send.
-	///
-	void Write( Message &msg );
 	 
 	/// -----------------------------------------------------------------------
 	/// Get hostname of last connect operation.
@@ -275,8 +137,134 @@ public:
 		return static_cast<T&>(*this);
 	}
 
-	
 	typedef std::shared_ptr<Stream> ptr;
+
+	//-------------------------------------------------------------------------
+protected:
+	class SendLock;
+	friend class WriterBase;
+	 
+	/// -----------------------------------------------------------------------
+	/// Process input will be called repeatedly until you return zero or 
+	/// use all of the available bytes.
+	///
+	/// @param stream          Stream to read from.
+	/// @param bytes_available Number of bytes available in the stream.
+	///
+	/// @return Number of bytes read from stream.
+	///         (function will be repeated if this is zero
+	///          or less than bytes_available.)
+	///
+	/// @throws ParseError if the input is invalid.
+	///
+	virtual int ProcessInput( std::istream &stream, int bytes_available ) = 0;
+	
+	/// -----------------------------------------------------------------------
+	/// Create/release send locks.
+	///
+	SendLock AcquireSendBuffer();
+	void ReleaseSendBuffer( bool start );
+	
+	/// -----------------------------------------------------------------------
+	/// These are called during certain events in addition to the 
+	/// ASEV interface.
+	///
+	virtual void Accepted() {}
+	virtual void AcceptError( const boost::system::error_code & ) {}
+	virtual void Connected() {}
+	virtual void ConnectError( const boost::system::error_code & ) {}
+	virtual void SendFailed( const boost::system::error_code & ) {}
+	virtual void Disconnected( const boost::system::error_code & ) {}
+	virtual void Receive( Net::Message &nmsg ) {}
+
+private:
+
+	class ReadError : public std::runtime_error {};
+
+	std::atomic<void*> m_userdata = nullptr; 
+
+	// where this connection is coming from/going to
+	std::string m_hostname;
+
+	System::Service &m_service;
+	
+	// strand used to synchronize operations
+	boost::asio::strand m_strand;
+		
+	// tcp socket
+	boost::asio::ip::tcp::socket m_socket;
+
+	// saved connection error
+	boost::system::error_code m_conerr;
+	 
+	// stream for receiving data
+	boost::asio::streambuf m_read_buffer;
+	// how many bytes are waiting in the read bufferm_receiving
+	int m_read_avail = 0; 
+
+	// if the receive thread is active (mainly a safety check)
+	bool m_receiving = false;
+	
+	//std::mutex m_send_lock;
+	boost::asio::streambuf m_send_buffers[2];
+	int m_send_buffer_index = 0; // which buffer the outside writes to
+
+	// triggered when the connect operation finishes
+	std::condition_variable m_connection_completed;
+
+	// when a thread is writing to the backbuffer
+	bool m_send_buffer_locked = false; 
+	std::condition_variable m_cond_sendbuffer_unlocked; 
+
+	// if the sending thread is active
+	bool m_sending = false;
+	std::condition_variable m_cv_send_complete;
+
+	// note that "thread" doesn't mean a physical thread here, 
+	// it means an active service task
+
+	bool m_close_after_send = false;
+	 
+	// for safe outside access.
+	std::mutex m_lock;
+
+	// connected is FALSE upon construction
+	// TRUE upon connection
+	// and FALSE after the connection ends
+	//
+	// that is the lifetime of the object,
+	// and it cannot be revived.
+	//bool m_connected = false; 
+
+	// shutdown is FALSE upon construction
+	// and TRUE after Close is called.
+	bool m_shutdown = false;
+
+	// true if this stream was created from accepting a connection.
+	bool m_accepted = false;
+
+	StreamState m_state = StreamState::NEW;
+	
+	virtual void OnReceive( const boost::system::error_code& error, 
+					size_t bytes_transferred );
+	virtual void OnSend( const boost::system::error_code& error,
+					size_t bytes_transferred );
+		 
+	void ReceiveNext(); 
+	void StopReceive();
+	void SendNext();
+	void StopSend();
+
+	void OnAccept( const boost::system::error_code &error );
+	void OnConnect( const boost::system::error_code &error );
+	void OnResolve( const boost::system::error_code& ec, 
+			boost::asio::ip::tcp::resolver::iterator it );
+
+	//bool ParseMessage( std::istream &is );
+	
+	//void SetConnected();
+
+	void DoClose();
 };
 
 /// ---------------------------------------------------------------------------

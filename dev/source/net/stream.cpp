@@ -237,19 +237,27 @@ Stream::~Stream() {
 ///
 void Stream::DoClose() {
 	using namespace boost::asio::ip; 
-
-	std::unique_lock<std::mutex> lock( m_lock ); 
+	
+	std::lock_guard<std::mutex> lock( m_lock );
+	if( m_shutdown ) return;
+	m_shutdown = true;
+	
+	StreamState oldstate = m_state;
+	m_state = StreamState::CLOSING;
+	
 	m_shutdown = true;
 
-	boost::system::error_code ec;
-	m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
+	if( m_state == StreamState::CONNECTED ) {
 
-	if( m_connected ) {
-		m_connected = false; 
-
-		if( m_sending ) {
-			m_close_after_send = true;
-			return; // the sending `thread` will close the socket.
+		if( m_sending || m_send_buffer_locked ) {
+			
+			boost::system::error_code ec;
+			m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
+		} else {
+			if( m_sending ) {
+				m_close_after_send = true;
+				return; // the sending `thread` will close the socket.
+			}
 		}
 		
 		// TODO: do we need to linger here for the data to be sent? 
@@ -257,79 +265,6 @@ void Stream::DoClose() {
 	
 	m_socket.shutdown( tcp::socket::shutdown_send, ec );  
 	m_socket.close();
-}
-
-//-----------------------------------------------------------------------------
-void Stream::SetConnected() {
-	{
-		std::lock_guard<std::mutex> lock(m_lock);
-		if( m_shutdown ) return;
-
-		m_connected = true; 
-		ReceiveNext();  
-		m_sending = true;
-	}
-	SendNext();
-}
-
-/// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for when a connection is accepted.
-///
-void Stream::OnAccept( const boost::system::error_code &error ) {
-
-	if( !error ) {
-		m_accepted = true;
-		m_hostname = m_socket.remote_endpoint().address().to_string();
-
-		Accepted();
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Accepted();
-		
-		SetConnected();
-	} else { 
-
-		AcceptError( error );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.AcceptError( error );
-		
-	}
-}
-
-/// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for when an address has been resolved during
-///           an async connect op. (or an error)
-///
-void Stream::OnResolve( const boost::system::error_code &error_code, 
-					boost::asio::ip::tcp::resolver::iterator endpoints ) {
-	
-	if( error_code ) {
-		ConnectError( error_code );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.ConnectError( error_code );
-
-	} else {
-		// resolve OK, do connect.
-		boost::asio::async_connect( m_socket, endpoints, 
-			m_strand.wrap( boost::bind( &Stream::OnConnect, 
-					shared_from_this(), 
-					boost::asio::placeholders::error )));
-	}
-}
-
-/// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for boost::asio::async_connect
-///
-void Stream::OnConnect( const boost::system::error_code &error ) {
-	 
-	if( error ) {
-		Events::Stream::Dispatcher( shared_from_this() )
-			.ConnectError( error );
-		return;
-	}
-	
-	Events::Stream::Dispatcher( shared_from_this() ).Connected(); 
-
-	SetConnected();
 }
 
 //-----------------------------------------------------------------------------
@@ -371,21 +306,6 @@ void Stream::ReleaseSendBuffer( bool start ) {
 	}
 	m_cond_sendbuffer_unlocked.notify_one();
 }
-/*
-//-----------------------------------------------------------------------------
-void Stream::Write( Message &msg ) { 
-	std::lock_guard<std::mutex> lock( m_lock );
-
-	std::ostream stream( &m_send_buffers[m_send_buffer_index] );
-	msg.Write( stream );
-	// todo: catch write error and terminate stream.
-	
-	if( !m_connected ) return;
-	if( m_sending ) return;
-	m_sending = true; 
-	m_strand.post( boost::bind(	&Stream::SendNext, shared_from_this() ));
-}
-*/
 
 //-----------------------------------------------------------------------------
 const std::string &Stream::GetHostname() const {
@@ -393,38 +313,133 @@ const std::string &Stream::GetHostname() const {
 }
 
 //-----------------------------------------------------------------------------
+//void Stream::SetConnected() {
+//	ReceiveNext();
+//}
+
+//-----------------------------------------------------------------------------
 void Stream::Connect( const std::string &host, const std::string &service ) {
 	assert( !m_shutdown );
-	assert( !m_connected );
+	//assert( !m_connected );
+	assert( m_state == StreamState::NEW );
 
+	std::unique_lock<std::mutex> lock( m_lock );
+	ConnectAsync( host, service );
+	m_connection_completed.wait( lock );
+	
+	if( m_conerr ) throw m_conerr;
+	/*
 	Resolver resolver;
 	m_hostname = host + ":" + service; 
 	boost::asio::connect( m_socket, resolver.Resolve( host, service ) );
 
 	Events::Stream::Dispatcher( shared_from_this() )
 		.Connected();
-
+	
 	m_service.Post( m_strand.wrap( 
-			boost::bind( &Stream::SetConnected, shared_from_this() )));
+			boost::bind( &Stream::SetConnected, shared_from_this() )));*/
 }
 
 //-----------------------------------------------------------------------------
 void Stream::ConnectAsync( const std::string &host, 
 						   const std::string &service ) {
 	assert( !m_shutdown );
-	assert( !m_connected );
+	//assert( !m_connected );
+	assert( m_state == StreamState::NEW );
 
+	m_state = StreamState::CONNECTING;
 	m_hostname = host + ":" + service;
 	Resolver::CreateThreaded( host, service, 
 		m_strand.wrap( boost::bind( 
 				&Stream::OnResolve, shared_from_this(), _1, _2 )));
 }
 
+/// ---------------------------------------------------------------------------
+/// [PRIVATE] Callback for when an address has been resolved during
+///           an async connect op. (or an error)
+///
+void Stream::OnResolve( const boost::system::error_code &error_code, 
+					boost::asio::ip::tcp::resolver::iterator endpoints ) {
+	
+	if( error_code ) {
+		m_state = StreamState::FAILURE;
+		m_conerr = error_code;
+		ConnectError( error_code );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.ConnectError( error_code );
+
+		std::lock_guard<std::mutex> lock( m_lock );
+		m_connection_completed.notify_all();
+
+	} else {
+		// resolve OK, do connect.
+		boost::asio::async_connect( m_socket, endpoints, 
+			m_strand.wrap( boost::bind( &Stream::OnConnect, 
+					shared_from_this(), 
+					boost::asio::placeholders::error )));
+	}
+}
+
+/// ---------------------------------------------------------------------------
+/// [PRIVATE] Callback for boost::asio::async_connect
+///
+void Stream::OnConnect( const boost::system::error_code &error ) {
+	 
+	if( !error ) {
+		
+		m_state = StreamState::CONNECTED;
+		Connected();
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Connected(); 
+		//SetConnected();
+		ReceiveNext();
+		
+	} else {
+
+		m_state = StreamState::FAILURE;
+		m_conerr = error;
+		Events::Stream::Dispatcher( shared_from_this() )
+			.ConnectError( error );
+	}
+	
+	std::lock_guard<std::mutex> lock( m_lock );
+	m_connection_completed.notify_all();
+}
+
+/// ---------------------------------------------------------------------------
+/// [PRIVATE] Callback for when a connection is accepted.
+///
+void Stream::OnAccept( const boost::system::error_code &error ) {
+
+	if( !error ) {
+		m_accepted = true;
+		m_state = StreamState::CONNECTED;
+		m_hostname = m_socket.remote_endpoint().address().to_string();
+
+		Accepted();
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Accepted();
+		
+		ReceiveNext();
+		///SetConnected();
+	} else {
+
+		AcceptError( error );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.AcceptError( error );
+	}
+	
+	std::lock_guard<std::mutex> lock( m_lock );
+	m_connection_completed.notify_all();
+}
+
 //-----------------------------------------------------------------------------
 void Stream::Listen( BasicListener &listener ) {
 	assert( !m_shutdown );
 	assert( !m_connected );
+	assert( m_state == StreamState::NEW );
 
+	m_state = StreamState::LISTENING;
 	listener.AsyncAccept(
 		m_socket, 
 		m_strand.wrap( boost::bind(

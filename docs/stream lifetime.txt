@@ -1,0 +1,21 @@
+stream lifetime:
+
+stream is constructed
+
+may listen or connect
+
+listen or connect triggers success or error
+
+if success, the stream is given to the user
+on error, the user does not have access to the instance
+
+user may call write or close
+
+on close, no more messages may be read or sent, and any
+pending send operations are completed before the underlying
+socket is closed
+
+
+
+before a connection is established, none of the shared-with-outside
+variables may be accessed safely from the outside.
