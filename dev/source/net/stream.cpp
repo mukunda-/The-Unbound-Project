@@ -328,16 +328,6 @@ void Stream::Connect( const std::string &host, const std::string &service ) {
 	m_connection_completed.wait( lock );
 	
 	if( m_conerr ) throw m_conerr;
-	/*
-	Resolver resolver;
-	m_hostname = host + ":" + service; 
-	boost::asio::connect( m_socket, resolver.Resolve( host, service ) );
-
-	Events::Stream::Dispatcher( shared_from_this() )
-		.Connected();
-	
-	m_service.Post( m_strand.wrap( 
-			boost::bind( &Stream::SetConnected, shared_from_this() )));*/
 }
 
 //-----------------------------------------------------------------------------
