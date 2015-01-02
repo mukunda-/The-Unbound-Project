@@ -31,12 +31,14 @@ class Stream :
 public:
 
 	enum class StreamState {
-		NEW,
-		CONNECTING,
-		LISTENING,
-		CONNECTED,
-		CLOSING,
-		FAILURE
+		NEW,		// a new stream object
+		CONNECTING,	// connect is in progress
+		LISTENING,	// socket is listening for connections
+		CONNECTED,	// a connection is live
+		CLOSING,	// the connection should close when 
+					// all data is finished sending
+		CLOSED,		// the connection is closed
+		FAILURE		// the connection failed with an error
 	};
 
 	Stream( System::Service &service );
@@ -235,6 +237,7 @@ private:
 	// that is the lifetime of the object,
 	// and it cannot be revived.
 	//bool m_connected = false; 
+	// (m_connected was replaced by StreamState)
 
 	// shutdown is FALSE upon construction
 	// and TRUE after Close is called.

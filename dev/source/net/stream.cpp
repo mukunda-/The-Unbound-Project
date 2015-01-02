@@ -243,28 +243,32 @@ void Stream::DoClose() {
 	m_shutdown = true;
 	
 	StreamState oldstate = m_state;
-	m_state = StreamState::CLOSING;
 	
 	m_shutdown = true;
 
-	if( m_state == StreamState::CONNECTED ) {
-
+	if( oldstate == StreamState::CONNECTED ) {
+		
 		if( m_sending || m_send_buffer_locked ) {
 			
 			boost::system::error_code ec;
 			m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
+			m_state = StreamState::CLOSING; // close after send.
+
 		} else {
-			if( m_sending ) {
-				m_close_after_send = true;
-				return; // the sending `thread` will close the socket.
-			}
-		}
-		
-		// TODO: do we need to linger here for the data to be sent? 
+			boost::system::error_code ec;
+			m_socket.shutdown( tcp::socket::shutdown_both, ec );  
+			m_state = StreamState::CLOSED;
+		} 
+
+	} else if( oldstate == StreamState::CONNECTING || 
+			   oldstate == StreamState::LISTENING ) {
+		m_socket.close();
+		m_state = StreamState::CLOSED;
+
+	} else if( oldstate == StreamState::NEW ) {
+
+		m_state = StreamState::CLOSED;
 	}
-	
-	m_socket.shutdown( tcp::socket::shutdown_send, ec );  
-	m_socket.close();
 }
 
 //-----------------------------------------------------------------------------
@@ -296,7 +300,9 @@ void Stream::ReleaseSendBuffer( bool start ) {
 	{
 		std::lock_guard<std::mutex> lock( m_lock );
 
-		if( start && m_connected && !m_sending ) {
+		if( start && m_state == StreamState::CONNECTED 
+			|| m_state == StreamState::CLOSING && !m_sending ) {
+
 			m_sending = true;
 			m_strand.post( boost::bind( &Stream::SendNext, 
 										 shared_from_this() ));
@@ -310,12 +316,7 @@ void Stream::ReleaseSendBuffer( bool start ) {
 //-----------------------------------------------------------------------------
 const std::string &Stream::GetHostname() const {
 	return m_hostname;
-}
-
-//-----------------------------------------------------------------------------
-//void Stream::SetConnected() {
-//	ReceiveNext();
-//}
+} 
 
 //-----------------------------------------------------------------------------
 void Stream::Connect( const std::string &host, const std::string &service ) {
@@ -380,8 +381,7 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 		m_state = StreamState::CONNECTED;
 		Connected();
 		Events::Stream::Dispatcher( shared_from_this() )
-			.Connected(); 
-		//SetConnected();
+			.Connected();  
 		ReceiveNext();
 		
 	} else {
