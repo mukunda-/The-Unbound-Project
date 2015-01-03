@@ -25,16 +25,25 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	
 	if( error ) {
 		// receive error: the remote has disconnected or an error occurred.
-		m_connected = false; 
-		
+		m_receiving = false;
+
+		// TODO closed/failure state depending on error.
+		std::lock_guard<std::mutex> lock( m_lock );
+		if( !m_shutdown ) {
+			m_state = StreamState::FAILURE;
+			TryClose( true );
+		} else {
+			TryClose( false );
+		}
+
 		// send event
-		Disconnected( error );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Disconnected( error );
+//		Disconnected( error );
+	//	Events::Stream::Dispatcher( shared_from_this() )
+//			.Disconnected( error );
 		
 		// shutdown stream.
-		StopReceive();
-		DoClose();
+		//StopReceive();
+		//DoClose();
 		return;
 	}
 	
@@ -54,17 +63,20 @@ void Stream::OnReceive( const boost::system::error_code& error,
 
 	// TODO catch parse error exception and terminate connection.
 
-	if( !m_shutdown ) {
+	if( m_state == StreamState::CONNECTED ) {
 		// receive next data chunk
 		ReceiveNext();
 	} else {
 		// shutdown.
-		StopReceive();
+		m_receiving = false;
+
+		std::lock_guard<std::mutex> lock( m_lock );
+		TryClose( false );
 
 		// send event
-		Disconnected( boost::system::error_code() );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Disconnected( boost::system::error_code() );
+//		Disconnected( boost::system::error_code() );
+//		Events::Stream::Dispatcher( shared_from_this() )
+//			.Disconnected( boost::system::error_code() );
 		return;
 	}
 }
@@ -112,29 +124,11 @@ void Stream::OnSend( const boost::system::error_code& error,
 	if( error ) {
 		// error during send, this is an "unexpected" error.
 
-		{
-			// disconnect with error status
-			SendFailed( error );
-			Events::Stream::Dispatcher ev( shared_from_this() );
-			ev.SendFailed( error );
-			//ev.Disconnected( error );  this is called by the receive handler.
-		}
-
-		// shutdown.
-		{
-			std::lock_guard<std::mutex> lock( m_lock );
-			m_sending   = false;
-			m_cv_send_complete.notify_all();
-			if( !m_connected ) {
-				// Close was called already.
-				m_socket.close();
-				return;
-			} else {
-				m_connected = false;
-			}
-		}
-		
-		DoClose();
+		std::lock_guard<std::mutex> lock( m_lock );
+		m_sending   = false;
+		m_cv_send_complete.notify_all();
+		TryClose( true );
+		  
 		return;
 	}
 
@@ -232,6 +226,35 @@ Stream::~Stream() {
 	//m_socket.close();	 
 }
 
+///----------------------------------------------------------------------------
+/// Close the socket if both receive and send threads have ended.
+///
+void Stream::TryClose( bool failure ) {
+	using namespace boost::asio::ip; 
+	// assert mutex is owned?
+
+	if( failure ) {
+		m_socket.close();
+		m_state = StreamState::FAILURE;
+
+	} 
+	
+	bool send_active = m_sending || 
+		((m_state == StreamState::CONNECTED || 
+			m_state == StreamState::CLOSING) 
+			&& m_send_buffer_locked);
+
+	if( !m_receiving && !send_active ) {
+		m_state = StreamState::CLOSED;
+
+		boost::system::error_code ec;
+		m_socket.shutdown( tcp::socket::shutdown_both, ec ); 
+
+		Events::Stream::Dispatcher( shared_from_this() );
+			Disconnected( boost::system::error_code() );
+	}
+}
+
 /// ---------------------------------------------------------------------------
 /// [PRIVATE] Cleanly close the socket.
 ///
@@ -300,8 +323,8 @@ void Stream::ReleaseSendBuffer( bool start ) {
 	{
 		std::lock_guard<std::mutex> lock( m_lock );
 
-		if( start && m_state == StreamState::CONNECTED 
-			|| m_state == StreamState::CLOSING && !m_sending ) {
+		if( start && (m_state == StreamState::CONNECTED 
+			|| m_state == StreamState::CLOSING) && !m_sending ) {
 
 			m_sending = true;
 			m_strand.post( boost::bind( &Stream::SendNext, 

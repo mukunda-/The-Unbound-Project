@@ -268,6 +268,7 @@ private:
 	//void SetConnected();
 
 	void DoClose();
+	void TryClose( bool close_socket );
 };
 
 /// ---------------------------------------------------------------------------
