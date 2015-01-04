@@ -30,7 +30,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		// TODO closed/failure state depending on error.
 		std::lock_guard<std::mutex> lock( m_lock );
 		if( !m_shutdown ) {
-			m_state = StreamState::FAILURE;
+		
 			TryClose( true );
 		} else {
 			TryClose( false );
@@ -125,7 +125,7 @@ void Stream::OnSend( const boost::system::error_code& error,
 		// error during send, this is an "unexpected" error.
 
 		std::lock_guard<std::mutex> lock( m_lock );
-		m_sending   = false;
+		m_sending = false;
 		m_cv_send_complete.notify_all();
 		TryClose( true );
 		  
@@ -144,10 +144,11 @@ void Stream::StopSend() {
 	m_sending = false;
 	m_cv_send_complete.notify_all();
 
-	if( m_close_after_send ) {
-		boost::system::error_code ec;
-		m_socket.shutdown( tcp::socket::shutdown_send, ec );  
-		m_socket.close();
+	if( m_shutdown ) {
+		TryClose( false );
+//		boost::system::error_code ec;
+//		m_socket.shutdown( tcp::socket::shutdown_send, ec );  
+//		m_socket.close();
 	}
 	return;
 }
@@ -238,20 +239,15 @@ void Stream::TryClose( bool failure ) {
 		m_state = StreamState::FAILURE;
 
 	} 
-	
-	bool send_active = m_sending || 
-		((m_state == StreamState::CONNECTED || 
-			m_state == StreamState::CLOSING) 
-			&& m_send_buffer_locked);
 
-	if( !m_receiving && !send_active ) {
+	if( !m_receiving && !m_sending ) {
 		m_state = StreamState::CLOSED;
 
 		boost::system::error_code ec;
 		m_socket.shutdown( tcp::socket::shutdown_both, ec ); 
 
-		Events::Stream::Dispatcher( shared_from_this() );
-			Disconnected( boost::system::error_code() );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Disconnected( boost::system::error_code() );
 	}
 }
 
@@ -271,7 +267,7 @@ void Stream::DoClose() {
 
 	if( oldstate == StreamState::CONNECTED ) {
 		
-		if( m_sending || m_send_buffer_locked ) {
+		if( m_sending ) {
 			
 			boost::system::error_code ec;
 			m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
@@ -448,8 +444,7 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 
 //-----------------------------------------------------------------------------
 void Stream::Listen( BasicListener &listener ) {
-	assert( !m_shutdown );
-	assert( !m_connected );
+	assert( !m_shutdown ); 
 	assert( m_state == StreamState::NEW );
 
 	m_state = StreamState::LISTENING;
