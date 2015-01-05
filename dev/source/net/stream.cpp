@@ -404,7 +404,7 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 		ReceiveNext();
 		
 	} else {
-
+	
 		m_state = StreamState::FAILURE;
 		m_conerr = error;
 		Events::Stream::Dispatcher( shared_from_this() )

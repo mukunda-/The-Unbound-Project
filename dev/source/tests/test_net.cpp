@@ -303,11 +303,13 @@ TEST_F( NetTests, ProtobufTest ) {
 		return std::make_shared<MyStream>();
 	};
 
-	for( int i = 0; i < 4; i++ ) {
+	for( int i = 0; i < 1; i++ ) {
 		
 		Net::ConnectAsync( "localhost", "9021", factory );
 
 	}
+
+	std::this_thread::sleep_for( std::chrono::milliseconds(3000));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
