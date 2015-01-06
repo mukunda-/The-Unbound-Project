@@ -51,7 +51,7 @@ namespace Net {
 
 	private:
 	
-		System::Service m_service;
+	//	System::Service m_service;
 	};
 
 }

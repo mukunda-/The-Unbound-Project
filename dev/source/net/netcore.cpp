@@ -35,20 +35,21 @@ void ConnectAsync( const std::string &host, const std::string &service,
 Instance::Instance( int threads ) {
 	
 	g_instance = this;
-	if( threads > 0 ) {
-		m_service.Run( threads );
-	}
+//	if( threads > 0 ) {
+//		m_service.Run( threads );
+//	}
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
-	m_service.Finish( true );
+	//m_service.Finish( true );
 	g_instance = nullptr;  
 }
 
 //-----------------------------------------------------------------------------
 System::Service &Instance::GetService() {
-	return m_service;
+	return System::GetService();
+	//return m_service;
 }
 
 //-----------------------------------------------------------------------------
