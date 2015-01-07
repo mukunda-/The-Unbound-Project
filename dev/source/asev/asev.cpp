@@ -78,13 +78,20 @@ Source::HandlerRef::HandlerRef( T &ptr ) {
 
 //-----------------------------------------------------------------------------
 Source::HandlerRef::HandlerRef( HandlerRef &&other ) {
+	// move constructor
+	
+	// if we already have a pointer (ie this is not a new instance), then
+	// clean it up first
 	if( m_ptr ) m_ptr->DecrementSources();
+
+	// then steal the pointer from the other instance
 	m_ptr = other.m_ptr;
 	other.m_ptr = nullptr;
 }
 
 //-----------------------------------------------------------------------------
 auto Source::HandlerRef::operator=( HandlerRef &&other ) -> HandlerRef& {
+	// alias of move constructor
 	if( m_ptr ) m_ptr->DecrementSources();
 	m_ptr = other.m_ptr;
 	other.m_ptr = nullptr;
@@ -136,7 +143,7 @@ void Source::ModifyPipes() {
 	// otherwise, we update the handlers immediately
 
 	for( auto &handler : m_newhandlers ) { 
-		m_handlers.push_back( std::move(handler) );
+		m_handlers.push_back( std::move( handler ));
 	}
 
 	m_newhandlers.clear();

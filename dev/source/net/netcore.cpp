@@ -32,7 +32,7 @@ void ConnectAsync( const std::string &host, const std::string &service,
 }
 
 //-----------------------------------------------------------------------------
-Instance::Instance( int threads ) {
+Instance::Instance( ) {
 	
 	g_instance = this;
 //	if( threads > 0 ) {

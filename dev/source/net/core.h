@@ -44,7 +44,7 @@ namespace Net {
 	//-------------------------------------------------------------------------
 	struct Instance {
 	 
-		Instance( int threads );
+		Instance();
 		~Instance();
 
 		System::Service &GetService();

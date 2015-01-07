@@ -22,19 +22,23 @@ namespace Tests {
 ///////////////////////////////////////////////////////////////////////////////
 
 class NetTests : public ::testing::Test {
-	static System::Main *i_system;
-	static Net::Instance *i_net;
+	
+public:
+	static std::mutex *m_lock; 
+	System::Main *i_system = nullptr;
+	Net::Instance *i_net = nullptr;
 
 	
 protected:
-	static void SetUpTestCase() {
+
+	void SetUp() {
 		m_lock = new std::mutex;
 
 		i_system = new System::Main(1);
-		i_net = new Net::Instance(1);
+		i_net = new Net::Instance ;
 	}
 	
-	static void TearDownTestCase() {
+	void TearDown() {
 		delete i_net;
 		i_net = nullptr;
 
@@ -45,12 +49,11 @@ protected:
 		m_lock = nullptr;
 	}
 
-public:
-	static std::mutex *m_lock;
+	 
 };
 
-System::Main  *NetTests::i_system = nullptr;
-Net::Instance *NetTests::i_net = nullptr;
+//System::Main  *NetTests::i_system = nullptr;
+//Net::Instance *NetTests::i_net = nullptr;
 std::mutex    *NetTests::m_lock = nullptr;
 
 #define NETLOCKGUARD std::lock_guard<std::mutex> lock_guard_( *NetTests::m_lock )
