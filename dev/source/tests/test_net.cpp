@@ -26,8 +26,7 @@ class NetTests : public ::testing::Test {
 public:
 	static std::mutex *m_lock; 
 	System::Main *i_system = nullptr;
-	Net::Instance *i_net = nullptr;
-
+	Net::Instance *i_net = nullptr; 
 	
 protected:
 
@@ -126,7 +125,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 TEST_F( NetTests, SimpleConnectionTest ) {
-	
+	 
 	//std::shared_ptr<StreamHandler1>//
 	Asev::Handler::ptr handler = std::make_shared<StreamHandler1>();
 

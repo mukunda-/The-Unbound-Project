@@ -70,7 +70,7 @@ namespace Asev {
 		//---------------------------------------------------------------------
 		// this container auto increments/decrements 
 		// the handler's source counter
-		class HandlerRef {
+		class HandlerRef final {
 			using T = std::shared_ptr<Handler>;
 			T m_ptr;
 			
@@ -78,11 +78,13 @@ namespace Asev {
 			T& operator*() { return m_ptr; }
 			
 			HandlerRef( T &ptr );
-			HandlerRef( HandlerRef &other ) = delete;
 			HandlerRef( HandlerRef &&other ) NOEXCEPT;
 			HandlerRef& operator=( HandlerRef &&other ) NOEXCEPT;
-			HandlerRef& operator=( HandlerRef &other ) = delete;
 			~HandlerRef();
+
+			// we dont need to copy this, so make sure we arent
+			HandlerRef( HandlerRef &other ) = delete;
+			HandlerRef& operator=( HandlerRef &other ) = delete;
 		};
 
 		//---------------------------------------------------------------------
