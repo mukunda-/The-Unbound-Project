@@ -20,7 +20,7 @@ class Listener : public BasicListener {
 	Events::Stream::Handler::ptr m_accept_handler;
 
 	void Accept();
-	//////
+	////////
 public:
 	
 	/// -----------------------------------------------------------------------
