@@ -268,7 +268,7 @@ void Stream::DoClose() {
 	if( oldstate == StreamState::CONNECTED ) {
 		
 		if( m_sending ) {
-			
+			//
 			boost::system::error_code ec;
 			m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
 			m_state = StreamState::CLOSING; // close after send.
