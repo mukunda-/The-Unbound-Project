@@ -129,7 +129,7 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 	//std::shared_ptr<StreamHandler1>//
 	Asev::Handler::ptr handler = std::make_shared<StreamHandler1>();
 
-	auto factory = [&handler]() -> Net::StreamPtr {
+	auto factory = [handler]() mutable -> Net::StreamPtr {
 		auto stream = std::make_shared<MyStream1>();
 		stream->AsevSubscribe( handler );
 		return stream;

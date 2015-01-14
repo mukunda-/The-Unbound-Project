@@ -29,7 +29,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 
 		// TODO closed/failure state depending on error.
 		std::lock_guard<std::mutex> lock( m_lock );
-		if( !m_shutdown ) {
+		if( !m_shutdown || error == boost::asio::error::eof ) {
 		
 			TryClose( true );
 		} else {
@@ -145,6 +145,8 @@ void Stream::StopSend() {
 	m_cv_send_complete.notify_all();
 
 	if( m_shutdown ) {
+		boost::system::error_code ec;
+		m_socket.shutdown( tcp::socket::shutdown_both, ec );  
 		TryClose( false );
 //		boost::system::error_code ec;
 //		m_socket.shutdown( tcp::socket::shutdown_send, ec );  
@@ -236,8 +238,7 @@ void Stream::TryClose( bool failure ) {
 
 	if( failure ) {
 		m_socket.close();
-		m_state = StreamState::FAILURE;
-
+		m_state = StreamState::FAILURE; 
 	} 
 
 	if( !m_receiving && !m_sending ) {
@@ -270,7 +271,8 @@ void Stream::DoClose() {
 		if( m_sending ) {
 			//
 			boost::system::error_code ec;
-			m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
+	//		m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
+	//		m_socket.shutdown( tcp::socket::shutdown_send, ec );  //DEBUG
 			m_state = StreamState::CLOSING; // close after send.
 
 		} else {
