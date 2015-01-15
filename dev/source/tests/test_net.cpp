@@ -129,7 +129,7 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 	//std::shared_ptr<StreamHandler1>//
 	Asev::Handler::ptr handler = std::make_shared<StreamHandler1>();
 
-	auto factory = [handler]() mutable -> Net::StreamPtr {
+	auto factory = [handler]() mutable {
 		auto stream = std::make_shared<MyStream1>();
 		stream->AsevSubscribe( handler );
 		return stream;
@@ -137,7 +137,7 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 
 	Net::Listener listener( 44412, factory );
 
-	for( int i = 0; i < 1; i++ ) {
+	for( int i = 0; i < 100; i++ ) {
 		
 		auto stream = std::static_pointer_cast<MyStream1>(
 			Net::Connect( "127.0.0.1", "44412", factory ));
