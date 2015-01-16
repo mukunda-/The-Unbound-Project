@@ -85,16 +85,14 @@ Source::HandlerRef::HandlerRef( HandlerRef &&other ) {
 	if( m_ptr ) m_ptr->DecrementSources();
 
 	// then steal the pointer from the other instance
-	m_ptr = other.m_ptr;
-	other.m_ptr = nullptr;
+	m_ptr = std::move(other.m_ptr);
 }
 
 //-----------------------------------------------------------------------------
 auto Source::HandlerRef::operator=( HandlerRef &&other ) -> HandlerRef& {
 	// alias of move constructor
 	if( m_ptr ) m_ptr->DecrementSources();
-	m_ptr = other.m_ptr;
-	other.m_ptr = nullptr;
+	m_ptr = std::move(other.m_ptr);
 	return *this;
 }
 

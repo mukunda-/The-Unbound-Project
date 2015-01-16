@@ -93,14 +93,9 @@ namespace Asev {
 		// if we are inside a dispatcher.
 		bool m_handler_is_executing = false;
 		
-		// subscribed handlers
-		std::vector<HandlerRef> m_handlers;
-
-		// handlers to be added
-		std::vector<HandlerRef> m_newhandlers;
-
-		// handlers to be removed
-		std::vector<Handler*> m_removehandlers;
+		std::vector<HandlerRef> m_handlers;     // subscribed handlers
+		std::vector<HandlerRef> m_newhandlers;  // handlers to be added
+		std::vector<Handler*> m_removehandlers; // handlers to be removed
 
 		bool m_disabled = false;
 
