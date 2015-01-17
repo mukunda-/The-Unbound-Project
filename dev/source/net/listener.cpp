@@ -55,7 +55,8 @@ Listener::EventHandler::EventHandler( Listener &parent )
 
 //-----------------------------------------------------------------------------
 void Listener::EventHandler::Accepted( StreamPtr &stream ) {
-
+	
+	std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 	stream->AsevUnsubscribe( *this );
 	if( m_parent ) m_parent->Accept();
 }

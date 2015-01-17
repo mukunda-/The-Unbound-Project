@@ -421,7 +421,6 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 /// [PRIVATE] Callback for when a connection is accepted.
 ///
 void Stream::OnAccept( const boost::system::error_code &error ) {
-
 	if( !error ) {
 		m_accepted = true;
 		m_state = StreamState::CONNECTED;
@@ -430,6 +429,7 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 		Accepted();
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Accepted();
+
 		
 		ReceiveNext();
 		///SetConnected();

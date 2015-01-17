@@ -137,7 +137,7 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 
 	Net::Listener listener( 44412, factory );
 
-	for( int i = 0; i < 100; i++ ) {
+	for( int i = 0; i < 1; i++ ) {
 		
 		auto stream = std::static_pointer_cast<MyStream1>(
 			Net::Connect( "127.0.0.1", "44412", factory ));
