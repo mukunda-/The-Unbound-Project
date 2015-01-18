@@ -49,11 +49,12 @@ namespace {
 
 //-----------------------------------------------------------------------------
 Handler::Handler() { 
+	std::cout << "handler created." << (int)this << std::endl;
 }
 
 //-----------------------------------------------------------------------------
 Handler::~Handler() { 
-
+	std::cout << "handler deleted." << (int)this << std::endl;
 	assert( m_sourcecount == 0 );
 }
  

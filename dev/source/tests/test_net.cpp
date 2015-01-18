@@ -125,31 +125,36 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 TEST_F( NetTests, SimpleConnectionTest ) {
-	
+	std::cout << "test start" << std::endl;
 	//std::shared_ptr<StreamHandler1>//
 	Asev::Handler::ptr handler = std::make_shared<StreamHandler1>();
-
+	std::cout << "handler created" << std::endl;
 	auto factory = [handler]() mutable {
 		auto stream = std::make_shared<MyStream1>();
 		stream->AsevSubscribe( handler );
 		return stream;
 	};
 
+	std::cout << "lambda created" << std::endl;
 	Net::Listener listener( 44412, factory );
 
+	std::cout << "listener created" << std::endl;
 	for( int i = 0; i < 1; i++ ) {
 		
+		std::cout << "connecting." << std::endl;
 		auto stream = std::static_pointer_cast<MyStream1>(
 			Net::Connect( "127.0.0.1", "44412", factory ));
 
+		std::cout << "connected" << std::endl;
 		{ 
 			stream->Write() << "Test Message 1\n" << "Test 2\n";
 			stream->Write() << "Test Message 3\n" << "Test 4\n";
 		}
-		
+		std::cout << "messages sent" << std::endl;
 		stream->Close();
 	
 	}
+	std::cout << "exiting." << std::endl;
  
 }
 
