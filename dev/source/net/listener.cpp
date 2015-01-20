@@ -55,9 +55,12 @@ Listener::EventHandler::EventHandler( Listener &parent )
 
 //-----------------------------------------------------------------------------
 void Listener::EventHandler::Accepted( StreamPtr &stream ) {
-	
+	//std::cout << (int)m_parent;
 	stream->AsevUnsubscribe( *this );
-	if( m_parent ) m_parent->Accept();
+
+	if( m_parent ) {
+		m_parent->Accept();
+	}
 }
 
 //-----------------------------------------------------------------------------

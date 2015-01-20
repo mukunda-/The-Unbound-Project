@@ -48,13 +48,11 @@ namespace {
 }
 
 //-----------------------------------------------------------------------------
-Handler::Handler() { 
-	std::cout << "handler created." << (int)this << std::endl;
+Handler::Handler() {  
 }
 
 //-----------------------------------------------------------------------------
-Handler::~Handler() { 
-	std::cout << "handler deleted." << (int)this << std::endl;
+Handler::~Handler() {  
 	assert( m_sourcecount == 0 );
 }
  
@@ -182,7 +180,8 @@ int Source::SendEvent( Event &e ) {
 	m_handler_is_executing = true;
 	for( auto &handler : m_handlers ) {
 
-		lock_guard<recursive_mutex> lock( m_mutex );
+		// lock handler and execute.
+		lock_guard<recursive_mutex> lock( (*handler)->GetMutex() );
 		result = (*handler)->Handle( e ); 
 	}
 	m_handler_is_executing = false;
