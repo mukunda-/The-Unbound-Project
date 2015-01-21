@@ -208,6 +208,12 @@ class MyStream : public Net::LidStream {
 	void Accepted() override {
 		m_accepted = true;
 	}
+	void AcceptError( const boost::system::error_code &err ) override {
+		m_accepted = true;
+	}
+	void ConnectError( const boost::system::error_code &err ) override {
+		std::cout << "connection error" << err;
+	}
 
 	///////////////////////////////////////////////////////////////////////
 	void Connected() override {
@@ -246,7 +252,7 @@ class MyStream : public Net::LidStream {
 	}
 
 	///////////////////////////////////////////////////////////////////////
-	void Disconnected( const boost::system::error_code &err ) {
+	void Disconnected( const boost::system::error_code &err ) override {
 		if( err ) {
 			if( err != boost::asio::error::eof ) {
 				FAIL();
@@ -307,14 +313,15 @@ TEST_F( NetTests, ProtobufTest ) {
 	static auto factory = []() -> Net::StreamPtr {
 		return std::make_shared<MyStream>();
 	};
+	
+	Net::Listener listener( 9021, factory );
 
 	for( int i = 0; i < 1; i++ ) {
 		
 		Net::ConnectAsync( "localhost", "9021", factory );
 
 	}
-
-	std::this_thread::sleep_for( std::chrono::milliseconds(3000));
+	std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
