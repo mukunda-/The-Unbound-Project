@@ -17,6 +17,7 @@ namespace Net {
 				if( m_current_message.empty() ) continue;
 				Message msg( std::move( m_current_message ) );
 				
+				Receive( msg );
 				Events::Stream::Dispatcher( shared_from_this() )
 					.Receive( msg );
 

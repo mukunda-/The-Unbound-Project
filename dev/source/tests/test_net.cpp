@@ -206,13 +206,21 @@ class MyStream : public Net::LidStream {
 
 	///////////////////////////////////////////////////////////////////////
 	void Accepted() override {
+		std::cout << "accepted,. " << std::endl;
 		m_accepted = true;
+
 	}
 	void AcceptError( const boost::system::error_code &err ) override {
-		m_accepted = true;
+		if( err.value() == 995 ) {
+			m_progress = 6;
+			return; // listener stopped.
+		}
+		std::cout << "accept error " << err << " " << err.message() << std::endl;
+		FAIL();
 	}
 	void ConnectError( const boost::system::error_code &err ) override {
-		std::cout << "connection error" << err;
+		std::cout << "connection error " << err << " " << err.message() << std::endl;
+		FAIL();
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -321,7 +329,7 @@ TEST_F( NetTests, ProtobufTest ) {
 		Net::ConnectAsync( "localhost", "9021", factory );
 
 	}
-	std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
+	std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -79,10 +79,11 @@ int LidStream::ProcessInput( std::istream &is, int bytes_available ) {
 
 		Message msg( header, data_length, is  );
 
+		Receive( msg );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Receive( msg );
 		 
-		return m_read_length;
+		return data_length;
 	}
 }
 
