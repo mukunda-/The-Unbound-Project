@@ -28,7 +28,8 @@ public:
 Listener::Listener( unsigned short port, StreamFactory factory ) :
 		BasicListener(port),
 		m_factory( factory ) {
-		
+
+	m_accept_counter = 0;
 	m_accept_handler = std::make_shared<EventHandler>( *this );
 	Accept();
 }
@@ -42,6 +43,8 @@ Listener::~Listener() {
 
 //-----------------------------------------------------------------------------
 void Listener::Accept() {
+	m_accept_counter++;
+
 	auto stream = m_factory();
 
 	stream->AsevSubscribe( m_accept_handler );
@@ -55,6 +58,7 @@ Listener::EventHandler::EventHandler( Listener &parent )
 
 //-----------------------------------------------------------------------------
 void Listener::EventHandler::Accepted( StreamPtr &stream ) {
+
 	//std::cout << (int)m_parent;
 	stream->AsevUnsubscribe( *this );
 

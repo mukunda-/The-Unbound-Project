@@ -51,11 +51,11 @@ void Stream::OnReceive( const boost::system::error_code& error,
 	m_read_avail += (int)bytes_transferred;
 
 	if( m_read_avail > 0 ) {
-		std::istream is( &m_read_buffer );
+		//std::istream is( &m_read_buffer );
 		while( m_read_avail ) {
 
 			// loop until processor returns 0 or there is no more data.
-			int amount = ProcessInput( is, m_read_avail );
+			int amount = ProcessInput(  m_read_avail );
 			if( amount == 0 ) break;
 			m_read_avail -= amount;
 		}
@@ -198,7 +198,7 @@ void Stream::SendNext() {
 //-----------------------------------------------------------------------------
 Stream::Stream( System::Service &service ) : 
 			m_service(service), m_socket( m_service() ), 
-			m_strand( m_service() ) {
+			m_strand( m_service() ), m_input_stream( &m_read_buffer ) {
 	  
 	// this doesn't work:
 	// allow lingering for 30 seconds to finish unsent sending data on shutdown

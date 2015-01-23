@@ -58,32 +58,43 @@ namespace {
 }
 
 //-----------------------------------------------------------------------------
-int LidStream::ProcessInput( std::istream &is, int bytes_available ) { 
+int LidStream::ProcessInput(  int bytes_available ) { 
 
 	if( m_read_length == 0 ) {
 
-		int bytesread = ReadVarint( is, bytes_available, &m_read_length );
+		// read "length" varint, if it isn't available yet, return 0 and wait
+		// for more data
+		int bytesread = ReadVarint( GetInputStream(), bytes_available, &m_read_length );
 		if( bytesread ) {
 			return bytesread;
 		}
 		return 0;
 		
 	} else {
-		if( bytes_available < m_read_length ) return 0; // need more data.
-		int header;
-		int bytesread = ReadVarint( is, bytes_available, &header );
-		if( bytesread == 0 ) throw ParseError();
-		m_read_length -= bytesread;
-		int data_length = m_read_length;
-		m_read_length = 0;
+		if( bytes_available < m_read_length ) {
+			return 0; // need more data to complete the message
+		}
 
-		Message msg( header, data_length, is  );
+		// read header
+		int header;
+		int bytesread = ReadVarint( GetInputStream(), bytes_available, &header );
+		if( bytesread == 0 ) throw ParseError();
+
+		// we want to consume this many bytes in the stream
+		int total_length = m_read_length;
+
+		// data length is the size of the protobuf data
+		int data_length = total_length - bytesread; 
+
+		m_read_length = 0; // reset for next message
+
+		Message msg( header, data_length, GetInputStream() );
 
 		Receive( msg );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Receive( msg );
 		 
-		return data_length;
+		return total_length;
 	}
 }
 
@@ -94,44 +105,58 @@ auto LidStream::Write() -> Writer {
 
 //-----------------------------------------------------------------------------
 LidStream::Message::Message( int header, int length, std::istream &stream ) :
-		m_header( header ), m_length( length ), m_stream(stream) {
+		m_header( header ), m_length( length ), m_stream( stream ) {
 }
 
 //-----------------------------------------------------------------------------
 LidStream::Message::~Message() {
-	m_stream.ignore( m_length );
+
+	// if the message wasn't parsed, ignore the bytes in the stream.
+	if( !m_parsed ) {
+		m_stream.ignore( m_length );
+	}
 }
 
 //-----------------------------------------------------------------------------
 void LidStream::Message::Parse( google::protobuf::MessageLite &msg ) {
-	google::protobuf::io::IstreamInputStream raw_input(&m_stream);
-	google::protobuf::io::CodedInputStream input( &raw_input );
-		
-	google::protobuf::io::CodedInputStream::Limit limit = 
-		input.PushLimit( m_length );
-		
-	if( !msg.MergeFromCodedStream( &input ) ) throw ParseError();
-	if( !input.ConsumedEntireMessage() ) throw ParseError();
-	input.PopLimit( limit );
+	
+	// user may not parse the message twice.
+	if( m_parsed ) throw ParseError();
+	
+	// TODO switch to arenas
+	auto buffer = std::unique_ptr<char>( new char[ m_length ] );
+	m_stream.read( buffer.get(), m_length );
+	if( !msg.ParseFromArray( buffer.get(), m_length ) ) throw ParseError();
+	
+	// (fuck it. google's stream shit is messed up.)
+//	google::protobuf::io::IstreamInputStream raw_input(&m_stream);
+//	google::protobuf::io::CodedInputStream input( &raw_input );
+//	google::protobuf::io::CodedInputStream::Limit limit = 
+//		input.PushLimit( m_length );
+//	if( !msg.ParseFromCodedStream( &input ) ) throw ParseError();
+//	if( !input.ConsumedEntireMessage() ) throw ParseError();
+//	input.PopLimit( limit );
+
 	m_parsed = true;
+
 }
 
 //-----------------------------------------------------------------------------
-	auto LidStream::Writer::operator<<( 
-			google::protobuf::MessageLite &data ) -> Writer& {
+auto LidStream::Writer::operator<<( 
+		google::protobuf::MessageLite &data ) -> Writer& {
 
-		assert( m_expecting_data );
-		m_expecting_data = false; 
+	assert( m_expecting_data );
+	m_expecting_data = false; 
 
-		google::protobuf::io::OstreamOutputStream stream( &m_stream );
-		google::protobuf::io::CodedOutputStream output( &stream );
+	google::protobuf::io::OstreamOutputStream stream( &m_stream );
+	google::protobuf::io::CodedOutputStream output( &stream );
 	
-		// Write the size.
-		const int size = data.ByteSize() + SizeofVarint( m_next_header );
-		output.WriteVarint32( size );
-		output.WriteVarint32( m_next_header );
-		data.SerializeToCodedStream( &output );
-		return *this;
-	}
+	// Write the size.
+	const int size = data.ByteSize() + SizeofVarint( m_next_header );
+	output.WriteVarint32( size );
+	output.WriteVarint32( m_next_header );
+	data.SerializeToCodedStream( &output );
+	return *this;
+}
 
 }

@@ -21,7 +21,7 @@ class LidStream : public Stream {
 
 protected:
 
-	virtual int ProcessInput( std::istream &is, int bytes_available );
+	virtual int ProcessInput(   int bytes_available );
 	
 public:
 	class Message;
@@ -84,6 +84,12 @@ public:
 
 	Message( int header, int length, std::istream &stream );
 	~Message();
+
+	// non copyable/movable
+	Message( Message& ) = delete;
+	Message( Message&& ) = delete;
+	Message& operator=( Message& ) = delete;
+	Message& operator=( Message&& ) = delete;
 
 	/// -----------------------------------------------------------------------
 	/// @returns the message header.

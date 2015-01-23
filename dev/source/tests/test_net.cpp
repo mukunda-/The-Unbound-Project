@@ -206,10 +206,11 @@ class MyStream : public Net::LidStream {
 
 	///////////////////////////////////////////////////////////////////////
 	void Accepted() override {
-		std::cout << "accepted,. " << std::endl;
 		m_accepted = true;
 
 	}
+
+	///////////////////////////////////////////////////////////////////////
 	void AcceptError( const boost::system::error_code &err ) override {
 		if( err.value() == 995 ) {
 			m_progress = 6;
@@ -218,6 +219,8 @@ class MyStream : public Net::LidStream {
 		std::cout << "accept error " << err << " " << err.message() << std::endl;
 		FAIL();
 	}
+
+	///////////////////////////////////////////////////////////////////////
 	void ConnectError( const boost::system::error_code &err ) override {
 		std::cout << "connection error " << err << " " << err.message() << std::endl;
 		FAIL();
@@ -270,7 +273,8 @@ class MyStream : public Net::LidStream {
 		
 	///////////////////////////////////////////////////////////////////////
 	void Receive( Net::Message &nmsg ) override {
-		auto msg = nmsg.Cast<Net::LidStream::Message>();
+	 
+		auto &msg = nmsg.Cast<Net::LidStream::Message>();
 
 		static int headers[] = { 12, 25, 0x1111, 0x22222, 0x4444444, 0x333333 };
 
@@ -324,12 +328,25 @@ TEST_F( NetTests, ProtobufTest ) {
 	
 	Net::Listener listener( 9021, factory );
 
-	for( int i = 0; i < 1; i++ ) {
+	for( int i = 0; i < 100; i++ ) {
 		
-		Net::ConnectAsync( "localhost", "9021", factory );
-
+		// test using async too
+		Net::ConnectAsync( "127.0.0.1", "9021", factory );
 	}
-	std::this_thread::sleep_for( std::chrono::milliseconds(5000) );
+
+	// we need to keep the listener alive until all of the async connections
+	// finish
+	// should be done within 1 second
+	int timeout = 1000;
+	while( listener.m_accept_counter != 101 ) {
+		
+		std::this_thread::sleep_for( std::chrono::milliseconds(1) );
+		timeout--;
+		if( timeout == 0 ) {
+			FAIL();
+		}
+	}
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////

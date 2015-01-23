@@ -27,7 +27,7 @@ namespace Net {
 		
 		//---------------------------------------------------------------------
 		template <typename T>
-		T Cast() {
+		T& Cast() {
 			return static_cast<T&>(*this);
 		}
 	};

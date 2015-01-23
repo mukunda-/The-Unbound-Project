@@ -159,13 +159,17 @@ protected:
 	///
 	/// @throws ParseError if the input is invalid.
 	///
-	virtual int ProcessInput( std::istream &stream, int bytes_available ) = 0;
+	virtual int ProcessInput( 
+		//std::istream &stream,
+		int bytes_available ) = 0;
 	
 	/// -----------------------------------------------------------------------
 	/// Create/release send locks.
 	///
 	SendLock AcquireSendBuffer();
 	void ReleaseSendBuffer( bool start );
+
+	std::istream &GetInputStream() { return m_input_stream; }
 	
 	/// -----------------------------------------------------------------------
 	/// These are called during certain events in addition to the 
@@ -201,6 +205,7 @@ private:
 	 
 	// stream for receiving data
 	boost::asio::streambuf m_read_buffer;
+	std::istream m_input_stream;
 	// how many bytes are waiting in the read bufferm_receiving
 	int m_read_avail = 0; 
 
@@ -269,6 +274,9 @@ private:
 
 	void DoClose();
 	void TryClose( bool close_socket );
+
+protected:
+	
 };
 
 /// ---------------------------------------------------------------------------

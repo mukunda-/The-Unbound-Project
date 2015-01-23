@@ -8,10 +8,10 @@
 namespace Net {
 	
 	//-------------------------------------------------------------------------
-	int TextStream::ProcessInput( std::istream &is, int bytes_available ) {
+	int TextStream::ProcessInput(  int bytes_available ) {
 		 
 		for( int bytesleft = bytes_available; bytesleft; bytesleft-- ) {
-			int c = is.get();
+			int c = GetInputStream().get();
 			if( c == '\n' ) {
 				// execute.
 				if( m_current_message.empty() ) continue;

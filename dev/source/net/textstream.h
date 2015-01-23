@@ -21,7 +21,7 @@ class TextStream : public Stream {
 	
 protected:
 
-	int ProcessInput( std::istream &is, int bytes_available ) override;
+	int ProcessInput(   int bytes_available ) override;
 	
 public:
 	class Message;

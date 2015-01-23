@@ -41,6 +41,9 @@ public:
 	// Both the listener and the parent class that registered its event
 	// handler with the listener (or manually in the factory) will
 	// receive Accept and AcceptError events.
+
+	// for diagnostic purposes.
+	std::atomic_int m_accept_counter;
 };
 
 }
