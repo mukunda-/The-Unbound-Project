@@ -1,4 +1,7 @@
-<?php
+<?php //=====================  The Unbound Project  =========================//
+     //                                                                     //
+    //===== Copyright © 2015, Mukunda Johnson, All rights reserved. =======//
+
 namespace Unbound;
 chdir("..");
 require_once "env.php";

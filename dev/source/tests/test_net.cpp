@@ -240,7 +240,8 @@ class MyStream : public Net::LidStream {
 		Net::Proto::Test::Test2 testmsg2;
 		testmsg2.set_aa( "paofeijpowaiejfwae" );
 		testmsg2.set_cc( 0xabcd0123abcd022L );
-			
+		
+		///////////////////////////////////////////////////////////////////
 		Net::Proto::Test::Test3 testmsg3;
 		testmsg3.set_email( "test@example.com" );
 		testmsg3.set_name( "jonathan doeminic" );
