@@ -78,11 +78,16 @@ class SQLW extends mysqli {
 	 *
 	 * @return MySQLW instance.
 	 */
-	public static function Get() { 
+	public static function Get( $info = null ) { 
+		
+		if( $info === null ) {
+			$info = \SQLW_DEFAULT_INFO;
+		}
+		
 		if( !self::$db ) {
 			self::$db = new self( 
-				SQL_Login::$address, SQL_Login::$username,
-				SQL_Login::$password, SQL_Login::$database,
+				$info['address'], $info['username'],
+				$info['password'], $info['schema'],
 				MYSQLI_CLIENT_FOUND_ROWS );
 				
 			if( self::$db->connect_errno ) {
