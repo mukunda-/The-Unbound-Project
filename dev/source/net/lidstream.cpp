@@ -122,11 +122,23 @@ void LidStream::Message::Parse( google::protobuf::MessageLite &msg ) {
 	
 	// user may not parse the message twice.
 	if( m_parsed ) throw ParseError();
+
+	if( m_length < 4096 ) {
 	
-	// TODO switch to arenas
-	auto buffer = std::unique_ptr<char>( new char[ m_length ] );
-	m_stream.read( buffer.get(), m_length );
-	if( !msg.ParseFromArray( buffer.get(), m_length ) ) throw ParseError();
+		char buffer[4096];
+		m_stream.read( buffer, m_length );
+		if( !msg.ParseFromArray( buffer, m_length )) {
+			throw ParseError();
+		}
+	
+	} else {
+		// TODO switch to arenas
+		auto buffer = std::unique_ptr<char>( new char[ m_length ] );
+		m_stream.read( buffer.get(), m_length );
+		if( !msg.ParseFromArray( buffer.get(), m_length )) {
+			throw ParseError();
+		}
+	}
 	
 	// (fuck it. google's stream shit is messed up.)
 //	google::protobuf::io::IstreamInputStream raw_input(&m_stream);

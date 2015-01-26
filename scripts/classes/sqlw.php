@@ -15,17 +15,21 @@ class SQLW extends mysqli {
 	const ER_DUP_KEY = 1022; // insert failure from duplicate key
 	const ER_LOCK_WAIT_TIMEOUT = 1205; // deadlock thing
 	const ER_LOCK_DEADLOCK = 1213; // deadlock thing
+	
+	private $info;
 
-	private static $db = null;
+	private static $connections = [];
 	
 	/** -----------------------------------------------------------------------
 	 * Construct with some special sauce.
 	 */
-	public function __construct( $host, $user, $password, 
-								 $database, $flags ) {
-		parent::init();
+	public function __construct( $info, $flags ) {
+		$this->info = $info;
 		
-		parent::real_connect( $host, $user, $password, $database,
+		parent::init();
+		parent::real_connect( 
+			$info['address'],  $info['username'], 
+			$info['password'], $info['database'],
 			null, null, $flags );
 	}
 
@@ -74,43 +78,44 @@ class SQLW extends mysqli {
 	}
 	
 	/** -----------------------------------------------------------------------
-	 * Connect to the database or return an existing connection.
+	 * Connect to a database or return an existing connection.
 	 *
-	 * @return MySQLW instance.
+	 * @returns SQLW instance.
 	 */
 	public static function Get( $info = null ) { 
 		
 		if( $info === null ) {
-			$info = \SQLW_DEFAULT_INFO;
-		}
-		
-		if( !self::$db ) {
-			self::$db = new self( 
-				$info['address'], $info['username'],
-				$info['password'], $info['schema'],
-				MYSQLI_CLIENT_FOUND_ROWS );
-				
-			if( self::$db->connect_errno ) {
-				self::$db = null;
-				throw new SQLException( 
-					(int)self::$db->connect_errno, 
-					"SQL Connection Error: ". (int)self::$db->connect_error );
+			if( !isset( $SQLW_DEFAULT_INFO )) {
+				throw new RuntimeException( 
+					"Connection info not given, and default info is not set." );
 			}
-		
+			$info = $SQLW_DEFAULT_INFO;
 		}
-		return self::$db; 
+		
+		if( !isset(self::$connections[$info['name']]) ) {
+			$db = new self( $info, MYSQLI_CLIENT_FOUND_ROWS );
+				
+			if( $db->connect_errno ) {
+				$ex = new SQLException( 
+					(int)$db->connect_errno, 
+					"SQL Connection Error: ". (int)$db->connect_error );
+				$db = null;
+				throw $ex;
+			}
+			self::$connections[$info['name']] = $db;
+		}
+		
+		return self::$connections[$info['name']]; 
 	}
 	
 	/** -----------------------------------------------------------------------
-	 * Close the current database connection.
+	 * Close a database connection.
 	 *
 	 * Normally this is handled by the script termination.
 	 */
-	public static function CloseConnection() {
-		if( $this->db !== null ) {
-			$this->db->close();
-			$this->db = null;
-		}
+	public function Close() {
+		close();
+		unset( self::$connections[$info['name']] );
 	}
 }
 

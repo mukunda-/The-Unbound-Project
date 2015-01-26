@@ -2,7 +2,7 @@
 
 namespace Unbound;
 
-header( "Content-Type: text/plain" );
+//header( "Content-Type: text/plain" );
 
 spl_autoload_register( function( $class ) {
 	$class = strtolower( $class );
