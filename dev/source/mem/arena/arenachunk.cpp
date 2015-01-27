@@ -16,7 +16,9 @@ namespace Mem { namespace Arena {
 	
 	//-------------------------------------------------------------------------
 	Chunk::~Chunk() {
-		assert( m_references == 0 );
+		if( m_references ) {
+			throw std::runtime_error( "Tried to delete arena chunk in use." );
+		}
 	}
 	
 	//-------------------------------------------------------------------------
@@ -26,14 +28,22 @@ namespace Mem { namespace Arena {
 		// reserve space for header
 		int pos = m_free + sizeof( Header );
 
-		// align to desired
-		pos = ((pos-1)|(aligned-1))+1;
+		// the address of m_data might not be aligned.
+		int alignment_needed = 
+			(aligned - (((int)m_data + pos) & (aligned-1))) & (aligned-1);
+
+		// align as desired
+		pos += alignment_needed;
 
 		// cancel if we dont have enough space.
 		int remaining = SIZE - pos;
 		if( remaining < (size + (int)sizeof(Header)) ) {
+
+			// mark for deletion after all references are released
 			m_delete = true;
 			if( m_references == 0 ) {
+				m_manager.MemoryFreed( m_allocated );
+				m_allocated = 0;
 				m_manager.Finalize( this );
 			}
 			return nullptr;
@@ -43,6 +53,9 @@ namespace Mem { namespace Arena {
 		GetHeader( ptr )->m_id = m_id; 
 		m_free = pos + size;
 		m_references++; 
+
+		m_allocated += size;
+
 		return ptr;
 	}
 	
@@ -50,8 +63,17 @@ namespace Mem { namespace Arena {
 	void Chunk::Release() {
 		assert( m_references > 0 );
 		m_references--;
+
+		// if no more references, reset allocated counter
+		if( m_references == 0 ) {
+			m_manager.MemoryFreed( m_allocated );
+			m_allocated = 0;
+		}
+
+		// check marked for deletion
 		if( m_delete && m_references == 0 ) {
-			m_manager.Finalize( this );
+			m_manager.Finalize( this ); 
+			// remember that Finalize deletes "this"!
 		}
 	}
 	

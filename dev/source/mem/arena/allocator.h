@@ -45,7 +45,7 @@ namespace Mem { namespace Arena {
 		pointer allocate( size_type count, 
 						  const_pointer = 0 ) {
 			if( count == 0 ) return nullptr;
-			return (pointer)Alloc( count * sizeof(T) );
+			return (pointer)Alloc( (int)(count * sizeof(T)) );
 		}
 
 		//---------------------------------------------------------------------

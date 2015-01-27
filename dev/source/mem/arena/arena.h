@@ -66,9 +66,16 @@ namespace Mem { namespace Arena {
 		uint16_t   m_nextid = 0;
 		Chunk     *m_current_chunk = nullptr;
 		std::mutex m_mut;
+
+		// amount of memory currently allocated.
+		int64_t    m_allocated = 0;
+
+		// max amount of memory ever allocated at a time
+		int64_t    m_allocated_peak = 0;
 		
 		void AllocateChunk(); 
 		void Finalize( Chunk *chunk );
+		void MemoryFreed( int amount );	
 
 	public:
 		Manager();

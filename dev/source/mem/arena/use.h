@@ -12,9 +12,11 @@ namespace Mem { namespace Arena {
 	/// Overrides new and delete to use the arena allocator.
 	///
 	class Use { 
-
+		
+	public:
 		void* operator new( size_t size ) { 
-			return Alloc( size );
+			assert( size <= Chunk::SIZE );
+			return Alloc( (int)size );
 		} 
 
 		void operator delete( void* ptr ) {

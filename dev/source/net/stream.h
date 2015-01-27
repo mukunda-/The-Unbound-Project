@@ -206,7 +206,7 @@ private:
 	// stream for receiving data
 	boost::asio::streambuf m_read_buffer;
 	std::istream m_input_stream;
-	// how many bytes are waiting in the read bufferm_receiving
+	// how many bytes are waiting in the read buffer
 	int m_read_avail = 0; 
 
 	// if the receive thread is active (mainly a safety check)

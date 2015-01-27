@@ -17,11 +17,13 @@ namespace Mem { namespace Arena {
 
 	//-------------------------------------------------------------------------
 	void *Alloc( int size, int aligned ) {
+		assert( g_manager );
 		return g_manager->Alloc( size, aligned );
 	}
 
 	//-------------------------------------------------------------------------
 	void Free( void *ptr ) {
+		assert( g_manager );
 		return g_manager->Free( ptr );
 	}
 
@@ -43,6 +45,8 @@ namespace Mem { namespace Arena {
 		if( !ptr ) {
 			throw std::runtime_error( "Error allocating from arena." );
 		}
+
+		m_allocated += size;
 
 		return ptr;
 	}
@@ -76,6 +80,11 @@ namespace Mem { namespace Arena {
 	}
 
 	//-------------------------------------------------------------------------
+	void Manager::MemoryFreed( int amount ) {
+		m_allocated -= amount;
+	}
+
+	//-------------------------------------------------------------------------
 	Manager::Manager() {
 		if( g_manager ) {
 			throw std::runtime_error( 
@@ -87,7 +96,14 @@ namespace Mem { namespace Arena {
 
 	//-------------------------------------------------------------------------
 	Manager::~Manager() {
-		// wait for memory to be unused.?
+		if( m_allocated != 0 ) {
+
+			// make sure there are no leaks.
+			throw std::runtime_error( 
+				"Arena contains allocated memory during destruction!" );
+		}
+
+		// m_current_chunk is deleted with m_chunkmap.
 		
 		g_manager = nullptr;
 	}

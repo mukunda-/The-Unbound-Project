@@ -22,14 +22,22 @@ namespace Mem { namespace Arena {
 	///
 	class Chunk {
 		friend class Manager;
+		friend class Use;
 		static const int SIZE = 1*1024*1024;//1mb
-
-		Manager &m_manager;        // parent manager
+		
 		char     m_data[SIZE];     // arena memory block
+		Manager &m_manager;        // parent manager
 		int      m_free = 0;       // next byte position of free data
 		int      m_references = 0; // # of allocated units
 		uint16_t m_id;             // ID in manager
 		bool     m_delete = false; // delete when references reach 0
+
+		int      m_allocated = 0;  // how many bytes are allocated 
+		                           // in this chunk, this is only reset
+								   // when all references to this chunk
+								   // are freed (and not when a single
+		                           // reference is freed)
+
 
 		/// -------------------------------------------------------------------
 		/// Get the header for an allocated memory unit.
