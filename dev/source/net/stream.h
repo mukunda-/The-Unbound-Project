@@ -71,7 +71,8 @@ public:
 	void Listen( BasicListener &listener );
 
 	/// -----------------------------------------------------------------------
-	/// Try to connect to a remote point.
+	/// Try to connect to a remote point. Emits a Connected event and
+	/// returns or throws an exception on failure.
 	///
 	/// @param host    Remote host address.
 	/// @param service Service/port number.
@@ -89,6 +90,16 @@ public:
 	/// @param service Service/port number to connect to. 
 	///
 	void ConnectAsync( const std::string &host, const std::string &service );
+
+	/// -----------------------------------------------------------------------
+	/// Use encryption.
+	///
+	/// Calling this will cause this socket to use encryption when
+	/// communicating. Must be called before connecting.
+	///
+	/// @param context SSL context to use.
+	///
+	void Secure( boost::asio::ssl::context &context );
 
 	/// -----------------------------------------------------------------------
 	/// Get the underlying boost asio socket object
@@ -185,6 +196,9 @@ protected:
 
 private:
 
+	using ssl_socket_t = 
+		boost::asio::ssl::stream<boost::asio::ip::tcp::socket&>;
+
 	class ReadError : public std::runtime_error {};
 
 	std::atomic<void*> m_userdata = nullptr; 
@@ -199,6 +213,7 @@ private:
 		
 	// tcp socket
 	boost::asio::ip::tcp::socket m_socket;
+	std::unique_ptr<ssl_socket_t> m_secure_socket;
 
 	// saved connection error
 	boost::system::error_code m_conerr;
