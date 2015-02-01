@@ -92,10 +92,10 @@ public:
 	void ConnectAsync( const std::string &host, const std::string &service );
 
 	/// -----------------------------------------------------------------------
-	/// Use encryption.
+	/// Secure mode.
 	///
-	/// Calling this will cause this socket to use encryption when
-	/// communicating. Must be called before connecting.
+	/// Calling this will switch the stream into a secure communication
+	/// mode.
 	///
 	/// @param context SSL context to use.
 	///
@@ -214,6 +214,7 @@ private:
 	// tcp socket
 	boost::asio::ip::tcp::socket m_socket;
 	std::unique_ptr<ssl_socket_t> m_secure_socket;
+	bool m_secure = false;
 
 	// saved connection error
 	boost::system::error_code m_conerr;
