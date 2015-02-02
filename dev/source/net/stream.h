@@ -215,7 +215,7 @@ private:
 	boost::asio::ip::tcp::socket m_socket;
 	std::unique_ptr<ssl_socket_t> m_secure_socket;
 	bool m_secure = false;
-
+	                                                
 	// saved connection error
 	boost::system::error_code m_conerr;
 	 
