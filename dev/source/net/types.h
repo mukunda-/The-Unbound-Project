@@ -9,4 +9,6 @@ namespace Net {
 	using StreamPtr = std::shared_ptr<Stream>;
 	using StreamFactory = std::function<StreamPtr()>;
 	class Message;
+	class SSLContext;
+	using SSLContextPtr = std::shared_ptr<SSLContext>;
 }
