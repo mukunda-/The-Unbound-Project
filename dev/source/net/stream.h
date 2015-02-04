@@ -17,6 +17,7 @@
 #include "system/system.h"
 #include "basiclistener.h"
 #include "message.h"
+#include "types.h"
 
 namespace Net {
 
@@ -99,7 +100,7 @@ public:
 	///
 	/// @param context SSL context to use.
 	///
-	void Secure( boost::asio::ssl::context &context );
+	void Secure( SSLContextPtr &context );
 
 	/// -----------------------------------------------------------------------
 	/// Get the underlying boost asio socket object
@@ -210,10 +211,12 @@ private:
 	
 	// strand used to synchronize operations
 	boost::asio::strand m_strand;
-		
+	
 	// tcp socket
 	boost::asio::ip::tcp::socket m_socket;
-	std::unique_ptr<ssl_socket_t> m_secure_socket;
+	std::unique_ptr<ssl_socket_t> m_ssl_socket;
+
+	SSLContextPtr m_ssl_context;
 	bool m_secure = false;
 	                                                
 	// saved connection error

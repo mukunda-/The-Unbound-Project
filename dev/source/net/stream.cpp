@@ -8,6 +8,7 @@
 #include "resolver.h"
 #include "util/minmax.h"
 #include "error.h"
+#include "sslcontext.h"
 
 namespace Net {
 
@@ -422,6 +423,9 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 ///
 void Stream::OnAccept( const boost::system::error_code &error ) {
 	if( !error ) {
+
+		// change state, trigger event and start receive loop
+
 		m_accepted = true;
 		m_state = StreamState::CONNECTED;
 		m_hostname = m_socket.remote_endpoint().address().to_string();
@@ -435,6 +439,7 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 		///SetConnected();
 	} else {
 
+		// TODO: do we set a failed stream state here?
 		AcceptError( error );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.AcceptError( error );
@@ -457,5 +462,18 @@ void Stream::Listen( BasicListener &listener ) {
 			boost::asio::placeholders::error )));
 }
  
+//-----------------------------------------------------------------------------
+void Stream::Secure( SSLContextPtr &context ) {
+
+	// add ownership to shared ptr
+	m_ssl_context = context;
+
+	// wrap our existing socket with ssl
+	// low-level socket operations still use m_socket
+	m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
+	m_secure = true;
+
+	
+}
 
 }

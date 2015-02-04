@@ -6,11 +6,33 @@
 
 #include "sslcontext.h"
 
+//-----------------------------------------------------------------------------
 namespace Net {
 
-SSLContext::SSLContext() : m_context( ssl::context::sslv23 ) {
+//-----------------------------------------------------------------------------
+SSLContext::SSLContext() : m_context( boost::asio::ssl::context::sslv23 ) {
 	
-	m_context.set_verify_mode( ssl::verify_peer )
+}
+
+//-----------------------------------------------------------------------------
+void SSLContext::SetupServer( const Util::StringRef &pem ) {
+
+	m_context.set_options( boost::asio::ssl::context::default_workarounds |
+							boost::asio::ssl::context::no_sslv2 |
+							boost::asio::ssl::context::single_dh_use );
+
+	m_context.use_certificate_chain_file( pem );
+	m_context.use_private_key_file( pem, boost::asio::ssl::context::pem );
+
+	// what is this for?
+	m_context.use_tmp_dh_file( "dh512.pem" );
+
+
+}
+
+//-----------------------------------------------------------------------------
+void SSLContext::SetupClient( const Util::StringRef &pem ) {
+	m_context.load_verify_file( pem );	
 }
 
 }
