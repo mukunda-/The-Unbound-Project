@@ -351,4 +351,9 @@ TEST_F( NetTests, ProtobufTest ) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+TEST_F( NetTests, SSLTest ) {
+	static auto factory = []()
+}
+
 }

@@ -284,8 +284,13 @@ private:
 
 	void OnAccept( const boost::system::error_code &error );
 	void OnConnect( const boost::system::error_code &error );
-	void OnResolve( const boost::system::error_code& ec, 
+	void OnResolve( const boost::system::error_code &error, 
 			boost::asio::ip::tcp::resolver::iterator it );
+	void OnHandshake( const boost::system::error_code &error );
+
+	void SetConnectedState();
+	void SetConnectedFailed( const boost::system::error_code &error );
+	void SignalConnectionCompleted();
 
 	//bool ParseMessage( std::istream &is );
 	

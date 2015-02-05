@@ -394,28 +394,107 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 }
 
 /// ---------------------------------------------------------------------------
+/// Signal a thread that is waiting if they used Connect()
+///
+void Stream::SignalConnectionCompleted() {
+	
+	std::lock_guard<std::mutex> lock( m_lock );
+	m_connection_completed.notify_all();
+}
+
+/// ---------------------------------------------------------------------------
+/// Called after a connection is successful to change the state and
+/// start the read task.
+///
+void Stream::SetConnectedState() {
+	
+	// change state, trigger event and start receive loop
+	m_state = StreamState::CONNECTED;
+
+	if( m_accepted ) {
+		
+		Accepted();
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Accepted();  
+
+	} else {
+		
+		Connected();
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Connected();  
+		
+	}
+
+	ReceiveNext();
+}
+
+/// ---------------------------------------------------------------------------
+/// Called after a connection attempt fails to change the state and
+/// send an error event.
+///
+void Stream::SetConnectedFailed( const boost::system::error_code &error ) {
+	
+	m_state = StreamState::FAILURE;
+	m_conerr = error;
+
+	if( m_accepted ) {
+
+		AcceptError( error );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.AcceptError( error );
+
+	} else {
+
+		ConnectError( error );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.ConnectError( error );
+	}
+	
+		
+}
+
+/// ---------------------------------------------------------------------------
 /// [PRIVATE] Callback for boost::asio::async_connect
 ///
 void Stream::OnConnect( const boost::system::error_code &error ) {
 	 
 	if( !error ) {
-		
-		m_state = StreamState::CONNECTED;
-		Connected();
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Connected();  
-		ReceiveNext();
+
+		if( m_secure ) {
+			// need to perform handshake first
+
+			m_ssl_socket->async_handshake( 
+				boost::asio::ssl::stream_base::client, m_strand.wrap(
+					boost::bind( &Stream::OnHandshake, shared_from_this(), 
+								 boost::asio::placeholders::error )));
+
+			return;
+		}
+	
+		SetConnectedState();
 		
 	} else {
 	
-		m_state = StreamState::FAILURE;
-		m_conerr = error;
-		Events::Stream::Dispatcher( shared_from_this() )
-			.ConnectError( error );
+		SetConnectedFailed( error );
 	}
 	
-	std::lock_guard<std::mutex> lock( m_lock );
-	m_connection_completed.notify_all();
+	SignalConnectionCompleted();
+}
+
+/// ---------------------------------------------------------------------------
+/// [PRIVATE] Callback for when async_handshake completes
+///
+void Stream::OnHandshake( const boost::system::error_code &error ) {
+	if( !error ) {
+		
+		SetConnectedState();
+		
+	} else {
+		
+		SetConnectedFailed( error );
+	}
+
+	SignalConnectionCompleted();
 }
 
 /// ---------------------------------------------------------------------------
@@ -423,36 +502,31 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 ///
 void Stream::OnAccept( const boost::system::error_code &error ) {
 	if( !error ) {
-
-		// change state, trigger event and start receive loop
-
-		m_accepted = true;
-		m_state = StreamState::CONNECTED;
 		m_hostname = m_socket.remote_endpoint().address().to_string();
 
-		Accepted();
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Accepted();
+		if( m_secure ) {
+			m_ssl_socket->async_handshake( 
+				boost::asio::ssl::stream_base::server, m_strand.wrap(
+					boost::bind( &Stream::OnHandshake, shared_from_this(),
+							     boost::asio::placeholders::error )));
 
-		
-		ReceiveNext();
-		///SetConnected();
+			return;
+		}
+
+		SetConnectedState();
 	} else {
-
-		// TODO: do we set a failed stream state here?
-		AcceptError( error );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.AcceptError( error );
+		
+		SetConnectedFailed( error );
 	}
 	
-	std::lock_guard<std::mutex> lock( m_lock );
-	m_connection_completed.notify_all();
+	SignalConnectionCompleted();
 }
 
 //-----------------------------------------------------------------------------
 void Stream::Listen( BasicListener &listener ) {
 	assert( !m_shutdown ); 
 	assert( m_state == StreamState::NEW );
+	m_accepted = true;
 
 	m_state = StreamState::LISTENING;
 	listener.AsyncAccept(
