@@ -12,6 +12,7 @@
 #include "net/textstream.h"
 #include "net/lidstream.h"
 #include "net/events.h"
+#include "net/sslcontext.h"
 
 #include "proto/test/test.pb.h"
 #include "proto/test/test2.pb.h"
@@ -326,7 +327,7 @@ TEST_F( NetTests, ProtobufTest ) {
 	static auto factory = []() -> Net::StreamPtr {
 		return std::make_shared<MyStream>();
 	};
-	
+									
 	Net::Listener listener( 9021, factory );
 
 	for( int i = 0; i < 100; i++ ) {
@@ -353,7 +354,42 @@ TEST_F( NetTests, ProtobufTest ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 TEST_F( NetTests, SSLTest ) {
-	static auto factory = []()
+
+	auto client_ctx = std::make_shared<Net::SSLContext>();
+	auto server_ctx = std::make_shared<Net::SSLContext>();
+	
+	auto server_factory = [server_ctx]() mutable {
+		auto stream = std::make_shared<MyStream>();
+		stream->Secure( server_ctx );
+		return stream;
+	};
+
+	auto client_factory = [client_ctx]() mutable {
+		auto stream = std::make_shared<MyStream>();
+		stream->Secure( client_ctx );
+		return stream;
+	};
+
+	Net::Listener listener( 9678, server_factory );
+
+	for( int i = 0; i < 100; i++ ) {
+		
+		// test using async too
+		Net::ConnectAsync( "127.0.0.1", "9678", client_factory );
+	}
+
+	// we need to keep the listener alive until all of the async connections
+	// finish
+	// should be done within 1 second
+	int timeout = 1000;
+	while( listener.m_accept_counter != 101 ) {
+		
+		std::this_thread::sleep_for( std::chrono::milliseconds(1) );
+		timeout--;
+		if( timeout == 0 ) {
+			FAIL();
+		}
+	}
 }
 
 }

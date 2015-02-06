@@ -107,12 +107,21 @@ void Stream::ReceiveNext() {
 	boost::asio::streambuf::mutable_buffers_type buffers = 
 		m_read_buffer.prepare( READ_BUFFER_SIZE );
 	
-	m_socket.async_receive( 
-		buffers, 
-		m_strand.wrap( boost::bind( 
-			&Stream::OnReceive, shared_from_this(), 
-			boost::asio::placeholders::error, 
-			boost::asio::placeholders::bytes_transferred )));
+	if( !m_secure ) {
+		m_socket.async_read_some( 
+			buffers, 
+			m_strand.wrap( boost::bind( 
+				&Stream::OnReceive, shared_from_this(), 
+				boost::asio::placeholders::error, 
+				boost::asio::placeholders::bytes_transferred )));
+	} else {
+		m_ssl_socket->async_read_some( 
+			buffers, 
+			m_strand.wrap( boost::bind( 
+				&Stream::OnReceive, shared_from_this(), 
+				boost::asio::placeholders::error, 
+				boost::asio::placeholders::bytes_transferred )));
+	}
 			
 }
 
@@ -147,6 +156,7 @@ void Stream::StopSend() {
 
 	if( m_shutdown ) {
 		boost::system::error_code ec;
+		
 		m_socket.shutdown( tcp::socket::shutdown_both, ec );  
 		TryClose( false );
 //		boost::system::error_code ec;
@@ -188,12 +198,19 @@ void Stream::SendNext() {
 		m_send_buffer_index = 1-m_send_buffer_index;
 	}
 	
-	m_socket.async_write_some( 
-		m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
-			boost::bind( &Stream::OnSend, shared_from_this(), 
-						 boost::asio::placeholders::error, 
-						 boost::asio::placeholders::bytes_transferred )));
-							
+	if( !m_secure ) {
+		m_socket.async_write_some( 
+			m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
+				boost::bind( &Stream::OnSend, shared_from_this(), 
+							 boost::asio::placeholders::error, 
+							 boost::asio::placeholders::bytes_transferred )));
+	} else {
+		m_ssl_socket->async_write_some(
+			m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
+				boost::bind( &Stream::OnSend, shared_from_this(), 
+							 boost::asio::placeholders::error, 
+							 boost::asio::placeholders::bytes_transferred )));
+	}
 } 
  
 //-----------------------------------------------------------------------------
