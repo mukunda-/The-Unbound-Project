@@ -219,7 +219,7 @@ Stream::Stream( System::Service &service ) :
 			m_strand( m_service() ), m_input_stream( &m_read_buffer ) {
 	  
 	// this doesn't work:
-	// allow lingering for 30 seconds to finish unsent sending data on shutdown
+	// allow lingering for 30 seconds to finish sending data on shutdown
 //	boost::system::error_code ec; //ignore error, maybe log message
 //	boost::asio::socket_base::linger option(true, 30);
 //	socket.set_option(option,ec);
