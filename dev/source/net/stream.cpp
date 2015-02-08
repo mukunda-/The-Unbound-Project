@@ -157,6 +157,9 @@ void Stream::StopSend() {
 	if( m_shutdown ) {
 		boost::system::error_code ec;
 		
+		if( m_secure ) {
+			m_ssl_socket->async_shutdown( boost::bind( &Stream::OnShutdown, 
+		}
 		m_socket.shutdown( tcp::socket::shutdown_both, ec );  
 		TryClose( false );
 //		boost::system::error_code ec;
@@ -164,6 +167,10 @@ void Stream::StopSend() {
 //		m_socket.close();
 	}
 	return;
+}
+
+void Stream::OnShutdown( const boost::system::error_code &error ) {
+
 }
 
 /// ---------------------------------------------------------------------------
