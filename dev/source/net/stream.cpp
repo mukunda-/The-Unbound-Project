@@ -158,10 +158,11 @@ void Stream::StopSend() {
 		boost::system::error_code ec;
 		
 		if( m_secure ) {
-			m_ssl_socket->async_shutdown( boost::bind( &Stream::OnShutdown, 
+			m_ssl_socket->async_shutdown( boost::bind( &Stream::OnShutdown, shared_from_this(), boost::asio::placeholders::error ));
+		} else {
+			m_socket.shutdown( tcp::socket::shutdown_both, ec );  
+			TryClose( false );
 		}
-		m_socket.shutdown( tcp::socket::shutdown_both, ec );  
-		TryClose( false );
 //		boost::system::error_code ec;
 //		m_socket.shutdown( tcp::socket::shutdown_send, ec );  
 //		m_socket.close();
@@ -255,9 +256,11 @@ Stream::~Stream() {
 }
 
 ///----------------------------------------------------------------------------
-/// Close the socket if both receive and send threads have ended.
-///
 void Stream::TryClose( bool failure ) {
+	// Close the socket if both receive and send threads have ended.
+	// if "failure" is set, then something went wrong and 
+	// we force close the socket.
+
 	using namespace boost::asio::ip; 
 	// assert mutex is owned?
 
