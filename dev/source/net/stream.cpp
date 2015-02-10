@@ -275,6 +275,7 @@ void Stream::TryClose( bool failure ) {
 		boost::system::error_code ec;
 		m_socket.shutdown( tcp::socket::shutdown_both, ec ); 
 
+		Disconnected( boost::system::error_code() );
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Disconnected( boost::system::error_code() );
 	}
