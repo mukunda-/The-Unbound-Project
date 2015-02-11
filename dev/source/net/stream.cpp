@@ -28,6 +28,18 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		// receive error: the remote has disconnected or an error occurred.
 		m_receiving = false;
 
+		if( m_shutdown ) return;
+
+		if( error == boost::asio::error::eof ) {
+			// clean shutdown
+
+		} else {
+			m_socket.close();
+			m_state = StreamState::FAILURE; 
+		}
+		DoClose();
+		return;
+
 		// TODO closed/failure state depending on error.
 		std::lock_guard<std::mutex> lock( m_lock );
 		if( !m_shutdown || error == boost::asio::error::eof ) {
