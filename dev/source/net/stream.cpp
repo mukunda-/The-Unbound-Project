@@ -19,7 +19,7 @@ namespace {
 }
 	 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for receiving data.
+/// Callback for receiving data.
 ///  
 void Stream::OnReceive( const boost::system::error_code& error, 
 								    size_t bytes_transferred ) {
@@ -28,18 +28,17 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		// receive error: the remote has disconnected or an error occurred.
 		m_receiving = false;
 
-		if( m_shutdown ) return;
+		if( m_shutdown ) return; // socket is already closed.
 
 		if( error == boost::asio::error::eof ) {
 			// clean shutdown
-
+			DoClose( false, boost::system::error_code() );
 		} else {
-			m_socket.close();
-			m_state = StreamState::FAILURE; 
+			DoClose( true, error );
 		}
-		DoClose();
+		
 		return;
-
+		/*
 		// TODO closed/failure state depending on error.
 		std::lock_guard<std::mutex> lock( m_lock );
 		if( !m_shutdown || error == boost::asio::error::eof ) {
@@ -48,6 +47,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		} else {
 			TryClose( false );
 		}
+		*/
 
 		// send event
 //		Disconnected( error );
@@ -58,6 +58,11 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		//StopReceive();
 		//DoClose();
 		return;
+	}
+
+	if( m_shutdown ) {
+		m_receiving = false;
+		return; // socket is closed. ignore any further data.
 	}
 	
 	m_read_buffer.commit( bytes_transferred );
@@ -76,6 +81,8 @@ void Stream::OnReceive( const boost::system::error_code& error,
 
 	// TODO catch parse error exception and terminate connection.
 
+	ReceiveNext();
+	/*
 	if( m_state == StreamState::CONNECTED ) {
 		// receive next data chunk
 		ReceiveNext();
@@ -91,11 +98,11 @@ void Stream::OnReceive( const boost::system::error_code& error,
 //		Events::Stream::Dispatcher( shared_from_this() )
 //			.Disconnected( boost::system::error_code() );
 		return;
-	}
+	}*/
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Unset the receiving flag and signal the condition.
+/// Unset the receiving flag and signal the condition.
 ///  
 void Stream::StopReceive() {
 	// the signal isn't used anymore.
@@ -106,7 +113,7 @@ void Stream::StopReceive() {
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Set the receiving flag and start listening for data.
+/// Set the receiving flag and start listening for data.
 ///
 /// @param first TRUE if this is the first receive call, i.e. right after
 ///        the connection is established. FALSE if it is a continued 
@@ -138,19 +145,18 @@ void Stream::ReceiveNext() {
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for when some data is put out onto the line.
+/// Callback for when some data is put out onto the line.
 ///
 void Stream::OnSend( const boost::system::error_code& error, 
 						 size_t bytes_transferred ) {
 	
 	if( error ) {
 		// error during send, this is an "unexpected" error.
-
 		std::lock_guard<std::mutex> lock( m_lock );
 		m_sending = false;
+
+		DoClose( true, error );
 		m_cv_send_complete.notify_all();
-		TryClose( true );
-		  
 		return;
 	}
 
@@ -159,35 +165,39 @@ void Stream::OnSend( const boost::system::error_code& error,
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Stop the sending thread and signal waiters.
+/// Stop the sending thread and signal waiters.
 ///
 void Stream::StopSend() {
+	// *** m_lock has to be locked outside.
+
 	using namespace boost::asio::ip; 
 	m_sending = false;
 	m_cv_send_complete.notify_all();
 
 	if( m_shutdown ) {
-		boost::system::error_code ec;
-		
+		m_state = StreamState::CLOSED;
+
 		if( m_secure ) {
-			m_ssl_socket->async_shutdown( boost::bind( &Stream::OnShutdown, shared_from_this(), boost::asio::placeholders::error ));
+			m_ssl_socket->async_shutdown( 
+				boost::bind( &Stream::OnShutdown, shared_from_this(), 
+							 boost::asio::placeholders::error ));
 		} else {
+			boost::system::error_code ec;
 			m_socket.shutdown( tcp::socket::shutdown_both, ec );  
-			TryClose( false );
+			
 		}
-//		boost::system::error_code ec;
-//		m_socket.shutdown( tcp::socket::shutdown_send, ec );  
-//		m_socket.close();
+
 	}
 	return;
 }
 
+//-----------------------------------------------------------------------------
 void Stream::OnShutdown( const boost::system::error_code &error ) {
-
+	
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Put data on the line or signal that the send has
+/// Put data on the line or signal that the send has
 ///           completed.
 ///
 void Stream::SendNext() {
@@ -252,7 +262,8 @@ Stream::Stream() : Stream( Net::DefaultService() ) {}
 void Stream::Close() {
 
 	m_service.Post( m_strand.wrap( 
-		boost::bind( &Stream::DoClose, shared_from_this() )));
+		boost::bind( &Stream::DoClose, shared_from_this(), 
+				     false, boost::system::error_code(), false )));
 }
 
 //-----------------------------------------------------------------------------
@@ -266,7 +277,7 @@ Stream::~Stream() {
 	// the socket should not be open when the destructor is called.
 	//m_socket.close();	 
 }
-
+/*
 ///----------------------------------------------------------------------------
 void Stream::TryClose( bool failure ) {
 	// Close the socket if both receive and send threads have ended.
@@ -291,15 +302,23 @@ void Stream::TryClose( bool failure ) {
 		Events::Stream::Dispatcher( shared_from_this() )
 			.Disconnected( boost::system::error_code() );
 	}
-}
+}*/
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Cleanly close the socket.
+/// Cleanly close the socket.
 ///
-void Stream::DoClose() {
+/// @param failure true if there was an error and the socket should be
+///                forcefully closed.
+/// @param error   Error code for failure state.
+/// @param locked  true if m_lock is already locked outside of this function.
+///
+void Stream::DoClose( bool failure, const boost::system::error_code &error, 
+	                  bool locked ) {
 	using namespace boost::asio::ip; 
 	
-	std::lock_guard<std::mutex> lock( m_lock );
+	std::unique_lock<std::mutex> lock( m_lock, std::defer_lock );
+	if( !locked ) lock.lock();
+
 	if( m_shutdown ) return;
 	m_shutdown = true;
 	
@@ -308,27 +327,46 @@ void Stream::DoClose() {
 	m_shutdown = true;
 
 	if( oldstate == StreamState::CONNECTED ) {
+
+		Disconnected( error );
+		Events::Stream::Dispatcher( shared_from_this() )
+			.Disconnected( error );
+			
+		if( failure ) {
+			m_socket.close();
+			return;
+		}
 		
 		if( m_sending ) {
-			//
+			// the send thread will shutdown the socket when
+			// it's done.
+
 			boost::system::error_code ec;
-	//		m_socket.shutdown( tcp::socket::shutdown_receive, ec );  
-	//		m_socket.shutdown( tcp::socket::shutdown_send, ec );  //DEBUG
-			m_state = StreamState::CLOSING; // close after send.
+			m_state = StreamState::CLOSING; 
 
 		} else {
-			boost::system::error_code ec;
-			m_socket.shutdown( tcp::socket::shutdown_both, ec );  
+			
 			m_state = StreamState::CLOSED;
+			if( m_secure ) {
+				m_ssl_socket->async_shutdown( 
+					boost::bind( &Stream::OnShutdown, shared_from_this(), 
+								 boost::asio::placeholders::error ));
+			} else {
+				boost::system::error_code ec;
+				m_socket.shutdown( tcp::socket::shutdown_both, ec );  
+			}
+			
 		} 
 
 	} else if( oldstate == StreamState::CONNECTING || 
 			   oldstate == StreamState::LISTENING ) {
+		// this isn't a live connection, so simply close it.
 		m_socket.close();
 		m_state = StreamState::CLOSED;
 
 	} else if( oldstate == StreamState::NEW ) {
 
+		// for whatever reason, close was called on a brand new socket.
 		m_state = StreamState::CLOSED;
 	}
 }
@@ -408,11 +446,11 @@ void Stream::ConnectAsync( const std::string &host,
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for when an address has been resolved during
-///           an async connect op. (or an error)
+/// Callback for when an address has been resolved during
+/// an async connect op. (or an error)
 ///
 void Stream::OnResolve( const boost::system::error_code &error_code, 
-					boost::asio::ip::tcp::resolver::iterator endpoints ) {
+				        boost::asio::ip::tcp::resolver::iterator endpoints ) {
 	
 	if( error_code ) {
 		m_state = StreamState::FAILURE;
@@ -494,7 +532,7 @@ void Stream::SetConnectedFailed( const boost::system::error_code &error ) {
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for boost::asio::async_connect
+/// Callback for boost::asio::async_connect
 ///
 void Stream::OnConnect( const boost::system::error_code &error ) {
 	 
@@ -522,7 +560,7 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for when async_handshake completes
+/// Callback for when async_handshake completes
 ///
 void Stream::OnHandshake( const boost::system::error_code &error ) {
 	if( !error ) {
@@ -538,7 +576,7 @@ void Stream::OnHandshake( const boost::system::error_code &error ) {
 }
 
 /// ---------------------------------------------------------------------------
-/// [PRIVATE] Callback for when a connection is accepted.
+/// Callback for when a connection is accepted.
 ///
 void Stream::OnAccept( const boost::system::error_code &error ) {
 	if( !error ) {

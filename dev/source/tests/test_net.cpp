@@ -357,6 +357,8 @@ TEST_F( NetTests, SSLTest ) {
 
 	auto client_ctx = std::make_shared<Net::SSLContext>();
 	auto server_ctx = std::make_shared<Net::SSLContext>();
+	client_ctx->SetupClient( "servercert_test.pem" );
+	server_ctx->SetupServer( "server_test.pem" );
 	
 	auto server_factory = [server_ctx]() mutable {
 		auto stream = std::make_shared<MyStream>();
@@ -372,7 +374,7 @@ TEST_F( NetTests, SSLTest ) {
 
 	Net::Listener listener( 9678, server_factory );
 
-	for( int i = 0; i < 100; i++ ) {
+	for( int i = 0; i < 1; i++ ) {
 		
 		// test using async too
 		Net::ConnectAsync( "127.0.0.1", "9678", client_factory );

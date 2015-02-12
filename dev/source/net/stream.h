@@ -297,8 +297,9 @@ private:
 	
 	//void SetConnected();
 
-	void DoClose();
-	void TryClose( bool close_socket );
+	void DoClose( bool failure, const boost::system::error_code &error, 
+		          bool locked = false );
+//	void TryClose( bool close_socket );
 
 protected:
 	
