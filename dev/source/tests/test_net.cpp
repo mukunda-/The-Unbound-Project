@@ -34,7 +34,7 @@ protected:
 	void SetUp() {
 		m_lock = new std::mutex;
 
-		i_system = new System::Main(1);
+		i_system = new System::Main(4);
 		i_net = new Net::Instance ;
 	}
 	
@@ -161,12 +161,11 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 class MyStream : public Net::LidStream {
 		
 	int m_progress = 0;
-	bool m_accepted = false;
 
 	///////////////////////////////////////////////////////////////////////
 	template <typename T>
 	void Mirror( T &pb, int header ) {
-		if( !m_accepted ) return;
+		if( !IsServer() ) return;
 
 		Write() << header << pb;
 	}
@@ -207,8 +206,7 @@ class MyStream : public Net::LidStream {
 
 	///////////////////////////////////////////////////////////////////////
 	void Accepted() override {
-		m_accepted = true;
-
+		EXPECT_EQ( true, IsServer() );
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -355,10 +353,11 @@ TEST_F( NetTests, ProtobufTest ) {
 
 TEST_F( NetTests, SSLTest ) {
 
+
 	auto client_ctx = std::make_shared<Net::SSLContext>();
 	auto server_ctx = std::make_shared<Net::SSLContext>();
-	client_ctx->SetupClient( "servercert_test.pem" );
-	server_ctx->SetupServer( "server_test.pem" );
+	client_ctx->SetupClient( "server_test_cert.pem" );
+	server_ctx->SetupServer( "server_test_cert.pem", "server_test.pem" );
 	
 	auto server_factory = [server_ctx]() mutable {
 		auto stream = std::make_shared<MyStream>();
@@ -374,7 +373,7 @@ TEST_F( NetTests, SSLTest ) {
 
 	Net::Listener listener( 9678, server_factory );
 
-	for( int i = 0; i < 1; i++ ) {
+	for( int i = 0; i < 100; i++ ) {
 		
 		// test using async too
 		Net::ConnectAsync( "127.0.0.1", "9678", client_factory );

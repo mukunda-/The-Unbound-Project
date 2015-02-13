@@ -32,9 +32,16 @@ void ConnectAsync( const std::string &host, const std::string &service,
 }
 
 //-----------------------------------------------------------------------------
-Instance::Instance( ) {
+Instance::Instance() {
 	
 	g_instance = this;
+
+	// setup crypto threading
+	m_crypto_locks = std::unique_ptr<std::mutex[]>( 
+					new std::mutex[CRYPTO_num_locks()] );
+
+	CRYPTO_set_locking_callback( LockingFunction );
+
 //	if( threads > 0 ) {
 //		m_service.Run( threads );
 //	}
@@ -43,7 +50,22 @@ Instance::Instance( ) {
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 	//m_service.Finish( true );
+
+	CRYPTO_set_locking_callback( NULL );
+
 	g_instance = nullptr;  
+}
+
+/// ---------------------------------------------------------------------------
+/// Callback for OpenSSL thread safety.
+///
+void Instance::LockingFunction( int mode, int n, const char *, int ) {
+
+	if( mode & CRYPTO_LOCK ) {
+		g_instance->m_crypto_locks[n].lock();
+	} else {
+		g_instance->m_crypto_locks[n].unlock();
+	}
 }
 
 //-----------------------------------------------------------------------------

@@ -125,6 +125,13 @@ public:
 	/// @returns in format "address:service"
 	///
 	const std::string &GetHostname() const;
+
+	/// -----------------------------------------------------------------------
+	/// @returns true if this socket was connected via Accept.
+	///
+	bool IsServer() const {
+		return m_accepted;
+	}
 		 
 	/// -----------------------------------------------------------------------
 	/// Set arbitrary user-defined data.
@@ -210,6 +217,7 @@ private:
 	System::Service &m_service;
 	
 	// strand used to synchronize operations
+	//std::shared_ptr<boost::asio::strand> m_strand;
 	boost::asio::strand m_strand;
 	
 	// tcp socket

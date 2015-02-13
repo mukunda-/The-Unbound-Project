@@ -616,7 +616,7 @@ void Stream::Listen( BasicListener &listener ) {
  
 //-----------------------------------------------------------------------------
 void Stream::Secure( SSLContextPtr &context ) {
-
+	
 	// add ownership to shared ptr
 	m_ssl_context = context;
 
@@ -625,7 +625,7 @@ void Stream::Secure( SSLContextPtr &context ) {
 	m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
 	m_secure = true;
 
-	
+//	m_strand.reset( g_instance->GetSSLStrand() );
 }
 
 }

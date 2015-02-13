@@ -50,8 +50,17 @@ namespace Net {
 		System::Service &GetService();
 
 	private:
+		friend class Stream;
 	
-	//	System::Service m_service;
+		static void LockingFunction( int mode, int n, const char *file, 
+									 int line );
+
+		// locks for CRYPTO locking callback
+		std::unique_ptr<std::mutex[]> m_crypto_locks;
+
+	//	boost::asio::strand m_ssl_strand;
+	
+	//	std::shared_ptr<boost::asio::strand> GetSSLStrand();
 	};
 
 }
