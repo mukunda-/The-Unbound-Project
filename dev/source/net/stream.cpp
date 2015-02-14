@@ -12,6 +12,8 @@
 
 namespace Net {
 
+extern Instance *g_instance;
+
 //-----------------------------------------------------------------------------
 namespace {
 	const int READ_BUFFER_SIZE = 4096;
@@ -129,14 +131,14 @@ void Stream::ReceiveNext() {
 	if( !m_secure ) {
 		m_socket.async_read_some( 
 			buffers, 
-			m_strand.wrap( boost::bind( 
+			m_strand->wrap( boost::bind( 
 				&Stream::OnReceive, shared_from_this(), 
 				boost::asio::placeholders::error, 
 				boost::asio::placeholders::bytes_transferred )));
 	} else {
 		m_ssl_socket->async_read_some( 
 			buffers, 
-			m_strand.wrap( boost::bind( 
+			m_strand->wrap( boost::bind( 
 				&Stream::OnReceive, shared_from_this(), 
 				boost::asio::placeholders::error, 
 				boost::asio::placeholders::bytes_transferred )));
@@ -230,13 +232,13 @@ void Stream::SendNext() {
 	
 	if( !m_secure ) {
 		m_socket.async_write_some( 
-			m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
+			m_send_buffers[1-m_send_buffer_index].data(), m_strand->wrap(
 				boost::bind( &Stream::OnSend, shared_from_this(), 
 							 boost::asio::placeholders::error, 
 							 boost::asio::placeholders::bytes_transferred )));
 	} else {
 		m_ssl_socket->async_write_some(
-			m_send_buffers[1-m_send_buffer_index].data(), m_strand.wrap(
+			m_send_buffers[1-m_send_buffer_index].data(), m_strand->wrap(
 				boost::bind( &Stream::OnSend, shared_from_this(), 
 							 boost::asio::placeholders::error, 
 							 boost::asio::placeholders::bytes_transferred )));
@@ -246,7 +248,9 @@ void Stream::SendNext() {
 //-----------------------------------------------------------------------------
 Stream::Stream( System::Service &service ) : 
 			m_service(service), m_socket( m_service() ), 
-			m_strand( m_service() ), m_input_stream( &m_read_buffer ) {
+			m_my_strand( m_service() ), m_input_stream( &m_read_buffer ) {
+
+	m_strand = &m_my_strand;
 	  
 	// this doesn't work:
 	// allow lingering for 30 seconds to finish sending data on shutdown
@@ -261,7 +265,7 @@ Stream::Stream() : Stream( Net::DefaultService() ) {}
 //-----------------------------------------------------------------------------
 void Stream::Close() {
 
-	m_service.Post( m_strand.wrap( 
+	m_service.Post( m_strand->wrap( 
 		boost::bind( &Stream::DoClose, shared_from_this(), 
 				     false, boost::system::error_code(), false )));
 }
@@ -404,7 +408,7 @@ void Stream::ReleaseSendBuffer( bool start ) {
 			|| m_state == StreamState::CLOSING) && !m_sending ) {
 
 			m_sending = true;
-			m_strand.post( boost::bind( &Stream::SendNext, 
+			m_strand->post( boost::bind( &Stream::SendNext, 
 										 shared_from_this() ));
 		}
 
@@ -441,7 +445,7 @@ void Stream::ConnectAsync( const std::string &host,
 	m_state = StreamState::CONNECTING;
 	m_hostname = host + ":" + service;
 	Resolver::CreateThreaded( host, service, 
-		m_strand.wrap( boost::bind( 
+		m_strand->wrap( boost::bind( 
 				&Stream::OnResolve, shared_from_this(), _1, _2 )));
 }
 
@@ -465,7 +469,7 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 	} else {
 		// resolve OK, do connect.
 		boost::asio::async_connect( m_socket, endpoints, 
-			m_strand.wrap( boost::bind( &Stream::OnConnect, 
+			m_strand->wrap( boost::bind( &Stream::OnConnect, 
 					shared_from_this(), 
 					boost::asio::placeholders::error )));
 	}
@@ -542,7 +546,7 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 			// need to perform handshake first
 
 			m_ssl_socket->async_handshake( 
-				boost::asio::ssl::stream_base::client, m_strand.wrap(
+				boost::asio::ssl::stream_base::client, m_strand->wrap(
 					boost::bind( &Stream::OnHandshake, shared_from_this(), 
 								 boost::asio::placeholders::error )));
 
@@ -584,7 +588,7 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 
 		if( m_secure ) {
 			m_ssl_socket->async_handshake( 
-				boost::asio::ssl::stream_base::server, m_strand.wrap(
+				boost::asio::ssl::stream_base::server, m_strand->wrap(
 					boost::bind( &Stream::OnHandshake, shared_from_this(),
 							     boost::asio::placeholders::error )));
 
@@ -609,13 +613,15 @@ void Stream::Listen( BasicListener &listener ) {
 	m_state = StreamState::LISTENING;
 	listener.AsyncAccept(
 		m_socket, 
-		m_strand.wrap( boost::bind(
+		m_strand->wrap( boost::bind(
 			&Stream::OnAccept, shared_from_this(),
 			boost::asio::placeholders::error )));
 }
  
 //-----------------------------------------------------------------------------
 void Stream::Secure( SSLContextPtr &context ) {
+
+	assert( m_state == StreamState::NEW );
 	
 	// add ownership to shared ptr
 	m_ssl_context = context;
@@ -625,7 +631,7 @@ void Stream::Secure( SSLContextPtr &context ) {
 	m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
 	m_secure = true;
 
-//	m_strand.reset( g_instance->GetSSLStrand() );
+	m_strand = &g_instance->GetSSLStrand();
 }
 
 }

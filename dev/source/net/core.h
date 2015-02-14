@@ -51,16 +51,27 @@ namespace Net {
 
 	private:
 		friend class Stream;
+		friend class Work;
 	
 		static void LockingFunction( int mode, int n, const char *file, 
 									 int line );
 
+		std::mutex m_lock;
+
 		// locks for CRYPTO locking callback
 		std::unique_ptr<std::mutex[]> m_crypto_locks;
 
-	//	boost::asio::strand m_ssl_strand;
+		int m_work_counter = 0;
+		std::condition_variable m_work_changed;
+
+		void AddWork();
+		void RemoveWork();
+
+		void WaitUntilWorkIsFinished();
+
+		boost::asio::strand m_ssl_strand;
 	
-	//	std::shared_ptr<boost::asio::strand> GetSSLStrand();
+		boost::asio::strand &GetSSLStrand() { return m_ssl_strand; }
 	};
 
 }

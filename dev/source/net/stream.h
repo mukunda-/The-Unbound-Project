@@ -17,6 +17,7 @@
 #include "system/system.h"
 #include "basiclistener.h"
 #include "message.h"
+#include "work.h"
 #include "types.h"
 
 namespace Net {
@@ -27,7 +28,8 @@ namespace Net {
 ///
 class Stream : 
 		public std::enable_shared_from_this<Stream>, 
-		public Asev::Source {
+		public Asev::Source,
+		public Work {
 
 public:
 
@@ -96,7 +98,7 @@ public:
 	/// Secure mode.
 	///
 	/// Calling this will switch the stream into a secure communication
-	/// mode.
+	/// mode. This must be called before the stream listens or connects.
 	///
 	/// @param context SSL context to use.
 	///
@@ -218,7 +220,10 @@ private:
 	
 	// strand used to synchronize operations
 	//std::shared_ptr<boost::asio::strand> m_strand;
-	boost::asio::strand m_strand;
+	boost::asio::strand m_my_strand;
+
+	// this points to my_strand or the global ssl strand if secure
+	boost::asio::strand *m_strand;
 	
 	// tcp socket
 	boost::asio::ip::tcp::socket m_socket;

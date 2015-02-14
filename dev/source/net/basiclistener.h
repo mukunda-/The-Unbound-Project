@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include "work.h"
+
 namespace Net {
 
 /// ---------------------------------------------------------------------------
 /// A wrapper for an ASIO tcp acceptor.
 ///
-class BasicListener {
+class BasicListener : public Work {
 
 	boost::asio::ip::tcp::acceptor m_acceptor;
 	

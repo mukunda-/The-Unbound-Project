@@ -10,9 +10,7 @@
 //-----------------------------------------------------------------------------
 namespace Net {
 
-namespace {
-	Instance *g_instance;
-}
+Instance *g_instance;
 
 //-----------------------------------------------------------------------------
 Stream::ptr Connect( const std::string &host, const std::string &service, 
@@ -32,7 +30,7 @@ void ConnectAsync( const std::string &host, const std::string &service,
 }
 
 //-----------------------------------------------------------------------------
-Instance::Instance() {
+Instance::Instance() : m_ssl_strand( System::GetService()() ) {
 	
 	g_instance = this;
 
@@ -41,15 +39,14 @@ Instance::Instance() {
 					new std::mutex[CRYPTO_num_locks()] );
 
 	CRYPTO_set_locking_callback( LockingFunction );
-
-//	if( threads > 0 ) {
-//		m_service.Run( threads );
-//	}
+	 
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 	//m_service.Finish( true );
+
+	WaitUntilWorkIsFinished();
 
 	CRYPTO_set_locking_callback( NULL );
 
@@ -66,6 +63,26 @@ void Instance::LockingFunction( int mode, int n, const char *, int ) {
 	} else {
 		g_instance->m_crypto_locks[n].unlock();
 	}
+}
+
+//-----------------------------------------------------------------------------
+void Instance::AddWork() {
+	std::lock_guard<std::mutex> lock(m_lock);
+	m_work_counter++;
+	m_work_changed.notify_all();
+}
+
+//-----------------------------------------------------------------------------
+void Instance::RemoveWork() {
+	std::lock_guard<std::mutex> lock(m_lock);
+	m_work_counter--;
+	m_work_changed.notify_all();
+}
+
+//-----------------------------------------------------------------------------
+void Instance::WaitUntilWorkIsFinished() {
+	std::unique_lock<std::mutex> lock(m_lock);
+	m_work_changed.wait( lock, [&]{ return m_work_counter == 0; } );
 }
 
 //-----------------------------------------------------------------------------
