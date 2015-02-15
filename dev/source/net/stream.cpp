@@ -467,6 +467,7 @@ void Stream::OnResolve( const boost::system::error_code &error_code,
 		m_connection_completed.notify_all();
 
 	} else {
+
 		// resolve OK, do connect.
 		boost::asio::async_connect( m_socket, endpoints, 
 			m_strand->wrap( boost::bind( &Stream::OnConnect, 
@@ -543,8 +544,11 @@ void Stream::OnConnect( const boost::system::error_code &error ) {
 	if( !error ) {
 
 		if( m_secure ) {
+			
+			// wrap with ssl socket.
+			m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
+			
 			// need to perform handshake first
-
 			m_ssl_socket->async_handshake( 
 				boost::asio::ssl::stream_base::client, m_strand->wrap(
 					boost::bind( &Stream::OnHandshake, shared_from_this(), 
@@ -587,6 +591,10 @@ void Stream::OnAccept( const boost::system::error_code &error ) {
 		m_hostname = m_socket.remote_endpoint().address().to_string();
 
 		if( m_secure ) {
+			
+			// wrap with ssl socket.
+			m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
+
 			m_ssl_socket->async_handshake( 
 				boost::asio::ssl::stream_base::server, m_strand->wrap(
 					boost::bind( &Stream::OnHandshake, shared_from_this(),
@@ -628,7 +636,10 @@ void Stream::Secure( SSLContextPtr &context ) {
 
 	// wrap our existing socket with ssl
 	// low-level socket operations still use m_socket
-	m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
+
+//	m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
+	// (it seems we need to create the socket while within the ssl strand)
+
 	m_secure = true;
 
 	m_strand = &g_instance->GetSSLStrand();
