@@ -16,14 +16,9 @@
  
 //-----------------------------------------------------------------------------
 void Main( int argc, char *argv[] ) {
-	System::Instance i_system(1);
-	Net::Instance i_network(1);
-	{
-		System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE );
-		System::RunProgram( User::AuthServer() );
-	}
-	
-
+	System::Main i_system(4);
+	System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE );
+	System::RunProgram<User::AuthServer>();
 }
 
 //-----------------------------------------------------------------------------

@@ -9,6 +9,7 @@
 #include "system/program.h"
 
 #include "system/console.h"
+#include "net/core.h"
 #include "net/lidstream.h"
 #include "net/listener.h"
 #include "net/events.h"
@@ -52,6 +53,8 @@ class AuthServer : public System::Program {
 		
 		NetEventHandler( AuthServer &parent );
 	};
+
+	Net::Instance i_network;
 
 	NetEventHandler m_event_handler;
 	Net::Listener m_listener;

@@ -57,7 +57,11 @@ ArgString::ArgString( const Util::StringRef &input ) : m_source(input) {
 			m_index.push_back( 
 				Index::FromPointers( 
 						*input, term_start, term_end ));
-			source++;
+
+			if( *source == '"' ) source++; // skip end quote
+			// if there wasn't an endquote then the string is malformed
+			// and the null terminator is treated as the endquote.
+
 		} else {
 			// normal string
 			term_start = source;
@@ -68,7 +72,7 @@ ArgString::ArgString( const Util::StringRef &input ) : m_source(input) {
 			m_index.push_back(
 				Index::FromPointers(
 						*input, term_start, term_end ));
-			source++;
+			
 		}
 	}
 }
@@ -121,7 +125,7 @@ void ArgString::GetCString( int index, char *output, int maxlen ) const {
 
 	int clipped_length = m_index[index].length;
 	if( clipped_length > maxlen-1 ) clipped_length = maxlen-1;
-	memcpy( output, (*m_source) + m_index[index].start, clipped_length );
+	memcpy( output, m_source.c_str() + m_index[index].start, clipped_length );
 	output[clipped_length] = 0;
 }
 
@@ -129,7 +133,7 @@ void ArgString::GetCString( int index, char *output, int maxlen ) const {
 int ArgString::GetInt( int index, bool easy, int base ) const { 
 	if( index < 0 || index >= m_index.size() ) return 0;
 
-	return Convert( (*m_source) + m_index[index].start, easy, 
+	return Convert( m_source.c_str() + m_index[index].start, easy, 
 					strtol, base );
 }
 
@@ -137,7 +141,7 @@ int ArgString::GetInt( int index, bool easy, int base ) const {
 long long ArgString::GetLongInt( int index, bool easy, int base ) const {
 	if( index < 0 || index >= m_index.size() ) return 0;
 
-	return Convert( (*m_source) + m_index[index].start, easy, 
+	return Convert( m_source.c_str() + m_index[index].start, easy, 
 					strtoll, base );
 }
 
@@ -147,7 +151,7 @@ double ArgString::GetFloat( int index, bool easy ) const {
 		return 0.0;
 	}
 		 
-	return Convert( (*m_source) + m_index[index].start, easy, 
+	return Convert( m_source.c_str() + m_index[index].start, easy, 
 				strtod );
 }
 

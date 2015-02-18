@@ -9,7 +9,9 @@ namespace System {
 class Program {
 
 public:
-	virtual void OnStart() = 0;
+	virtual void OnStart() {};
+	virtual void OnStop() {};
+	virtual ~Program() {}
 };
 
 }

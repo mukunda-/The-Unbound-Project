@@ -40,26 +40,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		}
 		
 		return;
-		/*
-		// TODO closed/failure state depending on error.
-		std::lock_guard<std::mutex> lock( m_lock );
-		if( !m_shutdown || error == boost::asio::error::eof ) {
-		
-			TryClose( true );
-		} else {
-			TryClose( false );
-		}
-		*/
-
-		// send event
-//		Disconnected( error );
-	//	Events::Stream::Dispatcher( shared_from_this() )
-//			.Disconnected( error );
-		
-		// shutdown stream.
-		//StopReceive();
-		//DoClose();
-		return;
+		 
 	}
 
 	if( m_shutdown ) {
@@ -83,24 +64,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 
 	// TODO catch parse error exception and terminate connection.
 
-	ReceiveNext();
-	/*
-	if( m_state == StreamState::CONNECTED ) {
-		// receive next data chunk
-		ReceiveNext();
-	} else {
-		// shutdown.
-		m_receiving = false;
-
-		std::lock_guard<std::mutex> lock( m_lock );
-		TryClose( false );
-
-		// send event
-//		Disconnected( boost::system::error_code() );
-//		Events::Stream::Dispatcher( shared_from_this() )
-//			.Disconnected( boost::system::error_code() );
-		return;
-	}*/
+	ReceiveNext(); 
 }
 
 /// ---------------------------------------------------------------------------
@@ -180,9 +144,9 @@ void Stream::StopSend() {
 		m_state = StreamState::CLOSED;
 
 		if( m_secure ) {
-			m_ssl_socket->async_shutdown( 
+			m_ssl_socket->async_shutdown( m_strand->wrap(
 				boost::bind( &Stream::OnShutdown, shared_from_this(), 
-							 boost::asio::placeholders::error ));
+							 boost::asio::placeholders::error )));
 		} else {
 			boost::system::error_code ec;
 			m_socket.shutdown( tcp::socket::shutdown_both, ec );  
@@ -281,33 +245,7 @@ Stream::~Stream() {
 	// the socket should not be open when the destructor is called.
 	//m_socket.close();	 
 }
-/*
-///----------------------------------------------------------------------------
-void Stream::TryClose( bool failure ) {
-	// Close the socket if both receive and send threads have ended.
-	// if "failure" is set, then something went wrong and 
-	// we force close the socket.
-
-	using namespace boost::asio::ip; 
-	// assert mutex is owned?
-
-	if( failure ) {
-		m_socket.close();
-		m_state = StreamState::FAILURE; 
-	} 
-
-	if( !m_receiving && !m_sending ) {
-		m_state = StreamState::CLOSED;
-
-		boost::system::error_code ec;
-		m_socket.shutdown( tcp::socket::shutdown_both, ec ); 
-
-		Disconnected( boost::system::error_code() );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Disconnected( boost::system::error_code() );
-	}
-}*/
-
+ 
 /// ---------------------------------------------------------------------------
 /// Cleanly close the socket.
 ///
@@ -352,9 +290,9 @@ void Stream::DoClose( bool failure, const boost::system::error_code &error,
 			
 			m_state = StreamState::CLOSED;
 			if( m_secure ) {
-				m_ssl_socket->async_shutdown( 
+				m_ssl_socket->async_shutdown( m_strand->wrap(
 					boost::bind( &Stream::OnShutdown, shared_from_this(), 
-								 boost::asio::placeholders::error ));
+								 boost::asio::placeholders::error )));
 			} else {
 				boost::system::error_code ec;
 				m_socket.shutdown( tcp::socket::shutdown_both, ec );  
@@ -633,15 +571,15 @@ void Stream::Secure( SSLContextPtr &context ) {
 	
 	// add ownership to shared ptr
 	m_ssl_context = context;
-
-	// wrap our existing socket with ssl
-	// low-level socket operations still use m_socket
-
-//	m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
-	// (it seems we need to create the socket while within the ssl strand)
-
+	 
+	// set secure mode
 	m_secure = true;
 
+	// the ssl socket is created after the connection is accepted
+	// or connected.
+
+	// use the global ssl operations strand.
+	// TODO: is it okay to use one strand per context?
 	m_strand = &g_instance->GetSSLStrand();
 }
 

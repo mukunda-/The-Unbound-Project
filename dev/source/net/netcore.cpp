@@ -7,6 +7,10 @@
 #include "system/console.h"
 #include "system/system.h"
 
+// we don't need to be thread safe, since we are doing ALL ssl operations
+// with a single strand
+//#define SETUP_CRYPTO_LOCKS
+
 //-----------------------------------------------------------------------------
 namespace Net {
 
@@ -34,11 +38,13 @@ Instance::Instance() : m_ssl_strand( System::GetService()() ) {
 	
 	g_instance = this;
 
+#ifdef SETUP_CRYPTO_LOCKS
 	// setup crypto threading
-	m_crypto_locks = std::unique_ptr<std::mutex[]>( 
-					new std::mutex[CRYPTO_num_locks()] );
+	//m_crypto_locks = std::unique_ptr<std::mutex[]>( 
+	//				new std::mutex[CRYPTO_num_locks()] );
 
-	CRYPTO_set_locking_callback( LockingFunction );
+	//CRYPTO_set_locking_callback( LockingFunction );
+#endif
 	 
 }
 
@@ -48,7 +54,9 @@ Instance::~Instance() {
 
 	WaitUntilWorkIsFinished();
 
-	CRYPTO_set_locking_callback( NULL );
+#ifdef SETUP_CRYPTO_LOCKS
+	//CRYPTO_set_locking_callback( NULL );
+#endif
 
 	g_instance = nullptr;  
 }
@@ -87,8 +95,8 @@ void Instance::WaitUntilWorkIsFinished() {
 
 //-----------------------------------------------------------------------------
 System::Service &Instance::GetService() {
-	return System::GetService();
-	//return m_service;
+	// we just use the main system service now.
+	return System::GetService(); 
 }
 
 //-----------------------------------------------------------------------------

@@ -178,9 +178,15 @@ void Join();
 ///
 /// This also joins the current thread into the system thread pool.
 ///
-/// @param program Program class.
+/// @param program Program instance. Both prototypes take ownership 
+///                of the pointer.
 ///
-void RunProgram( Program &program );
+void RunProgram( std::unique_ptr<Program> &&program );
+void RunProgram( Program *program );
+
+template <class T, typename ... A> void RunProgram( A...args ) {
+	RunProgram( new T( args... ));
+}
 
 /// ---------------------------------------------------------------------------
 /// Start clean program exit sequence.
@@ -220,7 +226,7 @@ public:
 					 bool main = true, int delay = 0 );
 	void Shutdown();
 
-	void RunProgram( Program &program );
+	void RunProgram( std::unique_ptr<Program> &&program );
 	Service &GetService();
 
 private: 
@@ -234,7 +240,7 @@ private:
 	Mem::Arena::Manager i_arenas;
 	Service  m_service;
 	boost::asio::strand m_strand;
-	Program *m_program;
+	std::unique_ptr<Program> m_program;
 
 	std::unordered_map< std::string, VariablePtr > m_variables;
 	
@@ -262,6 +268,8 @@ private:
 	Commands::InstancePtr FindCommandInstance( const Util::StringRef &name );
 
 	int AllocCommandID() { return ++m_next_command_id; }
+
+	void Start();
 
 	friend class Commands::Instance;
 	friend class Command;

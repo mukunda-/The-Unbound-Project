@@ -175,6 +175,7 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 	defines {"UB_SERVER"}
 	
 	files {
+		"source/console/*.cpp",
 		"source/asev/*.cpp",
 		"source/pch/*.cpp",
 		"source/io/*.cpp",

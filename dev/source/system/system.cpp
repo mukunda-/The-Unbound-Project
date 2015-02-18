@@ -108,8 +108,13 @@ void Finish() {
 }
 
 //-----------------------------------------------------------------------------
-void RunProgram( Program &program ) {
-	g_main->RunProgram( program );
+void RunProgram( std::unique_ptr<Program> &&program ) {
+	g_main->RunProgram( std::move(program) );
+}
+
+//-----------------------------------------------------------------------------
+void RunProgram( Program *program ) {
+	g_main->RunProgram( std::unique_ptr<Program>( program ));
 }
 
 //-----------------------------------------------------------------------------
@@ -160,8 +165,8 @@ Main::Main( int threads ) : m_strand( m_service() ) {
 
 //-----------------------------------------------------------------------------
 Main::~Main() {
-	m_live = false;
-	m_service.Finish( true );
+	Shutdown();
+
 
 	// we clear this here because the command instance destructors
 	// need access to Main.
@@ -182,10 +187,18 @@ void Main::PostSystem( std::function<void()> handler,
 }
 
 //-----------------------------------------------------------------------------
-void Main::RunProgram( Program &program ) {
-	m_program = &program;
-	PostSystem( std::bind( &Program::OnStart, &program ) );
+void Main::RunProgram( std::unique_ptr<Program> &&program ) {
+	m_program = std::move(program);
+	
+	// this is a bit nasty ..?
+	PostSystem( std::bind( &Main::Start, this ));
+	
 	System::Join();
+}
+
+//-----------------------------------------------------------------------------
+void Main::Start() {
+	m_program->OnStart();
 }
 
 //-----------------------------------------------------------------------------
@@ -195,6 +208,14 @@ Service &Main::GetService() {
 
 //-----------------------------------------------------------------------------
 void Main::Shutdown() {
+	if( !m_live ) return; // already shut down.
+
+	if( m_program ) {
+		m_program->OnStop();
+	}
+
+	m_program.reset();
+
 	m_live = false;
 	m_service.Finish( false );
 }

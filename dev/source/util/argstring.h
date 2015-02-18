@@ -17,7 +17,7 @@ namespace Util {
 class ArgString {
 
 	// the command string given
-	const Util::StringRef &m_source;
+	std::string m_source;
 
 	struct Index {
 		int start;
@@ -101,7 +101,7 @@ public:
 		const Index &first = m_index[start];
 		const Index &last = m_index[m_index.size()-1];
 
-		return m_source.Str()
+		return m_source
 			.substr( first.start, last.start+last.length-first.start );
 	}
 
@@ -113,7 +113,7 @@ public:
 	///
 	std::string GetString( int index ) const {
 		if( index < 0 || index >= m_index.size() ) return "";
-		return m_source.Str()
+		return m_source
 			.substr( m_index[index].start, m_index[index].length );
 	}
 	
@@ -144,7 +144,7 @@ public:
 			return;
 		}
 
-		start = (*m_source) + m_index[index].start;
+		start = m_source.c_str() + m_index[index].start;
 		length = m_index[index].length;
 	}
 

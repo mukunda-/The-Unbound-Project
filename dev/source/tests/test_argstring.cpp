@@ -112,4 +112,14 @@ TEST( UtilTests, ArgStringTest3 ) {
 	EXPECT_EQ( 1, as.GetInt(4) );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+TEST( UtilTests, ArgStringTest4 ) {
+	// single term
+
+	using AS = Util::ArgString;
+	AS as( std::string("quit") );
+	
+	EXPECT_EQ( "quit", as.GetString(0) );
+}
+
 }

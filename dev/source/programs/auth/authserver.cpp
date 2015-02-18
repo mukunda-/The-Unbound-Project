@@ -35,8 +35,8 @@ namespace User {
 							Net::Stream::ptr &stream, 
 							const boost::system::error_code &error ) {
 			
-		System::Log( "A connection failed to accept." );
-		m_parent.m_listener.Start();
+		System::Log( "A connection failed to accept. %d: %s", 
+					 error.value(), error.message() ); 
 	}
 
 	//-------------------------------------------------------------------------
@@ -59,8 +59,8 @@ namespace User {
 				// user wants to log in.
 				Net::Proto::Auth::Login buffer;
 				msg.Parse( buffer );
-				System::Console::Print( buffer.username().c_str() );
-				System::Console::Print( buffer.password().c_str() );
+				Console::Print( buffer.username().c_str() );
+				Console::Print( buffer.password().c_str() );
 			} else {
 				// bad client.
 				stream.SetState( AuthStream::STATE_DONE );
@@ -70,21 +70,20 @@ namespace User {
 
 	//-------------------------------------------------------------------------
 	AuthServer::AuthServer() : m_event_handler(*this), 
-				   m_listener( 32791, StreamFactory, &m_event_handler )
+				   m_listener( 32791, StreamFactory )
 	{
+		
+		Console::Print( "Listening." );
 	}
 
 	//-------------------------------------------------------------------------
 	AuthServer::~AuthServer() {
-		m_event_handler.Disable();
-		m_listener.Stop();
+	
 	}
 
 	//-------------------------------------------------------------------------
 	void AuthServer::OnStart() {
 
-		System::Console::Print( "Listening." );
-		m_listener.Start();
 	}
 
 	//-------------------------------------------------------------------------
