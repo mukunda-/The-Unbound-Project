@@ -5,6 +5,6 @@
 package Net.Proto.Auth; 
 
 message Response {
-	required string status = 1;
+	required string status      = 1;
 	required string description = 2;
 }

@@ -7,4 +7,5 @@ package Net.Proto.Auth;
 message Login {
 	required string username = 1;
 	required string password = 2;
+	optional string locale   = 3;
 }
