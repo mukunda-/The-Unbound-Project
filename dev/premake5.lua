@@ -190,7 +190,11 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 		
 		"protocol/compiled/**.cc",
 		 
-		"source/**.h"
+		"source/**.h",
+		
+		"libsource/hash/*.c",
+		"libsource/hash/*.cpp",
+		"libsource/hash/*.h",
 	}
 
 project_path = CreateProject( "test", "TEST", "ConsoleApp", true )

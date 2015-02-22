@@ -56,7 +56,7 @@ void Stream::OnReceive( const boost::system::error_code& error,
 		while( m_read_avail ) {
 
 			// loop until processor returns 0 or there is no more data.
-			int amount = ProcessInput(  m_read_avail );
+			int amount = ProcessInput( m_read_avail );
 			if( amount == 0 ) break;
 			m_read_avail -= amount;
 		}
@@ -229,6 +229,8 @@ Stream::Stream() : Stream( Net::DefaultService() ) {}
 //-----------------------------------------------------------------------------
 void Stream::Close() {
 
+	m_close_called = true;
+
 	m_service.Post( m_strand->wrap( 
 		boost::bind( &Stream::DoClose, shared_from_this(), 
 				     false, boost::system::error_code(), false )));
@@ -260,6 +262,8 @@ void Stream::DoClose( bool failure, const boost::system::error_code &error,
 	
 	std::unique_lock<std::mutex> lock( m_lock, std::defer_lock );
 	if( !locked ) lock.lock();
+
+	m_close_called = true;
 
 	if( m_shutdown ) return;
 	m_shutdown = true;

@@ -7,7 +7,74 @@
 #include "protocol.h"
 #include "proto/auth/login.pb.h"
 
+#include "db/core.h"
+#include "db/transaction.h"
+#include "db/statement.h"
+#include "md5/md5.h"
+
+//-----------------------------------------------------------------------------
 namespace User {
+
+	AuthServer *g_instance;
+	
+	/*
+	  Login process:
+
+	  Client sends username and a hashed password (weak/sha-256)
+
+	  Only the client knows their actual password, the hash of it is treated
+	  as their password on the server side
+
+	  The server looks up the clients credentials and responds with an
+	  error if they dont exist
+	  
+	  The server verifies the password received with the hashed
+	  password in the database. (strong/bcrypt)
+	  
+	  The server responds with an error if the credentials are invalid, or
+	  generates an authentication token and sends it to the client.
+
+	*/
+
+	namespace {
+
+		/** -------------------------------------------------------------------
+		 * Hash a username for indexing into the Account database table.
+		 *
+		 * @param input Username to hash
+		 * @returns 32-bit unsigned hash
+		 */
+		uint32_t HashUsername( const Util::StringRef &input ) {
+			std::string hashed = md5( input );
+			
+			return std::stoul( md5(input).substr(8), nullptr, 16 );
+		}
+	}
+
+	//-------------------------------------------------------------------------
+	class CredentialsQuery : public DB::Transaction {
+
+	public:
+
+	private:
+		PostAction Actions( DB::Line &line ) override {
+
+			int userhash = HashUsername( username );
+
+			auto statement = line.CreateStatement();
+			auto result = statement->ExecuteQuery( 
+				"SELECT accountid, password FROM Accounts "
+				"WHERE userhash=%d AND username=%s", 
+				userhash, username );
+
+			if( !result->next() ) return NOP;
+			std::string password = result->getString( 2 );
+
+			bcrypt_check( password, fewaoweouseri
+		} 
+
+		std::string username;
+	};
 
 	//-------------------------------------------------------------------------
 	struct AuthMessage {
@@ -24,34 +91,19 @@ namespace User {
 	AuthStream::AuthStream() {
 		m_state = STATE_LOGIN;
 	}
-
-	//-------------------------------------------------------------------------
-	AuthServer::NetEventHandler::NetEventHandler( AuthServer &parent ) 
-		: m_parent(parent) 
-	{}
+	 
 	
 	//-------------------------------------------------------------------------
-	void AuthServer::NetEventHandler::AcceptError( 
-							Net::Stream::ptr &stream, 
-							const boost::system::error_code &error ) {
+	void AuthStream::AcceptError( const boost::system::error_code &error ) {
 			
 		System::Log( "A connection failed to accept. %d: %s", 
 					 error.value(), error.message() ); 
 	}
-
+	  
 	//-------------------------------------------------------------------------
-	void AuthServer::NetEventHandler::Accepted( 
-			Net::Stream::ptr &stream ) {
-	}
-
-	//-------------------------------------------------------------------------
-	void AuthServer::NetEventHandler::Receive( 
-				Net::Stream::ptr &str, 
-				Net::Message &netmsg ) {
-		
-		auto &stream = str->Cast<AuthStream>();
-		if( stream.Invalidated() ) return;
-		if( stream.GetState() == AuthStream::STATE_LOGIN ) {
+	void AuthStream::Receive( Net::Message &netmsg ) {
+		 
+		if( m_state == STATE_LOGIN ) {
 
 			auto &msg = netmsg.Cast<Net::LidStream::Message>();
 			
@@ -63,27 +115,32 @@ namespace User {
 				Console::Print( buffer.password().c_str() );
 			} else {
 				// bad client.
-				stream.SetState( AuthStream::STATE_DONE );
+				m_state = STATE_DONE;
+				Close();
 			}
 		}
 	}
 
 	//-------------------------------------------------------------------------
-	AuthServer::AuthServer() : m_event_handler(*this), 
-				   m_listener( 32791, StreamFactory )
-	{
-		
+	AuthServer::AuthServer() {
+
+		g_instance = this;
 		Console::Print( "Listening." );
 	}
 
 	//-------------------------------------------------------------------------
 	AuthServer::~AuthServer() {
-	
+		g_instance = nullptr;
 	}
 
 	//-------------------------------------------------------------------------
 	void AuthServer::OnStart() {
+		m_listener.reset( new Net::Listener( 32791, StreamFactory ));
+	}
 
+	//-------------------------------------------------------------------------
+	void AuthServer::OnStop() {
+		m_listener = nullptr;
 	}
 
 	//-------------------------------------------------------------------------

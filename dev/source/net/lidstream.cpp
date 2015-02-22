@@ -90,9 +90,11 @@ int LidStream::ProcessInput(  int bytes_available ) {
 
 		Message msg( header, data_length, GetInputStream() );
 
-		Receive( msg );
-		Events::Stream::Dispatcher( shared_from_this() )
-			.Receive( msg );
+		if( !m_close_called ) {
+			Receive( msg );
+			Events::Stream::Dispatcher( shared_from_this() )
+				.Receive( msg );
+		}
 		 
 		return total_length;
 	}

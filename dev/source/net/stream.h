@@ -203,7 +203,11 @@ protected:
 	virtual void SendFailed( const boost::system::error_code & ) {}
 	virtual void Disconnected( const boost::system::error_code & ) {}
 	virtual void Receive( Net::Message &nmsg ) {}
-
+	
+	// true if Close is called by the user, this prevents
+	// certain events from being triggered.
+	std::atomic<bool> m_close_called = false;
+	 
 private:
 
 	using ssl_socket_t = 
@@ -263,7 +267,7 @@ private:
 	// it means an active service task
 
 	bool m_close_after_send = false;
-	 
+
 	// for safe outside access.
 	std::mutex m_lock;
 
