@@ -10,7 +10,7 @@
 #include "db/core.h"
 #include "db/transaction.h"
 #include "db/statement.h"
-#include "md5/md5.h"
+#include "hash/md5.h"
 
 //-----------------------------------------------------------------------------
 namespace User {
@@ -55,6 +55,9 @@ namespace User {
 	class CredentialsQuery : public DB::Transaction {
 
 	public:
+		CredentialsQuery( std::shared_ptr<AuthStream> &stream, const Util::StringRef &username, const Util::StringRef &password ) {
+				
+		}
 
 	private:
 		PostAction Actions( DB::Line &line ) override {
@@ -70,10 +73,14 @@ namespace User {
 			if( !result->next() ) return NOP;
 			std::string password = result->getString( 2 );
 
-			bcrypt_check( password, fewaoweouseri
+
+			//bcrypt_check( password, fewaoweouseri
+
 		} 
 
-		std::string username;
+		std::shared_ptr<AuthStream> m_stream;
+		std::string m_username;
+		std::string m_password;
 	};
 
 	//-------------------------------------------------------------------------
@@ -113,6 +120,8 @@ namespace User {
 				msg.Parse( buffer );
 				Console::Print( buffer.username().c_str() );
 				Console::Print( buffer.password().c_str() );
+
+				LoginQuery( 
 			} else {
 				// bad client.
 				m_state = STATE_DONE;

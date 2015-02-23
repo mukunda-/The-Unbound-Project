@@ -32,10 +32,10 @@
  */
 
 #include <sys/types.h>
-#include <blf.h>
+#include "blf.h"
 #include <ctype.h>
 #include <errno.h>
-#include <pwd.h>
+#include "pwd.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
