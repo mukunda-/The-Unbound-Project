@@ -15,145 +15,172 @@
 //-----------------------------------------------------------------------------
 namespace User {
 
-	AuthServer *g_instance;
+AuthServer *g_instance;
 	
-	/*
-	  Login process:
+/*
+	Login process:
 
-	  Client sends username and a hashed password (weak/sha-256)
+	Client sends username and a hashed password (weak/sha-256)
 
-	  Only the client knows their actual password, the hash of it is treated
-	  as their password on the server side
+	Only the client knows their actual password, the hash of it is treated
+	as their password on the server side
 
-	  The server looks up the clients credentials and responds with an
-	  error if they dont exist
+	The server looks up the clients credentials and responds with an
+	error if they dont exist
 	  
-	  The server verifies the password received with the hashed
-	  password in the database. (strong/bcrypt)
+	The server verifies the password received with the hashed
+	password in the database. (strong/bcrypt)
 	  
-	  The server responds with an error if the credentials are invalid, or
-	  generates an authentication token and sends it to the client.
+	The server responds with an error if the credentials are invalid, or
+	generates an authentication token and sends it to the client.
 
-	*/
+*/
 
-	namespace {
+namespace {
 
-		/** -------------------------------------------------------------------
-		 * Hash a username for indexing into the Account database table.
-		 *
-		 * @param input Username to hash
-		 * @returns 32-bit unsigned hash
-		 */
-		uint32_t HashUsername( const Util::StringRef &input ) {
-			std::string hashed = md5( input );
+	/** -----------------------------------------------------------------------
+		* Hash a username for indexing into the Account database table.
+		*
+		* @param input Username to hash
+		* @returns 32-bit unsigned hash
+		*/
+	uint32_t HashUsername( const Util::StringRef &input ) {
+		// hash is 16 chars of md5
+
+		std::string hashed = md5( input );
 			
-			return std::stoul( md5(input).substr(8), nullptr, 16 );
-		}
+		return std::stoul( md5(input).substr(8), nullptr, 16 );
+	}
+}
+
+//-----------------------------------------------------------------------------
+class LoginQuery : public DB::Transaction {
+
+public:
+	/** -----------------------------------------------------------------------
+	 * Create a login transaction.
+	 *
+	 * @param stream Stream that is making the request. This stream will
+	 *               be sent a response.
+	 * @param username Username given by client.
+	 * @param password Password given by client.
+	 */
+	LoginQuery( std::shared_ptr<AuthStream> &stream, 
+		        const Util::StringRef &username, 
+				const Util::StringRef &password ) :
+
+		m_username(username), 
+		m_password(password), 
+		m_stream(stream) 
+	{
+
 	}
 
-	//-------------------------------------------------------------------------
-	class CredentialsQuery : public DB::Transaction {
+private:
 
-	public:
-		CredentialsQuery( std::shared_ptr<AuthStream> &stream, const Util::StringRef &username, const Util::StringRef &password ) {
-				
+	PostAction Actions( DB::Line &line ) override {
+
+		int userhash = HashUsername( m_username );
+
+		auto statement = line.CreateStatement();
+		auto result = statement->ExecuteQuery( 
+			"SELECT accountid, password FROM Accounts "
+			"WHERE userhash=%d AND username=%s", 
+			userhash, m_username );
+
+		if( !result->next() ) {
+			// unknown user!
+			return NOP;
 		}
-
-	private:
-		PostAction Actions( DB::Line &line ) override {
-
-			int userhash = HashUsername( username );
-
-			auto statement = line.CreateStatement();
-			auto result = statement->ExecuteQuery( 
-				"SELECT accountid, password FROM Accounts "
-				"WHERE userhash=%d AND username=%s", 
-				userhash, username );
-
-			if( !result->next() ) return NOP;
-			std::string password = result->getString( 2 );
+		std::string password = result->getString( 2 );
 
 
-			//bcrypt_check( password, fewaoweouseri
+		//bcrypt_check( password, fewaoweouseri
 
-		} 
+	} 
 
-		std::shared_ptr<AuthStream> m_stream;
-		std::string m_username;
-		std::string m_password;
-	};
+	std::shared_ptr<AuthStream> m_stream;
+	std::string m_username;
+	std::string m_password;
+};
 
-	//-------------------------------------------------------------------------
-	struct AuthMessage {
+//-----------------------------------------------------------------------------
+struct AuthMessage {
 		   
-		static uint16_t ID( Net::LidStream::Message &msg ) {
-			return msg.Header() & 0x3FFF;
-		}
-		static uint16_t Extra( Net::LidStream::Message &msg ) {
-			return msg.Header() >> 14;
-		}
-	};
-
-	//-------------------------------------------------------------------------
-	AuthStream::AuthStream() {
-		m_state = STATE_LOGIN;
+	static uint16_t ID( Net::LidStream::Message &msg ) {
+		return msg.Header() & 0x3FFF;
 	}
+	static uint16_t Extra( Net::LidStream::Message &msg ) {
+		return msg.Header() >> 14;
+	}
+};
+
+//-----------------------------------------------------------------------------
+AuthStream::AuthStream() {
+	m_state = STATE_LOGIN;
+}
 	 
 	
-	//-------------------------------------------------------------------------
-	void AuthStream::AcceptError( const boost::system::error_code &error ) {
+//-----------------------------------------------------------------------------
+void AuthStream::AcceptError( const boost::system::error_code &error ) {
 			
-		System::Log( "A connection failed to accept. %d: %s", 
-					 error.value(), error.message() ); 
-	}
+	System::Log( "A connection failed to accept. %d: %s", 
+					error.value(), error.message() ); 
+}
 	  
-	//-------------------------------------------------------------------------
-	void AuthStream::Receive( Net::Message &netmsg ) {
+//-----------------------------------------------------------------------------
+void AuthStream::Receive( Net::Message &netmsg ) {
 		 
-		if( m_state == STATE_LOGIN ) {
+	if( m_state == STATE_LOGIN ) {
 
-			auto &msg = netmsg.Cast<Net::LidStream::Message>();
+		auto &msg = netmsg.Cast<Net::LidStream::Message>();
 			
-			if( AuthMessage::ID(msg) == Net::Proto::ID::Auth::LOGIN ) {
-				// user wants to log in.
-				Net::Proto::Auth::Login buffer;
-				msg.Parse( buffer );
-				Console::Print( buffer.username().c_str() );
-				Console::Print( buffer.password().c_str() );
+		if( AuthMessage::ID(msg) == Net::Proto::ID::Auth::LOGIN ) {
+			// user wants to log in.
+			Net::Proto::Auth::Login buffer;
+			msg.Parse( buffer );
+			Console::Print( buffer.username().c_str() );
+			Console::Print( buffer.password().c_str() );
 
-				LoginQuery( 
-			} else {
-				// bad client.
-				m_state = STATE_DONE;
-				Close();
-			}
+			DB::TransactionPtr transaction( 
+				new LoginQuery( shared_from_this(), 
+								buffer.username(), 
+								buffer.password() ));
+			
+		} else {
+			// bad client.
+			m_state = STATE_DONE;
+			Close();
 		}
 	}
+}
 
-	//-------------------------------------------------------------------------
-	AuthServer::AuthServer() {
+//-----------------------------------------------------------------------------
+AuthServer::AuthServer() {
 
-		g_instance = this;
-		Console::Print( "Listening." );
-	}
+	g_instance = this;
+	Console::Print( "Listening." );
+}
 
-	//-------------------------------------------------------------------------
-	AuthServer::~AuthServer() {
-		g_instance = nullptr;
-	}
+//-----------------------------------------------------------------------------
+AuthServer::~AuthServer() {
+	g_instance = nullptr;
+}
 
-	//-------------------------------------------------------------------------
-	void AuthServer::OnStart() {
-		m_listener.reset( new Net::Listener( 32791, StreamFactory ));
-	}
+//-----------------------------------------------------------------------------
+void AuthServer::OnStart() {
+	m_listener.reset( new Net::Listener( 32791, StreamFactory ));
+}
 
-	//-------------------------------------------------------------------------
-	void AuthServer::OnStop() {
-		m_listener = nullptr;
-	}
+//-----------------------------------------------------------------------------
+void AuthServer::OnStop() {
+	m_listener = nullptr;
+}
 
-	//-------------------------------------------------------------------------
-	Net::Stream::ptr AuthServer::StreamFactory() {
-		return std::make_shared<AuthStream>();
-	}
+//-----------------------------------------------------------------------------
+Net::Stream::ptr AuthServer::StreamFactory() {
+	return std::make_shared<AuthStream>();
+}
+
+//-----------------------------------------------------------------------------
 }

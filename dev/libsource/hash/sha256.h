@@ -1,6 +1,8 @@
 #ifndef SHA256_H
 #define SHA256_H
 #include <string>
+
+namespace Hash {
  
 class SHA256
 {
@@ -50,4 +52,7 @@ std::string sha256(std::string input);
            | ((uint32) *((str) + 1) << 16)    \
            | ((uint32) *((str) + 0) << 24);   \
 }
+
+}
+
 #endif
