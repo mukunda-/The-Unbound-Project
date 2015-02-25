@@ -1,12 +1,12 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
-
-#pragma comment(lib, "pdcurses.lib")
-#pragma comment(lib, "libprotobuf.lib")
+#pragma comment( lib, "mysqlcppconn.lib" )
+#pragma comment( lib, "pdcurses.lib")
+#pragma comment( lib, "libprotobuf.lib")
 #pragma comment( lib, "ssleay32.lib" )
 #pragma comment( lib, "libeay32.lib" )
 

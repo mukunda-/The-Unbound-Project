@@ -22,6 +22,7 @@ class AuthStream : public Net::LidStream {
 public:
 	enum State{
 		STATE_LOGIN,
+		STATE_VERIFYING,
 		STATE_DONE,
 	};
 

@@ -65,19 +65,19 @@ public:
 	 * @param username Username given by client.
 	 * @param password Password given by client.
 	 */
-	LoginQuery( std::shared_ptr<AuthStream> &stream, 
+	LoginQuery( std::shared_ptr<AuthStream> stream, 
 		        const Util::StringRef &username, 
 				const Util::StringRef &password ) :
 
-		m_username(username), 
-		m_password(password), 
-		m_stream(stream) 
+		m_username( username ), 
+		m_password( password ), 
+		m_stream( stream ) 
 	{
 
 	}
 
 private:
-
+	//-------------------------------------------------------------------------
 	PostAction Actions( DB::Line &line ) override {
 
 		int userhash = HashUsername( m_username );
@@ -92,12 +92,19 @@ private:
 			// unknown user!
 			return NOP;
 		}
+
 		std::string password = result->getString( 2 );
 
 
 		//bcrypt_check( password, fewaoweouseri
 
 	} 
+
+	//-------------------------------------------------------------------------
+	void Completed( DB::TransactionPtr ptr, bool failed ) override {
+		// todo
+
+	}
 
 	std::shared_ptr<AuthStream> m_stream;
 	std::string m_username;
@@ -136,17 +143,23 @@ void AuthStream::Receive( Net::Message &netmsg ) {
 		auto &msg = netmsg.Cast<Net::LidStream::Message>();
 			
 		if( AuthMessage::ID(msg) == Net::Proto::ID::Auth::LOGIN ) {
+
+			m_state = STATE_VERIFYING;
+
 			// user wants to log in.
 			Net::Proto::Auth::Login buffer;
 			msg.Parse( buffer );
-			Console::Print( buffer.username().c_str() );
-			Console::Print( buffer.password().c_str() );
+			Console::Print( "Login: %s : %s", buffer.username(), buffer.password() );
+
+			// todo, validate input
 
 			DB::TransactionPtr transaction( 
-				new LoginQuery( shared_from_this(), 
-								buffer.username(), 
-								buffer.password() ));
-			
+				new LoginQuery( 
+					std::static_pointer_cast<AuthStream>(shared_from_this()), 
+					buffer.username(), 
+					buffer.password() 
+				));
+
 		} else {
 			// bad client.
 			m_state = STATE_DONE;
