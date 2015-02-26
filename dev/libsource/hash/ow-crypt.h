@@ -17,6 +17,10 @@
 #ifndef _OW_CRYPT_H
 #define _OW_CRYPT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef __GNUC__
 #undef __const
 #define __const const
@@ -38,6 +42,10 @@ extern char *crypt_gensalt_rn(__const char *prefix, unsigned long count,
 	__const char *input, int size, char *output, int output_size);
 extern char *crypt_gensalt_ra(__const char *prefix, unsigned long count,
 	__const char *input, int size);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

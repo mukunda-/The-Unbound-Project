@@ -178,6 +178,7 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 		"source/console/*.cpp",
 		"source/asev/*.cpp",
 		"source/pch/*.cpp",
+		"source/db/*.cpp",
 		"source/io/*.cpp",
 		"source/net/*.cpp",
 		"source/system/*.cpp",
@@ -194,7 +195,7 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 		
 		"libsource/hash/*.c",
 		"libsource/hash/*.cpp",
-		"libsource/hash/*.h",
+		"libsource/hash/*.h"
 	}
 
 project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
@@ -260,7 +261,11 @@ project_path = CreateProject( "unit", "UNIT", "ConsoleApp", true )
 		"source/main_unit.cpp",
 		
 		"protocol/compiled/**.cc",
-		"source/**.h"
+		"source/**.h",
+		
+		"libsource/hash/*.c",
+		"libsource/hash/*.cpp",
+		"libsource/hash/*.h"
 	}
 	
 	

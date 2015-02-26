@@ -17,26 +17,41 @@ void PasswordHasher::SetStrength( int strength ) {
 }
 
 //-----------------------------------------------------------------------------
-std::string PasswordHasher::Hash( const Util::StringRef &input ) const {
+std::string PasswordHasher::Hash( const Util::StringRef &password ) const {
+	 
+	char saltseed[16];
 
-	const int seedlength = 16;
-	char saltseed[seedlength];
+	char salt[256];
+	char hash[256];
 
-	for( int i = 0; i <= sizeof saltseed; i++ ) {
+	for( int i = 0; i < countof(saltseed); i++ ) {
 
 		// TODO: need to use a CSPRNG and not rand()!!
 
 		saltseed[i] = (char)rand();
 	}
 
-	crypt_gensalt_rn( "$2y$", m_strength, input.CStr(), 
+	char *res;
+	res = crypt_gensalt_rn( "$2y$", m_strength, saltseed, 
+		              countof(saltseed), salt, countof(salt) );
+	assert( res == salt );
+
+	res = crypt_rn( *password, salt, hash, countof(hash) );
+	assert( res == hash );
+
+	return hash;
 }
 
 //-----------------------------------------------------------------------------
-bool PasswordHasher::Verify( const Util::StringRef &input, 
-							 const Util::StringRef &hash ) { 
+bool PasswordHasher::Verify( const Util::StringRef &password, 
+							 const Util::StringRef &hash ) const { 
+	
+	char hash2[256];
 
+	char *res = crypt_rn( *password, *hash, hash2, countof(hash2) );
+	assert( res == hash2 );
 
+	return strcmp( hash2, *hash ) == 0;
 }
 
 //-----------------------------------------------------------------------------

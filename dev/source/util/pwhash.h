@@ -12,7 +12,7 @@ namespace Util {
 	//-------------------------------------------------------------------------
 	class PasswordHasher {
 
-		int m_strength = 10;
+		int m_strength = 4;
 
 	public:
 
