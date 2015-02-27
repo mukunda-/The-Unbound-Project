@@ -204,8 +204,11 @@ protected:
 	virtual void Disconnected( const boost::system::error_code & ) {}
 	virtual void Receive( Net::Message &nmsg ) {}
 	
-	// true if Close is called by the user, this prevents
+	// true if Close is called by the user. this prevents
 	// certain events from being triggered.
+	// this is kind of messy, and only guarantees that no more messages
+	// will be received if Close is done from inside a receive callback.
+	//
 	std::atomic<bool> m_close_called = false;
 	 
 private:

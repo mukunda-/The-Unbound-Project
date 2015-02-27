@@ -20,6 +20,8 @@
 
 namespace Tests {
 
+#define MULTITHREADED
+
 ///////////////////////////////////////////////////////////////////////////////
 
 class NetTests : public ::testing::Test {
@@ -34,7 +36,11 @@ protected:
 	void SetUp() {
 		m_lock = new std::mutex;
 
-		i_system = new System::Main(4);
+#       ifdef MULTITHREADED
+			i_system = new System::Main(4);
+#       else
+			i_system = new System::Main(1);
+#       endif
 		i_net = new Net::Instance ;
 	}
 	
@@ -215,13 +221,15 @@ class MyStream : public Net::LidStream {
 			m_progress = 6;
 			return; // listener stopped.
 		}
-		std::cout << "accept error " << err << " " << err.message() << std::endl;
+		std::cout << "accept error " << err << " " 
+			      << err.message() << std::endl;
 		FAIL();
 	}
 
 	///////////////////////////////////////////////////////////////////////
 	void ConnectError( const boost::system::error_code &err ) override {
-		std::cout << "connection error " << err << " " << err.message() << std::endl;
+		std::cout << "connection error " << err << " " 
+			      << err.message() << std::endl;
 		FAIL();
 	}
 
@@ -297,6 +305,13 @@ class MyStream : public Net::LidStream {
 			Net::Proto::Test::Test2 pb;
 			msg.Parse( pb );
 			VerifyMsg2( pb, msg.Header() );
+
+			if( m_progress == 5 ) {
+				// clean shutdown, no more messages may
+				// be received after this call.
+				Close();
+			}
+
 			break;
 		} case 3: {
 			Net::Proto::Test::Test3 pb;
@@ -307,7 +322,7 @@ class MyStream : public Net::LidStream {
 			Net::Proto::Test::Test pb;
 			msg.Parse( pb );
 			VerifyMsg4( pb, msg.Header() );
-			Close();
+			
 			break;
 		}}
 		m_progress++;

@@ -47,9 +47,7 @@ namespace {
 	uint32_t HashUsername( const Util::StringRef &input ) {
 		// hash is 16 chars of md5
 
-		std::string hashed = md5( input );
-			
-		return std::stoul( md5(input).substr(8), nullptr, 16 );
+		return std::stoul( Hash::md5(input).substr(0,8), nullptr, 16 );
 	}
 }
 

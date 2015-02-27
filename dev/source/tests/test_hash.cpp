@@ -6,6 +6,7 @@
 
 #include "util/pwhash.h"
 #include "hash/sha256.h"
+#include "hash/md5.h"
 #include "util/stringles.h"
 
 namespace Tests {
@@ -60,6 +61,27 @@ TEST( HashTests, BCRYPT ) {
 		EXPECT_TRUE( hasher.Verify( password, hash ));
 		password += ' ';
 		EXPECT_FALSE( hasher.Verify( password, hash )); 
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TEST( HashTests, MD5 ) {
+	std::vector<std::string> expected = {
+		"098f6bcd4621d373cade4e832627b4f6",
+		"fb469d7ef430b0baf0cab6c436e70375",
+		"25ab3b38f7afc116f18fa9821e44d561",
+		"2f6c2404198add983753e94fc24e752f",
+		"739c5b1cd5681e668f689aa66bcc254c",
+		"16c75dbf8dc6239f9d74b96299404446",
+		"d90fe1178a183ec92bdb7a2ab2df06f0",
+		"24a1a3bc832644156b357026cbca787e"
+	};
+
+	std::string hash = "test";
+
+	for( std::string &iter : expected ) {
+		hash = Hash::md5( hash );
+		EXPECT_EQ( iter, hash );
 	}
 }
 

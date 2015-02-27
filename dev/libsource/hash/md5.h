@@ -36,6 +36,7 @@ documentation and/or software.
 #include <cstring>
 #include <iostream>
  
+namespace Hash {
  
 // a small class for calculating MD5 hashes of strings or byte arrays
 // it is not meant to be fast or secure
@@ -89,5 +90,7 @@ private:
 };
  
 std::string md5(const std::string str);
+
+}
  
 #endif
