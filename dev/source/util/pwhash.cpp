@@ -44,7 +44,7 @@ std::string PasswordHasher::Hash( const Util::StringRef &password ) const {
 
 //-----------------------------------------------------------------------------
 bool PasswordHasher::Verify( const Util::StringRef &password, 
-							 const Util::StringRef &hash ) const { 
+							 const Util::StringRef &hash ) { 
 	
 	char hash2[256];
 

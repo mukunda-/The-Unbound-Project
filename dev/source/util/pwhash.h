@@ -31,8 +31,8 @@ namespace Util {
 		/** -------------------------------------------------------------------
 		 * Check if a string matches a hash.
 		 */
-		bool Verify( const Util::StringRef &input, 
-					 const Util::StringRef &hash ) const;
+		static bool Verify( const Util::StringRef &input, 
+					 const Util::StringRef &hash );
 	};
 
 }

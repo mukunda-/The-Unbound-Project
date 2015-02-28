@@ -11,6 +11,7 @@
 #include "db/transaction.h"
 #include "db/statement.h"
 #include "hash/md5.h"
+#include "util/pwhash.h"
 
 //-----------------------------------------------------------------------------
 namespace User {
@@ -39,15 +40,30 @@ AuthServer *g_instance;
 namespace {
 
 	/** -----------------------------------------------------------------------
-		* Hash a username for indexing into the Account database table.
-		*
-		* @param input Username to hash
-		* @returns 32-bit unsigned hash
-		*/
+	* Hash a username for indexing into the Account database table.
+	*
+	* @param input Username to hash
+	* @returns 32-bit unsigned hash
+	*/
 	uint32_t HashUsername( const Util::StringRef &input ) {
 		// hash is 16 chars of md5
 
 		return std::stoul( Hash::md5(input).substr(0,8), nullptr, 16 );
+	}
+
+	/** -----------------------------------------------------------------------
+	 * @returns a random token for an authenticated user.
+	 */
+	uint32_t GenerateToken() {
+		uint32_t result = 0;
+		for( int i = 0; i < 4; i++ ) {
+			result += rand() << (i*8);
+		}
+
+		// 0 is an invalid token.
+		if( result == 0 ) result++;
+
+		return result;
 	}
 }
 
@@ -88,12 +104,35 @@ private:
 
 		if( !result->next() ) {
 			// unknown user!
+
+			// todo: delay the response to hide that
+			//       this username is unknown.
+
 			return NOP;
 		}
 
-		std::string password = result->getString( 2 );
+		std::string hashed_password = result->getString( 2 );
+		if( Util::PasswordHasher::Verify( m_password, hashed_password )) {
 
+			uint32_t token = GenerateToken();
 
+			// when a token is placed in the database, it allows the user
+			// to log into the game server from their location once. after
+			// the token is used, it is invalidated and another one must
+			// be generated for the next login request.
+
+			// correct password.
+			result = statement->ExecuteQuery( 
+				"UPDATE Accounts SET token=%s, ip=x%s", 
+				token, 
+				m_stream->GetIPHex() );
+
+		} else {
+
+			// incorrect password.
+
+		}
+		
 		//bcrypt_check( password, fewaoweouseri
 
 	} 

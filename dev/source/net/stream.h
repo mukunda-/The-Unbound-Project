@@ -122,11 +122,17 @@ public:
 	void WaitSend();
 	 
 	/// -----------------------------------------------------------------------
-	/// Get hostname of last connect operation.
+	/// Get hostname of the endpoint. 
 	///
 	/// @returns in format "address:service"
 	///
 	const std::string &GetHostname() const;
+	
+	/// -----------------------------------------------------------------------
+	/// Get the IP of the endpoint as a hex string. For IPv4 endpoints, the
+	/// string will be 8 characters long, for IPv6 it will be 32 characters.
+	///
+	const std::string &GetIPHex() const { return m_ip_hex; }
 
 	/// -----------------------------------------------------------------------
 	/// @returns true if this socket was connected via Accept.
@@ -222,6 +228,7 @@ private:
 
 	// where this connection is coming from/going to
 	std::string m_hostname;
+	std::string m_ip_hex; // their ip as a hex string.
 
 	System::Service &m_service;
 	
@@ -312,6 +319,7 @@ private:
 	void SetConnectedState();
 	void SetConnectedFailed( const boost::system::error_code &error );
 	void SignalConnectionCompleted();
+	void SaveIPHex();
 
 	//bool ParseMessage( std::istream &is );
 	
