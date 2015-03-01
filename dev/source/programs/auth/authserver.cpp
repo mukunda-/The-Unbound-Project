@@ -6,6 +6,7 @@
 #include "authserver.h"
 #include "protocol.h"
 #include "proto/auth/login.pb.h"
+#include "proto/auth/response.pb.h"
 
 #include "db/core.h"
 #include "db/transaction.h"
@@ -102,16 +103,23 @@ private:
 			"WHERE userhash=%d AND username=%s", 
 			userhash, m_username );
 
-		if( !result->next() ) {
-			// unknown user!
+		Net::Proto::Auth::Response response;
 
-			// todo: delay the response to hide that
-			//       this username is unknown.
+		if( !result->next() ) {
+			// unknown user.
+
+			// todo: delay the response by the approximate time to
+			//       hash a password to disturb timing attacks
+			
+			response.set_status( "NOPE" );
+			response.set_description( "TODO: localized failure response." );
+			m_stream->Write() << response;
 
 			return NOP;
 		}
 
 		std::string hashed_password = result->getString( 2 );
+
 		if( Util::PasswordHasher::Verify( m_password, hashed_password )) {
 
 			uint32_t token = GenerateToken();
@@ -123,18 +131,23 @@ private:
 
 			// correct password.
 			result = statement->ExecuteQuery( 
-				"UPDATE Accounts SET token=%s, ip=x%s", 
-				token, 
-				m_stream->GetIPHex() );
+				"UPDATE Accounts SET token=%d, ip=x%s", 
+				token, m_stream->GetIPHex() );
 
+			response.set_status( "OKAY" );
+			response.set_token( token );
+			m_stream->Write() << response;
+
+			return COMMIT;
 		} else {
 
 			// incorrect password.
+			response.set_status( "NOPE" );
+			response.set_description( "TODO: localized failure response." );
+			m_stream->Write() << response;
 
+			return NOP;
 		}
-		
-		//bcrypt_check( password, fewaoweouseri
-
 	} 
 
 	//-------------------------------------------------------------------------

@@ -5,6 +5,24 @@
 package Net.Proto.Auth; 
 
 message Response {
-	required string status      = 1;
-	required string description = 2;
+
+	//-------------------------------------------------------------------------
+	// The status of the response:
+	//   "OKAY" : login was successful
+	//   "NOPE" : login was unsuccessful, the description will contain
+	//            additional information.
+	//
+	required string status                                                = 1;
+	
+	//-------------------------------------------------------------------------
+	// If status is OKAY, then this contains their authentication token.
+	// (a 32-bit random number)
+	//
+	optional fixed32 token                                                = 2;
+	
+	//-------------------------------------------------------------------------
+	// If status is NOPE, then this contains friendly (localized) information
+	// about why the attempt was unsuccessful.
+	//
+	optional string description                                           = 3;
 }
