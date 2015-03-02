@@ -3,8 +3,11 @@
     //===== Copyright © 2015, Mukunda Johnson, All rights reserved. =======//
 
 namespace Unbound;
-chdir("..");
-require_once "env.php";
+chdir('..');
+require_once 'env.php';
+require_once 'private/sql_main.php';
+
+$SQLW_DEFAULT_INFO = $SQL_UNBOUND_MAIN;
 
 //-----------------------------------------------------------------------------
 

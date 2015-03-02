@@ -16,7 +16,7 @@ class SQLW extends mysqli {
 	const ER_LOCK_WAIT_TIMEOUT = 1205; // deadlock thing
 	const ER_LOCK_DEADLOCK = 1213; // deadlock thing
 	
-	private $info;
+	private $coninfo;
 
 	private static $connections = [];
 	
@@ -24,12 +24,12 @@ class SQLW extends mysqli {
 	 * Construct with some special sauce.
 	 */
 	public function __construct( $info, $flags ) {
-		$this->info = $info;
+		$this->coninfo = $info;
 		
 		parent::init();
 		parent::real_connect( 
 			$info['address'],  $info['username'], 
-			$info['password'], $info['database'],
+			$info['password'], $info['schema'],
 			null, null, $flags );
 	}
 
@@ -84,7 +84,10 @@ class SQLW extends mysqli {
 	 */
 	public static function Get( $info = null ) { 
 		
+		global $SQLW_DEFAULT_INFO;
+		
 		if( $info === null ) {
+			
 			if( !isset( $SQLW_DEFAULT_INFO )) {
 				throw new RuntimeException( 
 					"Connection info not given, and default info is not set." );
