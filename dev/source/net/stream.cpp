@@ -18,6 +18,13 @@ extern Instance *g_instance;
 namespace {
 	const int READ_BUFFER_SIZE = 4096;
 
+	char GetHexDigit( int value ) {
+		if( value < 10 ) {
+			return '0' + value;
+		} else {
+			return 'A' + value - 10;
+		}
+	}
 }
 	 
 /// ---------------------------------------------------------------------------
@@ -478,12 +485,46 @@ void Stream::SetConnectedFailed( const boost::system::error_code &error ) {
 		
 }
 
+//-----------------------------------------------------------------------------
+void Stream::SaveIPHex() {
+	m_ip_hex.clear();
+
+	boost::asio::ip::address address = m_socket.remote_endpoint().address();
+
+	if( address.is_v4() ) {
+		// IPv4
+		m_ip_hex.reserve( 9 );
+		
+		auto bytes = address.to_v4().to_bytes();
+		assert( bytes.size() == 8 );
+
+		for( int i = 0; i < (int)bytes.size(); i++ ) {
+			m_ip_hex += GetHexDigit( bytes[i] >> 4  );
+			m_ip_hex += GetHexDigit( bytes[i] & 0xF );
+		}
+		
+	} else {
+		// IPv6
+		m_ip_hex.reserve( 33 );
+
+		auto bytes = address.to_v6().to_bytes();
+		assert( bytes.size() == 32 );
+
+		for( int i = 0; i < (int)bytes.size(); i++ ) {
+			m_ip_hex += GetHexDigit( bytes[i] >> 4  );
+			m_ip_hex += GetHexDigit( bytes[i] & 0xF );
+		}
+	}
+
+}
+
 /// ---------------------------------------------------------------------------
 /// Callback for boost::asio::async_connect
 ///
 void Stream::OnConnect( const boost::system::error_code &error ) {
 	 
 	if( !error ) {
+		SaveIPHex();
 
 		if( m_secure ) {
 			
@@ -531,11 +572,13 @@ void Stream::OnHandshake( const boost::system::error_code &error ) {
 void Stream::OnAccept( const boost::system::error_code &error ) {
 	if( !error ) {
 		m_hostname = m_socket.remote_endpoint().address().to_string();
-
+		SaveIPHex();
+		
 		if( m_secure ) {
 			
 			// wrap with ssl socket.
-			m_ssl_socket.reset( new ssl_socket_t( m_socket, (*m_ssl_context)() ));
+			m_ssl_socket.reset( 
+				new ssl_socket_t( m_socket, (*m_ssl_context)() ));
 
 			m_ssl_socket->async_handshake( 
 				boost::asio::ssl::stream_base::server, m_strand->wrap(
