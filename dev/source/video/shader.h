@@ -9,6 +9,7 @@
 #include "util/stringtable2.h"
 #include "util/stringles.h"
 #include "util/fopen2.h"
+#include "util/stringref.h"
 #include "video/VertexArrayObject.h"
 
 //-------------------------------------------------------------------------------------------------
@@ -36,9 +37,7 @@ public:
 
 		Kernel() {
 			ResetToDefault();
-		}
-
-		
+		} 
 	
 	};
 
@@ -51,15 +50,16 @@ private:
 			UNIFORM=1
 		} type;
 
-		char name[64];
+		char  name[64];
 		short divisor; // attribute only
 		short matrix;  // attribute only
-
 		GLint *target;
 		 
-		Variable( Type ptype, GLint &ptarget, const char *pname, short pdivisor=0, short pmatrix=1 ) {
+		Variable( Type ptype, GLint &ptarget, const Stref &pname, 
+			      short pdivisor=0, short pmatrix=1 ) {
+
 			type = ptype;
-			Util::CopyString( name, pname );
+			Util::CopyString( name, *pname );
 			divisor = pdivisor;
 			matrix = pmatrix;
 			target = &ptarget;
@@ -72,7 +72,7 @@ private:
 		boost::scoped_array<char> m_contents;
 
 	public:
-		SourceFile( const char *filename );
+		SourceFile( const Stref &filename );
 
 		size_t Length() const {
 			return m_length;
@@ -84,18 +84,20 @@ private:
 		}
 	};
 	 
-	std::vector<GLuint> shaders;		// list of compiled shaders
+	std::vector<GLuint>   shaders;		// list of compiled shaders
 	std::vector<Variable> variables; 
-	std::vector<GLint> attributes;		// list of vertex attributes
-	//std::vector<GLint> uniforms;		// list of shader uniform variables (not used)
+	std::vector<GLint>    attributes;	// list of vertex attributes
+	//std::vector<GLint>  uniforms;		// list of shader uniform variables (not used)
 	GLuint program;						// program ID of shader
 
 	VertexArrayObject vertex_state;		// VAO to hold the state for this shader
 
 	char id[32];
-	int table_index;
+	int  table_index;
 
-	static boost::shared_array<char> ReadFile( const char *filename, int &length );
+	//static std::shared_ptr<char[]> ReadFile( const Stref &filename, 
+	//										 int &length );
+
 	static void DumpInfoLog( GLuint shader, bool program );
 
 protected: 
@@ -103,7 +105,7 @@ protected:
 	//---------------------------------------------------------------------------
 	// compile a shader file and add it to this program
 	//
-	void AddShader( const char *filename, GLenum type );
+	void AddShader( const Stref &filename, GLenum type );
 
 	//---------------------------------------------------------------------------
 	// link the shader program
@@ -113,12 +115,13 @@ protected:
 	//---------------------------------------------------------------------------
 	// register a shader attribute
 	//
-	void AddAttribute( GLint &target, const GLchar *name, int divisor = 0, int matrix = 1 );
+	void AddAttribute( GLint &target, const Stref &name, 
+					   int divisor = 0, int matrix = 1 );
 	
 	//---------------------------------------------------------------------------
 	// register a shader uniform
 	//
-	void AddUniform( GLint &target, const GLchar *name );
+	void AddUniform( GLint &target, const Stref &name );
 
 	//---------------------------------------------------------------------------
 	// register this shader
@@ -138,7 +141,7 @@ protected:
 	 
 	//---------------------------------------------------------------------------
 	// compile a shader file
-	static GLuint Compile( const char *filename, GLenum type );
+	static GLuint Compile( const Stref &filename, GLenum type );
 
 	Shader( const char *name );
 	Shader();
@@ -180,8 +183,8 @@ namespace Shaders {
 	//-------------------------------------------------------------------------------------------------
 	// find a registered shader from a keystring 
 	//
-	Shader *Find( const std::string &name );
-	int FindIndex( const std::string &name );
+	Shader *Find( const Stref &name );
+	int FindIndex( const Stref &name );
 
 	// get a shader instance from its registered index
 	Shader *Get( int index );

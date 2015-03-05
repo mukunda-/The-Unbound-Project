@@ -136,6 +136,8 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", false )
 		
 		"libsource/stb_image.c",
 		
+		"source/**.h",
+		
 		"protocol/compiled/**.cc"
 	}
 

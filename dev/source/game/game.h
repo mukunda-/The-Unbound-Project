@@ -11,7 +11,7 @@
 // keeping the subsystem updated
 
 #include "graphics/gui/gui.h"
-#include "network/connection.h"
+//#include "network/connection.h"
 #include "system/variables.h"
 
 namespace Game {
@@ -27,7 +27,7 @@ class Game : public Gui::Interface {
 
 	System::Variable &cl_master_address;
 
-	Network::Connection m_net_master;
+//	Network::Connection m_net_master;
 	
 public:
 	Game();

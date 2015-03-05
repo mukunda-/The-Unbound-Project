@@ -96,7 +96,7 @@ public:
 	/// GetFull(1) will return "bbb     cccc"
 	///
 	std::string GetFull( int start ) const {
-		if( start < 0 || start >= m_index.size() ) return "";
+		if( start < 0 || start >= (int)m_index.size() ) return "";
 		
 		const Index &first = m_index[start];
 		const Index &last = m_index[m_index.size()-1];
@@ -112,7 +112,7 @@ public:
 	/// @returns Copy of argument.
 	///
 	std::string GetString( int index ) const {
-		if( index < 0 || index >= m_index.size() ) return "";
+		if( index < 0 || index >= (int)m_index.size() ) return "";
 		return m_source
 			.substr( m_index[index].start, m_index[index].length );
 	}

@@ -1,18 +1,27 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
 namespace Util {
 
-/// ---------------------------------------------------------------------------
-/// A class that simplifies string handling to lessen function overloads.
-///
+/** ---------------------------------------------------------------------------
+ * A string reference.
+ *
+ * This is a lightweight class that simplifies accepting a string argument
+ * for functions. It accepts either C style const char* or C++ style
+ * std::string and then provides access to either.
+ */
 class StringRef {
-	const char *m_text;
-	const std::string *m_str = nullptr;
+	const char *m_text; // pointer to the data
 
+	// pointer to a std::string, if constructed with one
+	// this will also be created if it doesn't exist and Str() is used.
+	const std::string *m_str = nullptr;
+	
+	// for when Str() is used without a std::string source, the data
+	// will be copied here, and m_str will point here.
 	std::string m_localstr;
 
 public:
@@ -21,9 +30,9 @@ public:
 		m_text = "";
 	}
 
-	/// -----------------------------------------------------------------------
-	/// Construct from string source. obtains const reference.
-	///
+	/** -----------------------------------------------------------------------
+	 * Construct from a string source. Obtains a const reference.
+	 */
 	StringRef( const std::string &str ) : 
 		m_text( str.c_str() ), m_str( &str ) {}
 
@@ -40,9 +49,9 @@ public:
 		m_str  = &str;
 	}
 
-	// ------------------------------------------------------------------------
-	// Convert to const char *
-	// ------------------------------------------------------------------------
+	/** -----------------------------------------------------------------------
+	 * Methods to convert to const char*
+	 */
 
 	// named function
 	const char *CStr() const {
@@ -54,13 +63,13 @@ public:
 		return m_text;
 	}
 	
-	// ------------------------------------------------------------------------
-	// Copy to std::string
-	// ------------------------------------------------------------------------
-	
+	/** -----------------------------------------------------------------------
+	 * Copy to a new std::string
+	 */
+
 	// assignment
 	operator std::string() const {
-		return std::string(m_text);
+		return std::string( m_text );
 	}
 	
 	// named function
@@ -68,23 +77,34 @@ public:
 		return m_text;
 	}
 
+	/** -----------------------------------------------------------------------
+	 * Convert to a const std::string.
+	 *
+	 * If this was instantiated using another std::string, that one is
+	 * returned, otherwise, if created using a C string, this will create
+	 * a temporary std::string to be used.
+	 */
 	const std::string &Str() const {
 		if( m_str ) {
 			return *m_str;
 		} else {
+			// a little bit of const magic, technically this is still
+			// a const function because the visible state isn't changed
 			const_cast<StringRef*>(this)->m_localstr = m_text;
 			return m_localstr;
 		}
 	}
 
-	// ------------------------------------------------------------------------
-	// Some utility functions.
-	// ------------------------------------------------------------------------
-
+	/** -----------------------------------------------------------------------
+	 * Returns true if the string is empty.
+	 */
 	bool Empty() {
 		return m_text[0] == 0;
 	}
 
+	/** -----------------------------------------------------------------------
+	 * Stream overload.
+	 */
 	friend std::ostream& operator<<(std::ostream &os, const StringRef &str ) {
 		os << str.CStr();
 		return os;
@@ -92,3 +112,8 @@ public:
 };
 
 }
+
+/** ---------------------------------------------------------------------------
+ * Since this is used so often, we will define it globally as a "Stref"
+ */
+using Stref = Util::StringRef;

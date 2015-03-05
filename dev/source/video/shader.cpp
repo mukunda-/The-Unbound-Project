@@ -20,14 +20,14 @@ namespace Shaders {
 	}
 
 	//-------------------------------------------------------------------------------------------------
-	Shader *Find( const std::string &name ) {
-		int index = table.Find( name.c_str() );
+	Shader *Find( const Stref &name ) {
+		int index = table.Find( *name );
 		if( index == -1 ) return nullptr;
 		return pointers[index];
 	}
 
-	int FindIndex( const std::string &name ) {
-		return table.Find( name.c_str() );
+	int FindIndex( const Stref &name ) {
+		return table.Find( *name );
 	}
 
 	Shader *Get( int index ) {
@@ -36,12 +36,12 @@ namespace Shaders {
 }
 
 //-------------------------------------------------------------------------------------------------
-Shader::SourceFile::SourceFile( const char *filename ) {
+Shader::SourceFile::SourceFile( const Stref &filename ) {
  
 	// open file, make sure it's there
-	std::ifstream file(filename, std::ios::binary );
+	std::ifstream file( filename, std::ios::binary );
 	if( !file ) { 
-		throw std::runtime_error( std::string("Missing shader source file: ") + filename ); 
+		throw std::runtime_error( std::string("Missing shader source file: ") + *filename ); 
 	}
 
 	// get file size
@@ -71,7 +71,7 @@ void Shader::DumpInfoLog( GLuint shader, bool program ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-GLuint Shader::Compile( const char *filename, GLenum type ) {
+GLuint Shader::Compile( const Stref &filename, GLenum type ) {
 
 	GLuint shader;
 	SourceFile source( filename );
@@ -93,7 +93,7 @@ GLuint Shader::Compile( const char *filename, GLenum type ) {
 }
 
 //-------------------------------------------------------------------------------------------------
-void Shader::AddShader( const char *filename, GLenum type ) {
+void Shader::AddShader( const Stref &filename, GLenum type ) {
 	GLuint s = Compile( filename, type );
 	if( s ) {
 		shaders.push_back(s);
@@ -164,13 +164,13 @@ void Shader::Link() {
 }
 
 //-------------------------------------------------------------------------------------------------
-void Shader::AddAttribute( GLint &target, const GLchar *name, int divisor, int matrix ) {
+void Shader::AddAttribute( GLint &target, const Stref &name, int divisor, int matrix ) {
 
 	variables.push_back( Variable( Variable::ATTRIBUTE, target, name, divisor, matrix ) ); 
 }
 
 //-------------------------------------------------------------------------------------------------
-void Shader::AddUniform( GLint &target, const GLchar *name ) {
+void Shader::AddUniform( GLint &target, const Stref &name ) {
 
 	variables.push_back( Variable( Variable::UNIFORM, target, name ) ); 
 }
