@@ -5,6 +5,7 @@
 #pragma once
 
 #include "system/system.h"
+#include "system/module.h"
 #include "stream.h"
 #include "types.h"
 
@@ -42,7 +43,7 @@ namespace Net {
 					   StreamFactory factory );
 
 	//-------------------------------------------------------------------------
-	struct Instance {
+	struct Instance : public System::Module {
 	 
 		Instance();
 		~Instance();

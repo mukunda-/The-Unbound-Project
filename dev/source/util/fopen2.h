@@ -2,7 +2,6 @@
 //                                                                             //
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
-
 #pragma once
   
 static FILE * fopen2( const char *filename, const char *mode ) {
