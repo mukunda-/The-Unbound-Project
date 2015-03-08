@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "system/system.h"
+#include "system/module.h"
 #include "system/console.h"
 #include "system/commands.h"
 #include "console/console.h"
@@ -108,13 +109,14 @@ void Finish() {
 }
 
 //-----------------------------------------------------------------------------
-void RunProgram( std::unique_ptr<Program> &&program ) {
-	g_main->RunProgram( std::move(program) );
+void RegisterModule( std::unique_ptr<Module> &&module ) {
+	Post( std::bind( &Main::RegisterModule, g_main, std::move(module) ));
 }
 
 //-----------------------------------------------------------------------------
-void RunProgram( Program *program ) {
-	g_main->RunProgram( std::unique_ptr<Program>( program ));
+void RegisterModule( Module *module ) {
+	Post( std::bind( &Main::RegisterModule, g_main, 
+		  std::unique_ptr<Module>( module ) ));
 }
 
 //-----------------------------------------------------------------------------
@@ -187,18 +189,39 @@ void Main::PostSystem( std::function<void()> handler,
 }
 
 //-----------------------------------------------------------------------------
-void Main::RunProgram( std::unique_ptr<Program> &&program ) {
-	m_program = std::move(program);
+void Main::RegisterModule( std::unique_ptr<Module> &&module ) {
+	// this should not be called directly, and should be called through
+	// a Post
 	
-	// this is a bit nasty ..?
-	PostSystem( std::bind( &Main::Start, this ));
+	if( m_module_map.count( module->GetName() ) ) {
+		throw std::runtime_error( "Duplicate module name." );
+	}
+
+	m_module_map[ module->GetName() ] = module.get();
 	
-	System::Join();
+	auto level = module->GetLevel();
+
+	auto iterator = m_modules.begin();
+
+	// find and seek to the end of this module's bracket.
+	for( ; iterator != m_modules.end(); iterator++ ) {
+
+		if( (*iterator)->GetLevel() > level ) {
+			break;
+		}
+	}
+	
+	m_modules.insert( iterator, std::move( module )); 
 }
 
 //-----------------------------------------------------------------------------
 void Main::Start() {
-	m_program->OnStart();
+
+	for( auto &i : m_modules ) {
+		i->OnStart();
+	}
+
+	Join();
 }
 
 //-----------------------------------------------------------------------------
@@ -209,15 +232,14 @@ Service &Main::GetService() {
 //-----------------------------------------------------------------------------
 void Main::Shutdown() {
 	if( !m_live ) return; // already shut down.
-
-	if( m_program ) {
-		m_program->OnStop();
-	}
-
-	m_program.reset();
-
 	m_live = false;
-	m_service.Finish( false );
+
+	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
+		(*i)->OnShutdown();
+	} 
+
+//	m_live = false;
+//	m_service.Finish( false );
 }
 
 //-----------------------------------------------------------------------------

@@ -29,7 +29,7 @@ class NetTests : public ::testing::Test {
 public:
 	static std::mutex *m_lock; 
 	System::Main *i_system = nullptr;
-	Net::Instance *i_net = nullptr; 
+	//Net::Instance *i_net = nullptr; 
 	
 protected:
 
@@ -41,12 +41,14 @@ protected:
 #       else
 			i_system = new System::Main(1);
 #       endif
-		i_net = new Net::Instance ;
+
+		System::RegisterModule<Net::Instance>();
+		//i_net = new Net::Instance ;
 	}
 	
 	void TearDown() {
-		delete i_net;
-		i_net = nullptr;
+		//delete i_net;
+		//i_net = nullptr;
 
 		delete i_system;
 		i_system = nullptr;

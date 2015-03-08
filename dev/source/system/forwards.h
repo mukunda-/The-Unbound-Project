@@ -15,6 +15,7 @@ namespace System {
 	class Variable;
 	class Callback;
 	class Program;
+	class Module;
 	class Main;
 
 	using CommandPtr = std::unique_ptr< Command >;

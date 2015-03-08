@@ -34,8 +34,11 @@ void ConnectAsync( const std::string &host, const std::string &service,
 }
 
 //-----------------------------------------------------------------------------
-Instance::Instance() : m_ssl_strand( System::GetService()() ) {
+Instance::Instance() : m_ssl_strand( System::GetService()() ), 
+		Module( System::Module::Levels::SUBSYSTEM ) {
 	
+	Module::SetName( "net" );
+
 	g_instance = this;
 
 #ifdef SETUP_CRYPTO_LOCKS

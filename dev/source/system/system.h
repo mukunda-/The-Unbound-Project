@@ -181,11 +181,18 @@ void Join();
 /// @param program Program instance. Both prototypes take ownership 
 ///                of the pointer.
 ///
-void RunProgram( std::unique_ptr<Program> &&program );
-void RunProgram( Program *program );
+//void RunProgram( std::unique_ptr<Program> &&program );
+//void RunProgram( Program *program );
 
-template <class T, typename ... A> void RunProgram( A...args ) {
-	RunProgram( new T( args... ));
+//template <class T, typename ... A> void RunProgram( A...args ) {
+//	RunProgram( new T( args... ));
+//}
+
+void RegisterModule( std::unique_ptr<Module> &&program );
+void RegisterModule( Module *program );
+
+template <class T, typename ... A> void RegisterModule( A...args ) {
+	RegisterModule( new T( args... ));
 }
 
 /// ---------------------------------------------------------------------------
@@ -216,17 +223,21 @@ bool ExecuteScript( Util::StringRef file );
 class Main {
 	 
 public:
+
 	/// -----------------------------------------------------------------------
 	/// @param threads Number of threads to start the main service with.
 	///
 	Main( int threads );
+
 	~Main();
 	bool Live() { return m_live; }
 	void PostSystem( std::function<void()> handler, 
 					 bool main = true, int delay = 0 );
 	void Shutdown();
 
-	void RunProgram( std::unique_ptr<Program> &&program );
+	//void RunProgram( std::unique_ptr<Program> &&program );
+	void RegisterModule( std::unique_ptr<Module> &&module );
+
 	Service &GetService();
 
 private: 
@@ -240,9 +251,17 @@ private:
 	Mem::Arena::Manager i_arenas;
 	Service  m_service;
 	boost::asio::strand m_strand;
-	std::unique_ptr<Program> m_program;
 
-	std::unordered_map< std::string, VariablePtr > m_variables;
+	//std::unique_ptr<Program> m_program;
+
+	// list of modules, these are ordered by their system level
+	std::vector<std::unique_ptr<Module>> m_modules;
+
+	// module map indexed by module names
+	std::unordered_map<std::string, Module*> m_module_map;
+
+	// registered variables
+	std::unordered_map<std::string, VariablePtr> m_variables;
 	
 	// "global" commands are commands that belong to the system 
 	// and cannot be deleted.
@@ -256,6 +275,7 @@ public:
 	Variable &CreateVariable( const Util::StringRef &name, 
 							  const Util::StringRef &default_value,
 							  const Util::StringRef &description, int flags );
+
 	bool DeleteVariable( const Util::StringRef &name );
 	Variable *FindVariable( const Util::StringRef &name );
 	bool TryExecuteCommand( Util::StringRef command_string );
@@ -263,13 +283,14 @@ public:
 	void ExecuteCommand( Util::StringRef command_string, 
 					     bool command_only = false ); 
 	bool ExecuteScript( Util::StringRef file );
+	
+	void Start();
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Util::StringRef &name );
 
 	int AllocCommandID() { return ++m_next_command_id; }
 
-	void Start();
 
 	friend class Commands::Instance;
 	friend class Command;

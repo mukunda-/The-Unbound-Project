@@ -18,21 +18,15 @@ public:
 	 * are also created before and destroyed after.
 	 */
 	enum class Levels {
-		SUPERVISOR, // top level for special needs
-		SUBSYSTEM,  // interface modules (network,console etc)
-		USER        // program level
+		SUPERVISOR = 10, // top level for special needs
+		SUBSYSTEM  = 20, // interface modules (network,console etc)
+		USER       = 30  // program level
 	};
 
 	/** -----------------------------------------------------------------------
-	 * This function returns true if the module is busy doing something.
-	 *
-	 * During a shutdown, all modules must return FALSE for this function
-	 * for the shutdown to complete.
-	 *
-	 * All modules are kept alive during the shutdown until they all return
-	 * FALSE.
+	 * This function blocks until the busy state of this module is FALSE
 	 */
-	virtual bool Busy() const = 0;
+	virtual void WaitUntilFinished() = 0;
 	
 	//-------------------------------------------------------------------------
 	virtual ~Module();
@@ -48,6 +42,8 @@ protected:
 	Module( Module&& ) = delete;
 	Module& operator=( Module&  ) = delete;
 	Module& operator=( Module&& ) = delete;
+
+	friend class Main;
 
 	/** -----------------------------------------------------------------------
 	 * Called when this module is registered with the system.
@@ -71,11 +67,22 @@ protected:
 	virtual void OnUnload() {}
 
 	/** -----------------------------------------------------------------------
-	 * Set/get the name for this module. The name must be set before the
+	 * Set the name for this module. The name must be set before the
 	 * module is registered. (in the implementation constructor)
 	 */
 	void SetName( const Stref &name );
-	const std::string &GetName() const;
+	
+	/** -----------------------------------------------------------------------
+	 * Set the busy state.
+	 *
+	 * During shutdown, the system will wait until all modules are NOT busy
+	 * before destroying anything.
+	 *
+	 * With proper behavior, after all modules have become non-busy, they
+	 * should not be able to become busy again, as only busy modules should
+	 * be able to activate other modules.
+	 */
+	void SetBusy( bool busy_state );
 
 	//-------------------------------------------------------------------------
 private:
@@ -86,6 +93,13 @@ private:
 	// name of module, ie "net", "db", etc. Must be set by 
 	// implementation.
 	std::string m_name;
+	
+	bool m_busy = false;
+
+public:
+
+	Levels GetLevel() { return m_level; }
+	const std::string &GetName() const { return m_name; }
 };
 
 }
