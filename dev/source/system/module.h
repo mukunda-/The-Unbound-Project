@@ -75,14 +75,13 @@ protected:
 	/** -----------------------------------------------------------------------
 	 * Set the busy state.
 	 *
-	 * During shutdown, the system will wait until all modules are NOT busy
-	 * before destroying anything.
+	 * During shutdown, the system will wait until all modules are `idle`.
 	 *
-	 * With proper behavior, after all modules have become non-busy, they
+	 * With proper behavior, after *all* modules have become idle, they
 	 * should not be able to become busy again, as only busy modules should
-	 * be able to activate other modules.
+	 * be able to engage other modules.
 	 */
-	void SetBusy( bool busy_state );
+	void SetBusy( bool busy );
 
 	//-------------------------------------------------------------------------
 private:

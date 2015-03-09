@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "system/system.h"
@@ -93,8 +93,9 @@ void Service::PostDelayedHandler(
 					    const boost::system::error_code &error, 
 						std::shared_ptr<boost::asio::deadline_timer> &timer,
 						std::function<void()> &handler ) {									
-	if( !error ) 
+	if( !error ) {
 		handler();
+	}
 }
   
 //-----------------------------------------------------------------------------
