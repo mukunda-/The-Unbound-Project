@@ -92,7 +92,7 @@ void Service::Post( std::function<void()> handler, int delay ) {
 void Service::PostDelayedHandler( 
 					    const boost::system::error_code &error, 
 						std::shared_ptr<boost::asio::deadline_timer> &timer,
-						std::function<void()> &handler ) {									
+						std::function<void()> &handler ) {
 	if( !error ) {
 		handler();
 	}
