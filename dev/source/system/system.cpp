@@ -191,8 +191,7 @@ void Main::PostSystem( std::function<void()> handler,
 
 //-----------------------------------------------------------------------------
 void Main::RegisterModule( std::unique_ptr<Module> &&module ) {
-	// this should not be called directly, and should be called through
-	// a Post
+	// must be called in the system strand
 	
 	if( m_module_map.count( module->GetName() ) ) {
 		throw std::runtime_error( "Duplicate module name." );
@@ -247,7 +246,7 @@ void Main::Shutdown() {
 void ExecuteCommand( Util::StringRef command_string, bool command_only ) {
 	g_main->ExecuteCommand( command_string, command_only );
 }
-
+ 
 //-----------------------------------------------------------------------------
 void Main::ExecuteCommand( Util::StringRef command_string, 
 						   bool command_only ) {
