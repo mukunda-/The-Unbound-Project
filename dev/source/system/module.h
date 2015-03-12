@@ -48,23 +48,23 @@ protected:
 	/** -----------------------------------------------------------------------
 	 * Called when this module is registered with the system.
 	 */
-	virtual void OnLoad() {}
+	virtual void OnLoad();
 	
 	/** -----------------------------------------------------------------------
 	 * Called when the system starts up. (most modules will be loaded)
 	 */
-	virtual void OnStart() {}
+	virtual void OnStart();
 
 	/** -----------------------------------------------------------------------
 	 * Called when the system is shutting down, this module and any other
 	 * modules will not be destroyed until all return not Busy().
 	 */
-	virtual void OnShutdown() {}
+	virtual void OnShutdown();
 
 	/** -----------------------------------------------------------------------
 	 * Called when this module is about to be destroyed.
 	 */
-	virtual void OnUnload() {}
+	virtual void OnUnload();
 
 	/** -----------------------------------------------------------------------
 	 * Set the name for this module. The name must be set before the
@@ -99,6 +99,7 @@ public:
 
 	Levels GetLevel() { return m_level; }
 	const std::string &GetName() const { return m_name; }
+	bool Busy() { return m_busy; }
 };
 
 }

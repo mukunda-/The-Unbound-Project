@@ -122,7 +122,7 @@ void RegisterModule( Module *module ) {
 
 //-----------------------------------------------------------------------------
 void Shutdown() {
-	::Console::Print( "Shutting down..." );
+	::Console::Print( "Shutting down." );
 	g_main->Shutdown();
 }
 
@@ -240,6 +240,39 @@ void Main::Shutdown() {
 
 //	m_live = false;
 //	m_service.Finish( false );
+}
+
+//-----------------------------------------------------------------------------
+void Main::OnModuleIdle( Module &module ) {
+	if( m_live ) return;
+
+
+	if( !AnyModulesBusy() ) {
+		Post( std::bind( &Main::SystemEnd, this ));
+	}
+
+	// destroy modules.
+}
+
+//-----------------------------------------------------------------------------
+bool Main::AnyModulesBusy() {
+	for( auto &i : m_modules ) {
+		if( i->Busy() ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+//-----------------------------------------------------------------------------
+void Main::SystemEnd() {
+	if( AnyModulesBusy() ) {
+		// the system woke back up somehow.. is this an error?
+
+		// we'll treat it as an error.
+		assert( false );
+		return; 
+	}
 }
 
 //-----------------------------------------------------------------------------

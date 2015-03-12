@@ -292,6 +292,8 @@ private:
 	int AllocCommandID() { return ++m_next_command_id; }
 
 	void OnModuleIdle( Module &module );
+	bool AnyModulesBusy();
+	void SystemEnd();
 
 	friend class Module;
 	friend class Commands::Instance;
