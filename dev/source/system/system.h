@@ -215,7 +215,7 @@ void ExecuteCommand( Util::StringRef command_string,
 ///
 /// @param file Path to script file, relative to game contents folder.
 ///
-bool ExecuteScript( Util::StringRef file );
+bool ExecuteScript( const Stref &file );
   
 /// ---------------------------------------------------------------------------
 /// Main system class
@@ -282,7 +282,7 @@ public:
 	void SaveCommand( CommandPtr &&cmd );
 	void ExecuteCommand( Util::StringRef command_string, 
 					     bool command_only = false ); 
-	bool ExecuteScript( Util::StringRef file );
+	bool ExecuteScript( const Stref &file );
 	
 	void Start();
 

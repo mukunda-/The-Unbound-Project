@@ -327,12 +327,12 @@ void Main::ExecuteCommand( Util::StringRef command_string,
 }
 
 //-----------------------------------------------------------------------------
-bool ExecuteScript( Util::StringRef file ) {
+bool ExecuteScript( const Stref &file ) {
 	return g_main->ExecuteScript( file );
 }
 
 //-----------------------------------------------------------------------------
-bool Main::ExecuteScript( Util::StringRef file ) {
+bool Main::ExecuteScript( const Stref &file ) {
 	FILE *f = fopen2( *file, "r" );
 	if( !f ) {
 		::Console::Print( "Script not found: \"%s\"", *file );
