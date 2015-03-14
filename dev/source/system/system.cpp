@@ -29,76 +29,6 @@ namespace {
 }
   
 //-----------------------------------------------------------------------------
-Service::Service() {
-	using namespace boost::asio;
-	m_dummy_work = std::unique_ptr<io_service::work>( 
-		new io_service::work( m_io_service ) );
-}
-
-//-----------------------------------------------------------------------------
-Service::~Service() {
-	Finish( true );
-	Stop();
-}
-
-//-----------------------------------------------------------------------------
-void Service::Finish( bool wait ) {
-	// delete work object
-	m_dummy_work.reset( nullptr ); 
-	if( wait ) m_threads.join_all();
-}
-
-//-----------------------------------------------------------------------------
-void Service::Run( int count ) {
-	for(; count--; ) {
-		
-		m_threads.create_thread( 
-			boost::bind( &boost::asio::io_service::run, &m_io_service )); 
-	}
-}
-
-//-----------------------------------------------------------------------------
-void Service::Join() {
-	m_io_service.run();
-}
-
-//-----------------------------------------------------------------------------
-void Service::Stop() {
-	// terminate io service
-	m_io_service.stop();
-	m_threads.join_all();
-} 
-
-//-----------------------------------------------------------------------------
-void Service::Post( std::function<void()> handler, int delay ) {
-
-	if( delay == 0 ) {
-		m_io_service.post( handler );
-
-	} else {
-		std::shared_ptr<boost::asio::deadline_timer> timer( 
-				new boost::asio::deadline_timer(
-					m_io_service, 
-					boost::posix_time::milliseconds( delay ) ));
-
-		timer->async_wait( 
-			boost::bind( &Service::PostDelayedHandler, 
-						 boost::asio::placeholders::error, 
-						 timer, handler ));
-	}
-}
-
-//-----------------------------------------------------------------------------
-void Service::PostDelayedHandler( 
-					    const boost::system::error_code &error, 
-						std::shared_ptr<boost::asio::deadline_timer> &timer,
-						std::function<void()> &handler ) {
-	if( !error ) {
-		handler();
-	}
-}
-  
-//-----------------------------------------------------------------------------
 Service &GetService() {
 	assert(g_main);
 	return g_main->GetService();
@@ -169,7 +99,6 @@ Main::Main( int threads ) : m_strand( m_service() ) {
 //-----------------------------------------------------------------------------
 Main::~Main() {
 	Shutdown();
-
 
 	// we clear this here because the command instance destructors
 	// need access to Main.
@@ -244,14 +173,21 @@ void Main::Shutdown() {
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleIdle( Module &module ) {
-	if( m_live ) return;
+	std::lock_guard<std::mutex> lock(m_mutex);
 
+	m_busy_modules--;
 
-	if( !AnyModulesBusy() ) {
-		Post( std::bind( &Main::SystemEnd, this ));
+	if( !m_live && m_busy_modules == 0 ) {
+		// shutdown is in progress, and all modules are idle 
+		m_strand.post( std::bind( &Main::SystemEnd, this ));
 	}
+}
 
-	// destroy modules.
+//-----------------------------------------------------------------------------
+void Main::OnModuleBusy( Module &module ) {
+	std::lock_guard<std::mutex> lock(m_mutex);
+	
+	m_busy_modules++;
 }
 
 //-----------------------------------------------------------------------------
@@ -267,27 +203,27 @@ bool Main::AnyModulesBusy() {
 //-----------------------------------------------------------------------------
 void Main::SystemEnd() {
 	if( AnyModulesBusy() ) {
-		// the system woke back up somehow.. is this an error?
-
-		// we'll treat it as an error.
+		// there is a logical error somewhere, no modules should
+		// be busy at this point.
+		 
 		assert( false );
 		return; 
 	}
 }
 
 //-----------------------------------------------------------------------------
-void ExecuteCommand( Util::StringRef command_string, bool command_only ) {
+void ExecuteCommand( const Stref &command_string, bool command_only ) {
 	g_main->ExecuteCommand( command_string, command_only );
 }
  
 //-----------------------------------------------------------------------------
-void Main::ExecuteCommand( Util::StringRef command_string, 
+void Main::ExecuteCommand( const Stref &command_string, 
 						   bool command_only ) {
 
 	// copy command
 	char command[1024];
 	Util::CopyString( command, *command_string );
-	Util::TrimString(command);
+	Util::TrimString( command );
 	{
 		// strip comment
 		char *comment = strstr( command, "//" );

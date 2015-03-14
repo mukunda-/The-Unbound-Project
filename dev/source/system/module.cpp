@@ -14,6 +14,7 @@ extern Main *g_main;
 
 //------------------------------------------------------------------------------
 Module::Module( Levels level ) {
+	// todo, set busy when registered.
 	m_level = level;
 
 }
@@ -25,6 +26,8 @@ void Module::SetBusy( bool busy ) {
 	m_busy = busy;
 	if( !m_busy ) {
 		g_main->OnModuleIdle( *this );
+	} else {
+		g_main->OnModuleBusy( *this );
 	}
 }
 

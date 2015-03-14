@@ -11,84 +11,10 @@
 #include "console/forwards.h"
 #include "forwards.h"
 #include "variables.h"
+#include "service.h"
 
 namespace System {
 
-/// ---------------------------------------------------------------------------
-/// Wrapper for boost::asio::io_service, also manages a thread pool.
-///
-class Service {
-
-private:
-	// work to keep the thread pool alive
-	std::unique_ptr<boost::asio::io_service::work> m_dummy_work;
-
-	// thread pool
-	boost::thread_group m_threads;
-
-	void StopWork();
-
-protected:
-	boost::asio::io_service m_io_service;
-	 
-public:
-	Service();
-	~Service();
-	
-	/// -----------------------------------------------------------------------
-	/// Get the underlying asio::io_service
-	///
-	boost::asio::io_service &operator ()() {
-		return m_io_service;   
-	}
-
-	/// -----------------------------------------------------------------------
-	/// Add threads into the thread pool.
-	///
-	/// This function can be called multiple times. but
-	/// threads cannot be stopped.
-	///
-	void Run( int number_of_threads );
-	
-	/// -----------------------------------------------------------------------
-	/// Add the current thread into the thread pool.
-	///
-	void Join();
-
-	/// -----------------------------------------------------------------------
-	/// Shutdown system.
-	///
-	/// Runs io_service.stop and all threads should terminate.
-	///
-	/// Called by deconstructor.
-	///
-	void Stop();
-
-	/// -----------------------------------------------------------------------
-	/// Finishes work and destroys threads. Blocking function.
-	///
-	/// Will stall if a thread is not told to exit.
-	///
-	/// @param wait Join the thread pool. Set to false if this is being called
-	///             from inside a service handler.
-	///
-	void Finish( bool wait );
-
-	/// -----------------------------------------------------------------------
-	/// Run a task in the thread pool.
-	///
-	/// @param handler Handler to execute.
-	/// @param delay   Optional delay in milliseconds to 
-	///                wait before execution.
-	///
-	void Post( std::function<void()> handler, int delay = 0 ); 
-	 
-	static void PostDelayedHandler( 
-					    const boost::system::error_code &error, 
-						std::shared_ptr<boost::asio::deadline_timer> &timer,
-						std::function<void()> &handler );
-	 
-};
 
 /// ---------------------------------------------------------------------------
 /// Calls GetService().Finish()
@@ -159,7 +85,7 @@ Service &GetService();
 ///                executing the handler.
 /// 
 void Post( std::function<void()> handler, bool main = true, int delay = 0 );
- 
+
 /// ---------------------------------------------------------------------------
 /// Checks the status of the system.
 ///
@@ -167,7 +93,7 @@ void Post( std::function<void()> handler, bool main = true, int delay = 0 );
 ///          hasn't started yet or is shutting down.
 ///
 bool Live();
-	
+
 /// ---------------------------------------------------------------------------
 /// Merge current thread with the system service.
 ///
@@ -249,7 +175,7 @@ private:
 	int m_next_command_id = 0;
 	
 	Mem::Arena::Manager i_arenas;
-	Service  m_service;
+	Service m_service;
 	boost::asio::strand m_strand;
 
 	//std::unique_ptr<Program> m_program;
@@ -267,31 +193,36 @@ private:
 	// and cannot be deleted.
 	std::vector< CommandPtr > m_global_commands;
 	
-	// the command map
+	// mapping of command names to command instances
 	std::unordered_map< std::string, Commands::Instance* > m_command_map;
+
+	std::mutex m_mutex;
+	int m_busy_modules = 0;
 
 public: 
 	// internal use by the global functions:
-	Variable &CreateVariable( const Util::StringRef &name, 
-							  const Util::StringRef &default_value,
-							  const Util::StringRef &description, int flags );
+	Variable &CreateVariable( const Stref &name, 
+							  const Stref &default_value,
+							  const Stref &description, int flags );
 
-	bool DeleteVariable( const Util::StringRef &name );
-	Variable *FindVariable( const Util::StringRef &name );
-	bool TryExecuteCommand( Util::StringRef command_string );
+	bool DeleteVariable( const Stref &name );
+	Variable *FindVariable( const Stref &name );
+	bool TryExecuteCommand( const Stref &command_string );
 	void SaveCommand( CommandPtr &&cmd );
-	void ExecuteCommand( Util::StringRef command_string, 
+	void ExecuteCommand( const Stref &command_string, 
 					     bool command_only = false ); 
 	bool ExecuteScript( const Stref &file );
 	
 	void Start();
 
 private:
-	Commands::InstancePtr FindCommandInstance( const Util::StringRef &name );
+	Commands::InstancePtr FindCommandInstance( const Stref &name );
 
 	int AllocCommandID() { return ++m_next_command_id; }
 
 	void OnModuleIdle( Module &module );
+	void OnModuleBusy( Module &module );
+
 	bool AnyModulesBusy();
 	void SystemEnd();
 
