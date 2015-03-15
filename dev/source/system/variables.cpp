@@ -18,9 +18,9 @@ namespace System {
 extern Main *g_main;
   
 //---------------------------------------------------------------------------------------
-Variable &Main::CreateVariable( const StringRef &name, 
-									const StringRef &default_value,
-									const StringRef &description, int flags ) {
+Variable &Main::CreateVariable( const Stref &name, 
+									const Stref &default_value,
+									const Stref &description, int flags ) {
 
 	try {
 		return *m_variables.at( name ); 
@@ -34,7 +34,7 @@ Variable &Main::CreateVariable( const StringRef &name,
 }
 
 //-----------------------------------------------------------------------------
-bool Main::DeleteVariable( const StringRef &name ) { 
+bool Main::DeleteVariable( const Stref &name ) { 
 
 	try {
 		m_variables.erase( name );
@@ -45,7 +45,7 @@ bool Main::DeleteVariable( const StringRef &name ) {
 }
  
 //-----------------------------------------------------------------------------
-Variable *Main::FindVariable( const StringRef &name ) {
+Variable *Main::FindVariable( const Stref &name ) {
 	try {
 		return m_variables.at( name ).get();
 	} catch( std::out_of_range& ) {}
@@ -67,20 +67,20 @@ namespace {
 namespace Variables {
 
 	//-------------------------------------------------------------------------
-	Variable &Create( const StringRef &name, const StringRef &default_value,
-					  const StringRef &description, int flags ) {
+	Variable &Create( const Stref &name, const Stref &default_value,
+					  const Stref &description, int flags ) {
 
 		return g_main->CreateVariable( 
 				name, default_value, description, flags );
 	}
 
 	//-------------------------------------------------------------------------
-	bool Delete( const StringRef &name ) {
+	bool Delete( const Stref &name ) {
 		return g_main->DeleteVariable( name );
 	}
 
 	//-------------------------------------------------------------------------
-	Variable *Find( const StringRef &name ) {
+	Variable *Find( const Stref &name ) {
 		return g_main->FindVariable( name );
 	}
 }
@@ -91,9 +91,9 @@ void Variable::PrintInfo() {
 }
 
 //-----------------------------------------------------------------------------
-Variable::Variable( const StringRef &name, 
-			const StringRef &description,
-			const StringRef &init,
+Variable::Variable( const Stref &name, 
+			const Stref &description,
+			const Stref &init,
 			int flags ) {
 
 	m_name = name;
@@ -149,7 +149,7 @@ bool Variable::SetStringI( const StringRef &value, bool skipchg ) {
 }
 
 //-----------------------------------------------------------------------------
-bool Variable::SetString( const StringRef &value ) {
+bool Variable::SetString( const Stref &value ) {
 	return SetStringI( value, false );
 }
 
