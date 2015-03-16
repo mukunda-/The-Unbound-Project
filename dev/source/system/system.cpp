@@ -209,6 +209,13 @@ void Main::SystemEnd() {
 		assert( false );
 		return; 
 	}
+
+	// delete all modules
+	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
+		(*i)->OnUnload();
+		(*i).reset();
+	}
+
 }
 
 //-----------------------------------------------------------------------------
