@@ -19,6 +19,11 @@ Module::Module( Levels level ) {
 
 }
 
+//-----------------------------------------------------------------------------
+void Module::SetName( const Stref &name ) {
+	m_name = name;
+}
+
 //------------------------------------------------------------------------------
 void Module::SetBusy( bool busy ) {
 	if( m_busy == busy ) return;
@@ -35,6 +40,7 @@ void Module::OnLoad() {}
 void Module::OnStart() {}
 void Module::OnShutdown() {}
 void Module::OnUnload() {}
+
 
 //-----------------------------------------------------------------------------
 }
