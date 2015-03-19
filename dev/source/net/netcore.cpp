@@ -54,8 +54,10 @@ Instance::Instance() : m_ssl_strand( System::GetService()() ),
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 	//m_service.Finish( true );
+	std::lock_guard<std::mutex> lock(m_lock);
+	assert( m_work_counter == 0 ); // should not be destructed otherwise.
 
-	WaitUntilWorkIsFinished();
+	//WaitUntilWorkIsFinished();
 
 #ifdef SETUP_CRYPTO_LOCKS
 	//CRYPTO_set_locking_callback( NULL );
