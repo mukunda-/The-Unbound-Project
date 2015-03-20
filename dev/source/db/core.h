@@ -11,6 +11,8 @@
 #include "util/trie.h"
 #include "util/stringmap.h"
 
+#include "system/module.h"
+
 //-----------------------------------------------------------------------------
 namespace DB {
 
@@ -35,7 +37,7 @@ Connection &Register( const std::string &name, const Endpoint &endpoint,
 Connection &Get( const std::string &name );
 
 //-----------------------------------------------------------------------------
-class Manager final {
+class Manager final : public System::Module {
 	
 public:
 	/// -----------------------------------------------------------------------

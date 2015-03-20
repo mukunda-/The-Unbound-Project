@@ -81,21 +81,21 @@ void Instance::LockingFunction( int mode, int n, const char *, int ) {
 //-----------------------------------------------------------------------------
 void Instance::AddWork() {
 	std::lock_guard<std::mutex> lock(m_lock);
-	m_work_counter++;
-	m_work_changed.notify_all();
+
+	m_work_counter++; 
+
+	SetBusy( true );
 }
 
 //-----------------------------------------------------------------------------
 void Instance::RemoveWork() {
 	std::lock_guard<std::mutex> lock(m_lock);
-	m_work_counter--;
-	m_work_changed.notify_all();
-}
 
-//-----------------------------------------------------------------------------
-void Instance::WaitUntilWorkIsFinished() {
-	std::unique_lock<std::mutex> lock(m_lock);
-	m_work_changed.wait( lock, [&]{ return m_work_counter == 0; } );
+	m_work_counter--; 
+
+	if( m_work_counter == 0 ) {
+		SetBusy(false);
+	}
 }
 
 //-----------------------------------------------------------------------------
