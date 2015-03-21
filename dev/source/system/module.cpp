@@ -12,15 +12,11 @@ namespace System {
 extern Main *g_main;
 
 //------------------------------------------------------------------------------
-Module::Module( Levels level ) {
+Module::Module( const Stref &name, Levels level ) {
 	// todo, set busy when registered.
+	m_name = name;
 	m_level = level;
 
-}
-
-//-----------------------------------------------------------------------------
-void Module::SetName( const Stref &name ) {
-	m_name = name;
 }
 
 //------------------------------------------------------------------------------

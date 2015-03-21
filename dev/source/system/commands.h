@@ -47,7 +47,7 @@ private:
 	
 protected:
 
-	Command( Util::StringRef name, Util::StringRef desc, 
+	Command( const Stref &name, const Stref &desc, 
 			 Handler handler, bool high_priority );
 
 public:
@@ -71,7 +71,7 @@ public:
 	///                command handler to the beginning of the handler
 	///                list, otherwise it is appended.
 	/// 
-	static ptr Create( Util::StringRef name, Util::StringRef desc, 
+	static ptr Create( const Stref &name, const Stref &desc, 
 					   Handler handler, bool high_priority = false ) {
 
 		return ptr( new Command( name, desc, handler, high_priority ));

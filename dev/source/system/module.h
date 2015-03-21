@@ -22,11 +22,6 @@ public:
 		SUBSYSTEM  = 20, // interface modules (network,console etc)
 		USER       = 30  // program level
 	};
-
-	/** -----------------------------------------------------------------------
-	 * This function blocks until the busy state of this module is FALSE
-	 */
-	virtual void WaitUntilFinished() = 0;
 	
 	//-------------------------------------------------------------------------
 	virtual ~Module();
@@ -34,8 +29,11 @@ public:
 protected:
 	/** -----------------------------------------------------------------------
 	 * Construct a module.
+	 *
+	 * @param name  Name of module, must be unique.
+	 * @param level System level.
 	 */
-	Module( Levels level );
+	Module( const Stref &name, Levels level );
 
 	// non copyable/movable
 	Module( Module&  ) = delete;
@@ -67,12 +65,6 @@ protected:
 	virtual void OnUnload();
 
 	/** -----------------------------------------------------------------------
-	 * Set the name for this module. The name must be set before the
-	 * module is registered. (in the implementation constructor)
-	 */
-	void SetName( const Stref &name );
-	
-	/** -----------------------------------------------------------------------
 	 * Set the busy state.
 	 *
 	 * During shutdown, the system will wait until all modules are `idle`.
@@ -95,8 +87,7 @@ private:
 	// program level
 	Levels m_level;
 
-	// name of module, ie "net", "db", etc. Must be set by 
-	// implementation.
+	// name of module, ie "net", "db", etc.
 	std::string m_name;
 	
 	bool m_busy = false;
