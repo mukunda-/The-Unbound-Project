@@ -35,7 +35,7 @@ void ConnectAsync( const std::string &host, const std::string &service,
 
 //-----------------------------------------------------------------------------
 Instance::Instance() : m_ssl_strand( System::GetService()() ), 
-		Module( "net", System::Module::Levels::SUBSYSTEM ) {
+		Module( "net", Levels::SUBSYSTEM ) {
 
 	g_instance = this;
 

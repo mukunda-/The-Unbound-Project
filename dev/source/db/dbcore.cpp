@@ -186,7 +186,8 @@ unique_ptr<sql::Connection> Manager::Connect( const Endpoint &endpoint ) {
 
 //-----------------------------------------------------------------------------
 Manager::Manager( int threads ) : 
-			m_driver( *sql::mysql::get_mysql_driver_instance() ) {
+			m_driver( *sql::mysql::get_mysql_driver_instance() ),
+			Module( "db", Levels::SUBSYSTEM ) {
 	g_manager = this;
 
 	for( int i = 0; i < threads; i++ ) {

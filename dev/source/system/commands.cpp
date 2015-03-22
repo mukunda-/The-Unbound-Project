@@ -170,7 +170,7 @@ namespace Commands {
 }
 
 //---------------------------------------------------------------------------------------
-Command::Command( Util::StringRef name, Util::StringRef desc, 
+Command::Command( const Stref &name, const Stref &desc, 
 				  Handler handler, bool high_priority ) {
 
 	m_id = g_main->AllocCommandID();
@@ -189,12 +189,12 @@ void Command::Execute( Util::ArgString &args ) {
 }
 	
 //---------------------------------------------------------------------------------------
-bool ExecuteCommand( Util::StringRef command_string ) {
+bool ExecuteCommand( const Stref &command_string ) {
 	return g_main->TryExecuteCommand( command_string );
 }
 
 //---------------------------------------------------------------------------------------
-bool Main::TryExecuteCommand( Util::StringRef command_string ) {
+bool Main::TryExecuteCommand( const Stref &command_string ) {
 
 	char name[64];
 	Util::BreakString( *command_string, name );
@@ -207,14 +207,14 @@ bool Main::TryExecuteCommand( Util::StringRef command_string ) {
 }
 
 //---------------------------------------------------------------------------------------
-void AddGlobalCommand( Util::StringRef name, Util::StringRef desc, 
+void AddGlobalCommand( const Stref &name, const Stref &desc, 
 					   Command::Handler handler, bool high_priority ) {
 	
 	g_main->SaveCommand( Command::Create( name, desc, handler, high_priority ));
 }
 
 //---------------------------------------------------------------------------------------
-Commands::InstancePtr Main::FindCommandInstance( const Util::StringRef &name ) {
+Commands::InstancePtr Main::FindCommandInstance( const Stref &name ) {
 	try {
 		return m_command_map.at( name )->shared_from_this();
 	} catch( const std::out_of_range& ) {}

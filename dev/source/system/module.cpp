@@ -20,6 +20,11 @@ Module::Module( const Stref &name, Levels level ) {
 }
 
 //------------------------------------------------------------------------------
+Module::~Module() {
+	assert( !m_busy );
+}
+
+//------------------------------------------------------------------------------
 void Module::SetBusy( bool busy ) {
 	if( m_busy == busy ) return;
 

@@ -22,7 +22,7 @@ namespace {
 	
 	//-------------------------------------------------------------------------
 	void Command_Quit( Util::ArgString &args ) {
-
+		
 		System::Shutdown();
 	}
 
@@ -36,18 +36,19 @@ Service &GetService() {
 
 //-----------------------------------------------------------------------------
 void Finish() {
-	GetService().Finish( true ); 
+	GetService().Finish( true );
 }
 
 //-----------------------------------------------------------------------------
 void RegisterModule( std::unique_ptr<Module> &&module ) {
-	Post( std::bind( &Main::RegisterModule, g_main, std::move(module) ));
+
+	Post( std::bind( &Main::RegisterModule, g_main, module.release() ));
 }
 
 //-----------------------------------------------------------------------------
 void RegisterModule( Module *module ) {
-	Post( std::bind( &Main::RegisterModule, g_main, 
-		  std::unique_ptr<Module>( module ) ));
+	
+	Post( std::bind( &Main::RegisterModule, g_main, module ));
 }
 
 //-----------------------------------------------------------------------------
@@ -110,7 +111,7 @@ Main::~Main() {
 //-----------------------------------------------------------------------------
 void Main::PostSystem( std::function<void()> handler, 
 						   bool main, int delay ) {
-
+	
 	if( main ) {
 		m_service.Post( m_strand.wrap( handler ), delay );
 	} else {
@@ -119,7 +120,9 @@ void Main::PostSystem( std::function<void()> handler,
 }
 
 //-----------------------------------------------------------------------------
-void Main::RegisterModule( std::unique_ptr<Module> &&module ) {
+void Main::RegisterModule( Module *module_ptr ) {
+
+	std::unique_ptr<Module> module(module_ptr);
 	// must be called in the system strand
 	
 	if( m_module_map.count( module->GetName() ) ) {
@@ -140,7 +143,7 @@ void Main::RegisterModule( std::unique_ptr<Module> &&module ) {
 		}
 	}
 	
-	m_modules.insert( iterator, std::move( module )); 
+	m_modules.insert( iterator, std::move( module ));
 }
 
 //-----------------------------------------------------------------------------
@@ -166,9 +169,7 @@ void Main::Shutdown() {
 	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
 		(*i)->OnShutdown();
 	} 
-
-//	m_live = false;
-//	m_service.Finish( false );
+	 
 }
 
 //-----------------------------------------------------------------------------
@@ -215,7 +216,6 @@ void Main::SystemEnd() {
 		(*i)->OnUnload();
 		(*i).reset();
 	}
-
 }
 
 //-----------------------------------------------------------------------------
@@ -294,8 +294,9 @@ bool Main::ExecuteScript( const Stref &file ) {
 
 	::Console::Print( "Finished executing script: \"%s\", time=%s", file, 
 		Util::RoundDecimal( timer.Duration(), 2 ));
-
+		        
 	return true;
+	
 }
 
 }

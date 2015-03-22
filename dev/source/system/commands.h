@@ -87,7 +87,7 @@ public:
 /// @return true if the command was executed. false if there was no handler 
 ///         for it.
 ///
-bool TryExecuteCommand( Util::StringRef command_string );
+bool TryExecuteCommand( const Stref &command_string );
 
 /// ---------------------------------------------------------------------------
 /// Add a global command.
@@ -101,7 +101,7 @@ bool TryExecuteCommand( Util::StringRef command_string );
 ///                      handler will take priority over any existing
 ///                      handlers.
 ///
-void AddGlobalCommand( Util::StringRef name, Util::StringRef desc, 
+void AddGlobalCommand( const Stref &name, const Stref &desc, 
 					   Command::Handler handler, 
 					   bool high_priority = false );
 

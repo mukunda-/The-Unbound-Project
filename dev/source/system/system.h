@@ -161,7 +161,7 @@ public:
 	void Shutdown();
 
 	//void RunProgram( std::unique_ptr<Program> &&program );
-	void RegisterModule( std::unique_ptr<Module> &&module );
+	void RegisterModule( Module *module );
 
 	Service &GetService();
 
