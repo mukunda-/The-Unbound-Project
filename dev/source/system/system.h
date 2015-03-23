@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
  
@@ -13,14 +13,7 @@
 #include "service.h"
 
 namespace System {
-
-
-/// ---------------------------------------------------------------------------
-/// Calls GetService().Finish()
-///
-void Finish(); 
-
-
+ 
 //-----------------------------------------------------------------------------
 template<typename F, typename ... Args>
 void LogEx( F output, const std::string &format, Args ... args ) {
@@ -132,7 +125,7 @@ void Shutdown();
 /// @param command_only   If true, only try to execute a command, and do not
 ///                       change system variables.
 ///
-void ExecuteCommand( Util::StringRef command_string, 
+void ExecuteCommand( const Stref &command_string, 
 					 bool command_only = false );
 
 /// ---------------------------------------------------------------------------
