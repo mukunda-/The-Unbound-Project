@@ -496,7 +496,7 @@ void Stream::SaveIPHex() {
 		m_ip_hex.reserve( 9 );
 		
 		auto bytes = address.to_v4().to_bytes();
-		assert( bytes.size() == 8 );
+		assert( bytes.size() == 4 );
 
 		for( int i = 0; i < (int)bytes.size(); i++ ) {
 			m_ip_hex += GetHexDigit( bytes[i] >> 4  );
@@ -508,7 +508,7 @@ void Stream::SaveIPHex() {
 		m_ip_hex.reserve( 33 );
 
 		auto bytes = address.to_v6().to_bytes();
-		assert( bytes.size() == 32 );
+		assert( bytes.size() == 16 );
 
 		for( int i = 0; i < (int)bytes.size(); i++ ) {
 			m_ip_hex += GetHexDigit( bytes[i] >> 4  );

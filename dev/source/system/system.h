@@ -189,6 +189,10 @@ private:
 	std::unordered_map< std::string, Commands::Instance* > m_command_map;
 
 	std::mutex m_mutex;
+
+	std::condition_variable m_cvar_shutdown;
+	bool m_shutdown_complete = false;
+
 	int m_busy_modules = 0;
 
 public: 
@@ -216,6 +220,7 @@ private:
 	void OnModuleBusy( Module &module );
 
 	bool AnyModulesBusy();
+	void ShutdownEx();
 	void SystemEnd();
 
 	friend class Module;

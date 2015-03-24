@@ -13,6 +13,7 @@
 
 #pragma warning( disable : 4996 )
 
+//-----------------------------------------------------------------------------
 namespace System {
 
 Main *g_main;
@@ -101,6 +102,14 @@ Main::Main( int threads ) : m_strand( m_service() ) {
 Main::~Main() {
 	Shutdown();
 
+	{
+		// block until shutdown completes
+		std::unique_lock<std::mutex> lock( m_mutex );
+		m_cvar_shutdown.wait( lock, 
+			[&]() { return m_shutdown_complete; } 
+		);
+	}
+
 	// we clear this here because the command instance destructors
 	// need access to Main.
 	m_global_commands.clear();
@@ -163,13 +172,17 @@ Service &Main::GetService() {
 
 //-----------------------------------------------------------------------------
 void Main::Shutdown() {
+	m_strand.post( std::bind( &Main::Shutdown, this ));
+}
+
+//-----------------------------------------------------------------------------
+void Main::ShutdownEx() {
 	if( !m_live ) return; // already shut down.
 	m_live = false;
 
 	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
 		(*i)->OnShutdown();
 	} 
-	 
 }
 
 //-----------------------------------------------------------------------------
@@ -207,7 +220,7 @@ void Main::SystemEnd() {
 		// there is a logical error somewhere, no modules should
 		// be busy at this point.
 		 
-		assert( false );
+		assert( !"Modules busy during system end." );
 		return; 
 	}
 
@@ -216,6 +229,13 @@ void Main::SystemEnd() {
 		(*i)->OnUnload();
 		(*i).reset();
 	}
+
+	{
+		std::lock_guard<std::mutex> lock( m_mutex );
+		m_shutdown_complete = true;
+	}
+
+	m_cvar_shutdown.notify_all();
 }
 
 //-----------------------------------------------------------------------------
