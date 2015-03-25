@@ -56,8 +56,6 @@ protected:
 		delete m_lock;
 		m_lock = nullptr;
 	}
-
-	 
 };
 
 //System::Main  *NetTests::i_system = nullptr;
