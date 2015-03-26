@@ -22,6 +22,12 @@ namespace Tests {
 
 #define MULTITHREADED
 
+#ifdef MULTITHREADED
+#  define NUM_THREADS 4
+#else
+#  define NUM_THREADS 1
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 
 class NetTests : public ::testing::Test {
@@ -35,20 +41,12 @@ protected:
 
 	void SetUp() {
 		m_lock = new std::mutex;
-
-#       ifdef MULTITHREADED
-			i_system = new System::Main(4);
-#       else
-			i_system = new System::Main(1);
-#       endif
-
-		System::RegisterModule<Net::Instance>();
-		//i_net = new Net::Instance ;
+		
+		i_system = new System::Main( NUM_THREADS );
+		System::RegisterModule<Net::Instance>(); 
 	}
 	
-	void TearDown() {
-		//delete i_net;
-		//i_net = nullptr;
+	void TearDown() { 
 
 		delete i_system;
 		i_system = nullptr;
@@ -57,9 +55,7 @@ protected:
 		m_lock = nullptr;
 	}
 };
-
-//System::Main  *NetTests::i_system = nullptr;
-//Net::Instance *NetTests::i_net = nullptr;
+ 
 std::mutex    *NetTests::m_lock = nullptr;
 
 #define NETLOCKGUARD std::lock_guard<std::mutex> lock_guard_( *NetTests::m_lock )
@@ -129,13 +125,12 @@ public:
 		stream.m_expected++;
 	}
 };
-
+ 
 ///////////////////////////////////////////////////////////////////////////////
 TEST_F( NetTests, SimpleConnectionTest ) {
-
+	
 	for( int jjj = 0; jjj < 50; jjj++ ) {{
-		 
-		//std::shared_ptr<StreamHandler1>//
+
 		Asev::Handler::ptr handler = std::make_shared<StreamHandler1>();
 
 		auto factory = [handler]() mutable {
@@ -159,7 +154,6 @@ TEST_F( NetTests, SimpleConnectionTest ) {
 			stream->Close();
 	
 		}
- 
 	}}
 }
 

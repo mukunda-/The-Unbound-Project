@@ -138,12 +138,15 @@ bool ExecuteScript( const Stref &file );
 /// ---------------------------------------------------------------------------
 /// Main system class
 ///
-class Main {
+class Main final {
 	 
 public:
 
 	/// -----------------------------------------------------------------------
-	/// @param threads Number of threads to start the main service with.
+	/// @param threads Number of threads to add to the system service. 
+	///                Note that this argument may be 0, and that calling
+	///                System::Join (from the main/init thread) adds 
+	///                an additional work thread.
 	///
 	Main( int threads );
 
