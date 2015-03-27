@@ -172,17 +172,24 @@ Service &Main::GetService() {
 
 //-----------------------------------------------------------------------------
 void Main::Shutdown() {
-	m_strand.post( std::bind( &Main::Shutdown, this ));
+	m_strand.post( std::bind( &Main::ShutdownEx, this ));
 }
 
 //-----------------------------------------------------------------------------
 void Main::ShutdownEx() {
 	if( !m_live ) return; // already shut down.
+	
+	std::lock_guard<std::mutex> lock(m_mutex);
 	m_live = false;
 
 	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
 		(*i)->OnShutdown();
 	} 
+
+	if( m_busy_modules == 0 ) {
+		// all modules are idle.
+		m_strand.post( std::bind( &Main::SystemEnd, this ));
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -223,6 +230,9 @@ void Main::SystemEnd() {
 		assert( !"Modules busy during system end." );
 		return; 
 	}
+
+	// this function should only run once.
+	assert( !m_shutdown_complete );
 
 	// delete all modules
 	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {

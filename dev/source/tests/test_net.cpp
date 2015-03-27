@@ -20,7 +20,7 @@
 
 namespace Tests {
 
-#define MULTITHREADED
+//#define MULTITHREADED
 
 #ifdef MULTITHREADED
 #  define NUM_THREADS 4
