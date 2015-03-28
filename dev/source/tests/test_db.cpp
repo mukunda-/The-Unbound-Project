@@ -17,19 +17,17 @@ class DbTests : public ::testing::Test {
 	
 public:
 	System::Main *i_system = nullptr;
-	DB::Manager *i_db = nullptr; 
 	
 protected:
 
 	void SetUp() {
 
-		i_system = new System::Main(1);
-		i_db = new DB::Manager(1);
+		i_system = new System::Main( 1 );
+		System::RegisterModule<DB::Manager>( 1 );
+		System::Start( false );
 	}
 	
 	void TearDown() {
-		delete i_db;
-		i_db = nullptr;
 
 		delete i_system;
 		i_system = nullptr;

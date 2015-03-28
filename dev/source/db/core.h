@@ -58,12 +58,20 @@ private:
 
 	std::deque<std::unique_ptr<Transaction>> m_work_queue; // todo, use arena allocator.
 	bool m_shutdown = false;
-	std::mutex m_work_mutex;
 	std::condition_variable m_work_signal;
+
+	std::mutex m_mutex;
+
+	int m_work_counter = 0; 
+
+	void WorkAdded();
+	void WorkCompleted();
 
 	void ThreadMain();
 	void DoActions( TransactionPtr &transaction, LinePtr &line, int &retries );
 	void ExecuteTransaction( TransactionPtr transaction );
+
+	friend class Work;
 
 	//-------------------------------------------------------------------------
 public: // wrapped by global functions.
@@ -83,7 +91,6 @@ private:
 
 	// called by Connection:
 	void QueueWork( std::unique_ptr<Transaction> &&work );
-	
 	
 };
 

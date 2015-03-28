@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/slinkedlist.h"
+#include "work.h"
 #include "forwards.h"
 
 namespace DB {
@@ -17,7 +18,7 @@ namespace DB {
 /// The manager will try to execute the transaction and retry if there is
 /// a recoverable failure until it succeeds or becomes impossible.
 ///
-class Transaction {
+class Transaction : public Work {
 	friend class Manager;
 	friend class Connection;
 

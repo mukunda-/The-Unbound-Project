@@ -32,7 +32,7 @@ Connection &Get( const string &name ) {
 //-----------------------------------------------------------------------------
 void Manager::QueueWork( unique_ptr<Transaction> &&transaction ) {
 	{
-		lock_guard<mutex> lock(m_work_mutex);
+		lock_guard<mutex> lock( m_mutex );
 		m_work_queue.push_back( std::move(transaction) );
 	}
 	m_work_signal.notify_one();
@@ -136,7 +136,7 @@ void Manager::ExecuteTransaction( TransactionPtr transaction ) {
 
 //-----------------------------------------------------------------------------
 void Manager::ThreadMain() {
-	unique_lock<mutex> lock( m_work_mutex, std::defer_lock );
+	unique_lock<mutex> lock( m_mutex, std::defer_lock );
 	while( true ) {
 		lock.lock();
 		while( m_work_queue.empty() && !m_shutdown ) {
@@ -204,7 +204,7 @@ Manager::~Manager() {
 
 	// set shutdown flag, send signal, and wait for work to finish.
 	{
-		lock_guard<mutex> lock(m_work_mutex);
+		lock_guard<mutex> lock( m_mutex );
 		m_shutdown = true;
 	}
 
@@ -219,4 +219,22 @@ sql::SQLString Manager::SqlString( const std::string &str ) {
 	return sql::SQLString( str.c_str() );
 }
 
+//-----------------------------------------------------------------------------
+void Manager::WorkAdded() {
+	lock_guard<mutex> lock( m_mutex );
+	m_work_counter++;
+	SetBusy( true );
+}
+
+//-----------------------------------------------------------------------------
+void Manager::WorkCompleted() {
+	lock_guard<mutex> lock( m_mutex );
+	m_work_counter--;
+
+	if( m_work_counter == 0 ) {
+		SetBusy( false );
+	}
+}
+
+//-----------------------------------------------------------------------------
 }

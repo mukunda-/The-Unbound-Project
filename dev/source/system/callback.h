@@ -1,6 +1,6 @@
 //===========================  The Unbound Project  =========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
@@ -30,6 +30,7 @@ namespace System {
 				m_main_strand( main ) {
 		} 
 		
+		//---------------------------------------------------------------------
 		template<typename T>
 		Callback( T handler ) : 
 				Callback( handler, true )

@@ -8,15 +8,15 @@
 
 namespace DB {
 	
-	extern Manager *g_instance;
+	extern Manager *g_manager;
 
 	//-------------------------------------------------------------------------
 	Work::Work() {
-		g_instance->WorkAdded();
+		g_manager->WorkAdded();
 	}
 
 	//-------------------------------------------------------------------------
 	Work::~Work() {
-		g_instance->WorkCompleted();
+		g_manager->WorkCompleted();
 	}
 }

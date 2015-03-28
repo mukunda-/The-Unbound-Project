@@ -114,6 +114,14 @@ template <class T, typename ... A> void RegisterModule( A...args ) {
 }
 
 /// ---------------------------------------------------------------------------
+/// Start program operation.
+///
+/// @param join Merge current thread with system, if true this function
+///             will not return until the system shuts down.
+///
+void Start( bool join = true );
+
+/// ---------------------------------------------------------------------------
 /// Start clean program exit sequence.
 ///
 void Shutdown();
@@ -212,7 +220,7 @@ public:
 					     bool command_only = false ); 
 	bool ExecuteScript( const Stref &file );
 	
-	void Start();
+	void Start( bool join );
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );

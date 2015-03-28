@@ -44,6 +44,7 @@ protected:
 		
 		i_system = new System::Main( NUM_THREADS );
 		System::RegisterModule<Net::Instance>(); 
+		System::Start( false );
 	}
 	
 	void TearDown() { 

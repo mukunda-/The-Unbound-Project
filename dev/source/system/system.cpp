@@ -53,6 +53,11 @@ void RegisterModule( Module *module ) {
 }
 
 //-----------------------------------------------------------------------------
+void Start( bool join ) {
+	g_main->Start( join );
+}
+
+//-----------------------------------------------------------------------------
 void Shutdown() {
 	::Console::Print( "Shutting down." );
 	g_main->Shutdown();
@@ -103,6 +108,8 @@ Main::~Main() {
 	Shutdown();
 
 	{
+		
+
 		// block until shutdown completes
 		std::unique_lock<std::mutex> lock( m_mutex );
 		m_cvar_shutdown.wait( lock, 
@@ -156,13 +163,13 @@ void Main::RegisterModule( Module *module_ptr ) {
 }
 
 //-----------------------------------------------------------------------------
-void Main::Start() {
+void Main::Start( bool join ) {
 
 	for( auto &i : m_modules ) {
 		i->OnStart();
 	}
 
-	Join();
+	if( join ) Join();
 }
 
 //-----------------------------------------------------------------------------
