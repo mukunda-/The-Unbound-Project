@@ -56,7 +56,7 @@ private:
 	sql::mysql::MySQL_Driver &m_driver;
 	std::vector<std::thread> m_threadpool;
 
-	std::deque<std::unique_ptr<Transaction>> m_work_queue; // todo, use arena allocator.
+	std::deque<TransactionPtr> m_work_queue; // todo, use arena allocator.
 	bool m_shutdown = false;
 	std::condition_variable m_work_signal;
 
