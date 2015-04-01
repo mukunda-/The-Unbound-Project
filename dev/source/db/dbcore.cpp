@@ -105,7 +105,7 @@ void Manager::ExecuteTransaction( TransactionPtr transaction ) {
 
 			// push line back into pool, if an exception occurs
 			// this is skipped and the connection is deleted.
-			conn.PushLine( std::move(line), true );
+			conn.PushLine( std::move(line) );
 
 			transaction->Completed( std::move(transaction), false );
 			return;
@@ -128,7 +128,9 @@ void Manager::ExecuteTransaction( TransactionPtr transaction ) {
 			}
 			transaction->m_mysql_error = ex.MySQLCode();
 			transaction->Completed( std::move( transaction ), true );
-			conn.FreeThread();
+			//conn.FreeThread();
+			
+			conn.PushLine( nullptr );
 			return;
 		}
 	}

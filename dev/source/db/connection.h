@@ -14,7 +14,7 @@
 namespace DB {
 
 //-----------------------------------------------------------------------------
-class Connection : public Util::SLinkedItem<Connection> {
+class Connection {
 	friend class Manager;
 
 	Manager     &m_manager;
@@ -37,11 +37,13 @@ class Connection : public Util::SLinkedItem<Connection> {
 	// get a line from the linepool or create one.
 	LinePtr GetLine();
 
-	// push a line back into the linepool
-	void PushLine( LinePtr &&line, bool thread_freed = true );
-
-	// increment the free thread counter.
-	void FreeThread();
+	/** -----------------------------------------------------------------------
+	 * Push a line back into the linepool.
+	 *
+	 * @param line Pointer to line. May be a null pointer to only free
+	 *             a thread without pushing a (failed) line.
+	 */
+	void PushLine( LinePtr &&line ); 
 
 public:
 
