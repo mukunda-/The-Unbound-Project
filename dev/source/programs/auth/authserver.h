@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "system/program.h"
+#include "system/module.h"
 
 #include "system/console.h"
 #include "net/core.h"
@@ -44,10 +44,7 @@ public:
 using AuthStreamPtr = std::shared_ptr<AuthStream>;
 
 //-----------------------------------------------------------------------------
-class AuthServer : public System::Program {
-	  
-
-	Net::Instance i_network;
+class AuthServer : public System::Module {
 
 	std::unique_ptr<Net::Listener> m_listener;
 	
@@ -63,7 +60,7 @@ private:
 	static Net::StreamPtr StreamFactory();
 
 	void OnStart() override;
-	void OnStop() override;
+	void OnShutdown() override;
 };
 
 }

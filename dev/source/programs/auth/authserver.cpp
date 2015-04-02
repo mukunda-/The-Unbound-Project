@@ -176,8 +176,7 @@ struct AuthMessage {
 AuthStream::AuthStream() {
 	m_state = STATE_LOGIN;
 }
-	 
-	
+
 //-----------------------------------------------------------------------------
 void AuthStream::AcceptError( const boost::system::error_code &error ) {
 			
@@ -219,7 +218,7 @@ void AuthStream::Receive( Net::Message &netmsg ) {
 }
 
 //-----------------------------------------------------------------------------
-AuthServer::AuthServer() {
+AuthServer::AuthServer() : System::Module( "authserver", Levels::USER ) {
 
 	g_instance = this;
 	Console::Print( "Listening." );
@@ -236,7 +235,7 @@ void AuthServer::OnStart() {
 }
 
 //-----------------------------------------------------------------------------
-void AuthServer::OnStop() {
+void AuthServer::OnShutdown() {
 	m_listener = nullptr;
 }
 

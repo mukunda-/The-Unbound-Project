@@ -10,6 +10,8 @@
 #include "db/transaction.h"
 #include "db/statement.h"
 
+#define LIGHT
+
 namespace Tests {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,7 +25,7 @@ protected:
 	void SetUp() {
 
 		i_system = new System::Main( 1 );
-		System::RegisterModule<DB::Manager>( 1 );
+		System::RegisterModule<DB::Manager>( 4 );
 		System::Start( false );
 	}
 	
@@ -111,9 +113,15 @@ TEST_F( DbTests, DBTest1 ) {
 
 	auto info = GetTestDBInfo();
 		
-	auto &con = DB::Register( "test", info );
-		
-	for( int i = 0; i < 30; i++ ) {
+	auto &con = DB::Register( "test", info, 8 );
+
+#   ifdef LIGHT 
+		int iterations = 5;
+#   else
+		int iterations = 30;
+#   endif
+	
+	for( int i = 0; i < iterations; i++ ) {
 		auto test = DB::TransactionPtr( new TestTransaction1 );  
 		con.Execute( std::move(test) );
 	}
