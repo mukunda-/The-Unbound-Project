@@ -18,7 +18,7 @@
 void Main( int argc, char *argv[] ) {
 	System::Main i_system(4);
 	System::ServerConsole::Instance i_serverconsole( WINDOW_TITLE );
-	System::RegisterModule<Net::Instance>(1);
+	System::RegisterModule<Net::Instance>();
 	System::RegisterModule<User::AuthServer>();
 
 	System::Start();

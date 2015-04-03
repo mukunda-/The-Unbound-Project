@@ -253,6 +253,8 @@ void Main::SystemEnd() {
 	}
 
 	m_cvar_shutdown.notify_all();
+
+	m_service.Finish( false );
 }
 
 //-----------------------------------------------------------------------------

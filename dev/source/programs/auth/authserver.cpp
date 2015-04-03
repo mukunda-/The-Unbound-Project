@@ -149,7 +149,7 @@ private:
 			return NOP;
 		}
 	} 
-
+	
 	//-------------------------------------------------------------------------
 	void Completed( DB::TransactionPtr ptr, bool failed ) override {
 		// todo
