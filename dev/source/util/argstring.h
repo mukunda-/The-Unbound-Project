@@ -138,7 +138,7 @@ public:
 	///
 	void GetStrptr( int index, const char *&start, int &length ) {
 		
-		if( index < 0 || index >= m_index.size() ) {
+		if( index < 0 || index >= (int)m_index.size() ) {
 			start = nullptr;
 			length = 0;
 			return;
