@@ -82,7 +82,7 @@ bool ArgString::Check( std::initializer_list<int> usage,
 					   int start, bool allow_extra ) {
 
 	assert( start >= 0 );
-	if( (start + (int)usage.size()) > m_index.size() ) {
+	if( (start + (int)usage.size()) > (int)m_index.size() ) {
 		return false; // not enough arguments.
 	}
 
@@ -118,7 +118,7 @@ bool ArgString::Check( std::initializer_list<int> usage,
 void ArgString::GetCString( int index, char *output, int maxlen ) const {
 	assert( maxlen > 0 );
 	assert( output );
-	if( index < 0 || index >= m_index.size() ) {
+	if( index < 0 || index >= (int)m_index.size() ) {
 		output[0] = 0;
 		return;
 	}
@@ -131,7 +131,7 @@ void ArgString::GetCString( int index, char *output, int maxlen ) const {
 
 //-----------------------------------------------------------------------------
 int ArgString::GetInt( int index, bool easy, int base ) const { 
-	if( index < 0 || index >= m_index.size() ) return 0;
+	if( index < 0 || index >= (int)m_index.size() ) return 0;
 
 	return Convert( m_source.c_str() + m_index[index].start, easy, 
 					strtol, base );
@@ -139,7 +139,7 @@ int ArgString::GetInt( int index, bool easy, int base ) const {
 
 //-----------------------------------------------------------------------------
 long long ArgString::GetLongInt( int index, bool easy, int base ) const {
-	if( index < 0 || index >= m_index.size() ) return 0;
+	if( index < 0 || index >= (int)m_index.size() ) return 0;
 
 	return Convert( m_source.c_str() + m_index[index].start, easy, 
 					strtoll, base );
@@ -147,7 +147,7 @@ long long ArgString::GetLongInt( int index, bool easy, int base ) const {
 
 //-----------------------------------------------------------------------------
 double ArgString::GetFloat( int index, bool easy ) const {
-	if( index < 0 || index >= m_index.size() ) {
+	if( index < 0 || index >= (int)m_index.size() ) {
 		return 0.0;
 	}
 		 
