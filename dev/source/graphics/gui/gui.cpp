@@ -5,6 +5,8 @@
 // gui.cpp
 // core of the user interface
 
+//hi
+
 #include "stdafx.h"
 #include "util/minmax.h"
 
