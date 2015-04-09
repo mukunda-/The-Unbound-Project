@@ -20,16 +20,19 @@ void RunGame() {
 
 //------------------------------------------------------------------------------------------------------
 INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
+
+	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
+		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
+		return 0;
+	}
 	 
 	auto system = std::unique_ptr<System::Main>( new System::Main(4) );
 	System::RegisterModule<Net::Instance>();
-	System::RegisterModule<SDL::Instance>();
-	 
+	System::RegisterModule<Game::Game>();
+	
+	 /*
 	{
-		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
-			std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
-			return 0;
-		}
+		
 		 
 		
 		Video::Open( 1200, 675 );
@@ -37,7 +40,8 @@ INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
 		RunGame();
 
 		Video::Close();
-		SDL_Quit();
 	}
+	*/
+	SDL_Quit();
 	return 0;
 }
