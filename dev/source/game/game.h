@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 #pragma once
 
 // the Game class is created after the subsystem is initialized
@@ -21,11 +21,7 @@ namespace Game {
 /// Main game class.
 ///
 class Game : public System::Module {
-
-	class NetEventHandler {
-
-	};
-
+	  
 	System::Variable &cl_master_address;
 
 //	Network::Connection m_net_master;

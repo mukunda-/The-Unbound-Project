@@ -10,6 +10,14 @@
 #pragma comment(lib, "sdl2.lib")
 #pragma comment( lib, "freetype246.lib" )
 #pragma comment( lib, "libprotobuf.lib" )
+#pragma comment( lib, "ssleay32.lib" )
+#pragma comment( lib, "libeay32.lib" )
+
+#ifdef _DEBUG
+	#pragma comment( lib, "libyaml-cppmdd.lib" )
+#else
+	#pragma comment( lib, "libyaml-cppmd.lib" )
+#endif
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

@@ -118,15 +118,18 @@ end
 
 local project_path;
 
-project_path = CreateProject( "client", "CLIENT", "WindowedApp", false )
+project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 	defines { "UB_CLIENT" }
 	
 	files { 
+		"source/console/*.cpp",
+		"source/asev/*.cpp",
 		"source/game/*.cpp",
 		"source/graphics/*.cpp",
 		"source/graphics/gui/*.cpp",
 		"source/io/*.cpp",
 		"source/mem/*.cpp",
+		"source/mem/arena/*.cpp",
 		"source/net/*.cpp",
 		"source/system/*.cpp",
 		"source/util/*.cpp",
