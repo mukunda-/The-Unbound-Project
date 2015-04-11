@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
  
@@ -62,29 +62,18 @@
 #include "util/countof.h"
 
 #if PROJECT_CLIENT
-#include "pch_client.h"
-
+#   include "pch_client.h"
 #elif PROJECT_MASTER
-#include "pch_master.h"
-
+#   include "pch_master.h"
 #elif PROJECT_NODE
-#include "pch_node.h"
-
+#   include "pch_node.h"
 #elif PROJECT_AUTH
-
-#include "pch_auth.h"
-
+#   include "pch_auth.h"
 #elif PROJECT_TEST
-
-#include "pch_test.h"
-
+#   include "pch_test.h"
 #elif PROJECT_RXGSERV
-
-#include "pch_rxgserv.h"
-
+#   include "pch_rxgserv.h"
 #elif PROJECT_UNIT
-
-#include "pch_unit.h"
- 
+#   include "pch_unit.h"
 #endif
 

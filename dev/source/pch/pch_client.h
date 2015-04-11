@@ -4,19 +4,20 @@
 
 #pragma once
 
-#pragma comment(lib, "glew32.lib")
-#pragma comment(lib, "OpenGL32.lib")
-#pragma comment(lib, "GLu32.lib")
-#pragma comment(lib, "sdl2.lib")
-#pragma comment( lib, "freetype246.lib" )
+#pragma comment( lib, "glew32.lib" )
+#pragma comment( lib, "OpenGL32.lib" )
+#pragma comment( lib, "GLu32.lib" )
+#pragma comment( lib, "sdl2.lib" )
 #pragma comment( lib, "libprotobuf.lib" )
 #pragma comment( lib, "ssleay32.lib" )
 #pragma comment( lib, "libeay32.lib" )
 
 #ifdef _DEBUG
-	#pragma comment( lib, "libyaml-cppmdd.lib" )
+#   pragma comment( lib, "libyaml-cppmdd.lib" )
+#   pragma comment( lib, "freetype255d.lib" )
 #else
-	#pragma comment( lib, "libyaml-cppmd.lib" )
+#   pragma comment( lib, "libyaml-cppmd.lib" )
+#   pragma comment( lib, "freetype255.lib" )
 #endif
 
 #define WIN32_LEAN_AND_MEAN

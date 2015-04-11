@@ -181,7 +181,5 @@
 
 #endif
 
-
-
 #include "globals.h"
 

@@ -45,16 +45,22 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 	-- library directories --------------------------------
 	
 	if( p_64bit ) then
-		libdirs { "$(BOOST_ROOT)/lib/x64/lib" }
+		libdirs { 
+			"$(BOOST_ROOT)/lib/x64/lib", 
+			"$(DEVPATH)/glew/lib/Release/Win64",
+			"$(DEVPATH)/SDL203/lib/x64",
+			"$(DEVPATH)/freetype-2.5.5/objs/vc2010/x64"
+		}
 	else
-		libdirs { "$(BOOST_ROOT)/stage/lib" }
+		libdirs { 
+			"$(BOOST_ROOT)/stage/lib",
+			"$(DEVPATH)/glew/lib/Release/Win32",
+			"$(DEVPATH)/SDL203/lib/x86"
+			--"$(DEVPATH)/freetype/objs/win32/vc2010" need to update this if needed.
+		}
+		
 	end
 	
-	libdirs {
-		"$(DEVPATH)/glew/lib/Release/Win32",
-		"$(DEVPATH)/SDL203/lib/x86",
-		"$(DEVPATH)/freetype/objs/win32/vc2010"
-	}
 	
 	-- include directories --------------------------------
 	includedirs {
