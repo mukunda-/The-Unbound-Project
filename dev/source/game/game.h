@@ -30,6 +30,10 @@ public:
 	Game();
 	~Game();
 
+	//void OnLoad() override;
+	void OnStart() override;
+	//void OnShutdown() override;
+
 	void Run();
 };
 

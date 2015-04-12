@@ -47,7 +47,7 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 	if( p_64bit ) then
 		libdirs { 
 			"$(BOOST_ROOT)/lib/x64/lib", 
-			"$(DEVPATH)/glew/lib/Release/Win64",
+			"$(DEVPATH)/glew/lib/Release/x64",
 			"$(DEVPATH)/SDL203/lib/x64",
 			"$(DEVPATH)/freetype-2.5.5/objs/vc2010/x64"
 		}
@@ -75,7 +75,10 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 	if p_kind == "WindowedApp" then
 		flags { "WinMain" }
 	end
-	defines { "WIN32", "_WINDOWS" }
+	defines { "WIN32", "_WIN32", "_WINDOWS" }
+	if( p_64bit ) then
+		defines { "WIN64", "_WIN64" }
+	end
 	linkoptions { "/nodefaultlib:msvcrt.lib" }
 	
 	-------------------------------------------------------
@@ -146,6 +149,10 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 		"libsource/stb_image.c",
 		
 		"source/**.h",
+		"libsource/**.h",
+		
+		"libsource/hash/*.c",
+		"libsource/hash/*.cpp",
 		
 		"protocol/compiled/**.cc"
 	}
@@ -203,10 +210,10 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 		"protocol/compiled/**.cc",
 		 
 		"source/**.h",
+		"libsource/**.h",
 		
 		"libsource/hash/*.c",
-		"libsource/hash/*.cpp",
-		"libsource/hash/*.h"
+		"libsource/hash/*.cpp"
 	}
 
 project_path = CreateProject( "test", "TEST", "ConsoleApp", true )

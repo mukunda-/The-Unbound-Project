@@ -13,28 +13,20 @@
 #include "system/system.h"
 
 //-----------------------------------------------------------------------------
-void RunGame() {
-	std::unique_ptr<Game::Game> game(new Game::Game);
-	game->Run();
-}
-
-//-----------------------------------------------------------------------------
 INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
 
-	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0){
+	if( SDL_Init( SDL_INIT_VIDEO|SDL_INIT_EVENTS ) != 0 ) {
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return 0;
 	}
-	 
+	
 	auto system = std::unique_ptr<System::Main>( new System::Main(4) );
 	System::RegisterModule<Net::Instance>();
 	System::RegisterModule<Game::Game>();
-	
+	System::Start();
+
 	 /*
-	{
-		
-		 
-		
+	{ 
 		Video::Open( 1200, 675 );
 
 		RunGame();
