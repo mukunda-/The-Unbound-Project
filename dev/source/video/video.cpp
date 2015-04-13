@@ -1,66 +1,233 @@
 //===========================  The Unbound Project  =========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
-#include "video/video.h"
-
-//------------------------------------------------------------------------------------------------
-namespace Video {
-//------------------------------------------------------------------------------------------------
-	
-class Context {
-	SDL_Window *window; 
-	SDL_GLContext glcontext; 
+#include "video.h"
+#include "console/console.h"
  
-	int screen_width;
-	int screen_height;
+//-----------------------------------------------------------------------------
+namespace Video {
 
-public:
-	Context() {
-		window = 0; 
-		glcontext = 0;
-	} 
-	void Destroy() { 
-		if( glcontext ) SDL_GL_DeleteContext( glcontext );
-		if( window ) SDL_DestroyWindow( window ); 
-		window = 0;
-		glcontext = 0;
+Instance *g_instance = nullptr;
+
+//-----------------------------------------------------------------------------
+Instance::Instance() : Module( "video", Levels::SUBSYSTEM ) {
+	assert( g_instance == nullptr );
+	g_instance = this;
+}
+
+//-----------------------------------------------------------------------------
+Instance::~Instance() {
+	g_instance = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::Open( int width, int height ) {
+	Close();
+
+	m_screen_width  = width;
+	m_screen_height = height;
+
+	m_window = SDL_CreateWindow( "CLIENT", 
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+		width, height, SDL_WINDOW_OPENGL );
+
+	if( !m_window ) {
+		throw std::exception( "Window creation error." );
 	}
-	void Create( int width, int height ) {
-		Destroy();
-		screen_width = width;
-		screen_height = height;
-		window = SDL_CreateWindow( "GAME", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,width, height, SDL_WINDOW_OPENGL );
-		
-		if( !window ) {
-			throw std::exception( "Window creation error." );
-		}  
-		glcontext = SDL_GL_CreateContext(window);
+
+	m_gl_context = SDL_GL_CreateContext( m_window );
+	
+	Console::Print( "OpenGL Version: %s\n", glGetString(GL_VERSION) );
+	
+	GLenum err = glewInit(); 
+	if( err != GLEW_OK ) {
+		throw new std::exception( "Couldn't start GLEW." );
 	}
 
-	int ScreenWidth() const {
-		return screen_width < 1 ? 1 : screen_width;
+	//glEnable( GL_TEXTURE_2D );
+	//glShadeModel( GL_SMOOTH );
+	glClearDepth( 1.0f );
+	glEnable( GL_DEPTH_TEST );
+	SetDepthBufferMode( ZBUFFER_ENABLED );
+	//glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
+	SetCullingMode( CULLMODE_BACK );
+	//glEnable(GL_CULL_NONE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	SetBackgroundColor( 255.0f/255.0f, 116.0f/255.0f, 33.0f/255.0f );
+	 
+	SetBlendMode( BLEND_OPAQUE );
+
+	m_fov = 50.0;
+	UpdateViewport();
+}
+
+//-----------------------------------------------------------------------------
+void Instance::Close() {
+	if( m_gl_context ) {
+		SDL_GL_DeleteContext( m_gl_context );
+		m_gl_context = nullptr;
 	}
 
-	int ScreenHeight() const {
-		return screen_height < 1 ? 1 : screen_height;
-	} 
-
-	void Swap() {
-		SDL_GL_SwapWindow( window );
+	if( m_window ) {
+		SDL_DestroyWindow( m_window );
+		m_window = nullptr;
 	}
-} context; 
+}
 
+//-----------------------------------------------------------------------------
+void Instance::Swap() {
+	SDL_GL_SwapWindow( m_window );
+}
 
-//-------------------------------------------------------------------------------------------------
-//  camera
-//Eigen::Vector3f camera_position;
-//Eigen::Vector3f camera_forward;
-//Eigen::Vector3f camera_right;
-//Eigen::Vector3f camera_up;
-//Eigen::Vector3f camera_punch;
+//-----------------------------------------------------------------------------
+void Instance::UseGlobalSurface() {
+	glBindFramebuffer( GL_FRAMEBUFFER_EXT, 0 ); 
+	glViewport( 0, 0, m_screen_width, m_screen_height );
+}
 
+//-----------------------------------------------------------------------------
+void Instance::SetBackgroundColor( float r, float g, float b ) {
+	m_bg_color[0] = r;
+	m_bg_color[1] = g;
+	m_bg_color[2] = b;
+	m_fog_color[0] = r;
+	m_fog_color[1] = g;
+	m_fog_color[2] = b;
+
+	glClearColor( m_bg_color[0], m_bg_color[1], m_bg_color[2], 0.0f );
+
+	// i don't think this is used anymore
+	glFogfv( GL_FOG_COLOR, m_fog_color );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::BindTextureHandle( GLuint texture ) {
+	glBindTexture( GL_TEXTURE_2D, texture );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::BindTextureArrayHandle( GLuint texture ) {
+	glBindTexture( GL_TEXTURE_2D_ARRAY, texture );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetFogLength( float length ) {
+	m_fog_length = length;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetBlendMode( BlendMode mode ) {
+	if( m_blendmode == mode ) return;
+
+	switch( mode ) {
+
+	case BLEND_OPAQUE:
+		glDisable( GL_BLEND );
+		break;
+
+	case BLEND_ALPHA:
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		break;
+
+	case BLEND_ADD:
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+		break;
+
+	case BLEND_SUB:
+		//glEnable( GL_BLEND );
+		//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		// TODO...
+		return;
+
+	default:
+		return;
+	}
+
+	m_blendmode = mode;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetCullingMode( CullingMode mode ) {
+	if( m_cullmode == mode ) return;
+
+	switch( mode ) {
+	case CULLMODE_NONE:
+		glDisable( GL_CULL_FACE );
+		break;
+
+	case CULLMODE_BACK:
+		glEnable( GL_CULL_FACE );
+		glCullFace( GL_BACK );
+		break;
+
+	case CULLMODE_FRONT:
+		glEnable( GL_CULL_FACE );
+		glCullFace( GL_FRONT );
+	}
+	m_cullmode = mode;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetDepthBufferMode( DepthBufferMode mode ) {
+	if( m_depthmode == mode ) return;
+
+	switch( mode ) {
+	case ZBUFFER_DISABLED:
+		glDisable( GL_DEPTH_TEST );
+		break;
+
+	case ZBUFFER_WRITEONLY:
+		//glEnable( GL_DEPTH_TEST );
+		// todo
+		break;
+
+	case ZBUFFER_READONLY:
+		glEnable( GL_DEPTH_TEST );
+		glDepthMask( false );
+		break;
+
+	case ZBUFFER_ENABLED:
+		glEnable( GL_DEPTH_TEST );
+		glDepthMask( true );
+		break;
+	}
+	glDepthFunc(  GL_LEQUAL );
+
+	m_depthmode = mode;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::Clear() {
+	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::DrawQuads( int start, int size ) {
+	glDrawArrays( GL_QUADS, start, size );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::DrawQuadsInstanced( int start, int size, int instances ) {
+	glDrawArraysInstanced( GL_QUADS, start, size, instances );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetActiveTextureSlot( int slot ) {
+	glActiveTexture( GL_TEXTURE0 + slot );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::BindArrayBuffer( GLuint buffer ) {
+	// todo: redundancy checks?
+	glBindBuffer( GL_ARRAY_BUFFER, buffer );
+}
+
+ /* TODO move to camera shake dongle
 //-------------------------------------------------------------------------------------------------
 float camera_shake;
 float camera_shake_time;
@@ -68,31 +235,11 @@ float camera_shake_power;
 float camera_shake_power2;
 
 static const float camera_shake_power_max = 1.0;
-
+*/
 //-------------------------------------------------------------------------------------------------
-BlendMode blending_mode;
-CullingMode culling_mode;
-
-float bg_color[4];
-float fog_color[4];
-
-float fog_length;
  
-float field_of_view;
-
 //-------------------------------------------------------------------------------------------------
-// windows shit
-HGLRC hglrc;
-HDC hdc;
-
-HWND hwnd;
-HINSTANCE hinst;
-
-//-------------------------------------------------------------------------------------------------
-  
-float view_distance;
-int windowtype;
-int posx, posy;
+   
   
 //-------------------------------------------------------------------------------------------------
 Eigen::Matrix4f mat_view; 
@@ -173,7 +320,7 @@ void Camera::UpdateVideo() {
 	mat_xp = mat_projection * mat_view;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 const Eigen::Matrix4f &GetXPMatrix() {
 	return mat_xp;
 }
@@ -181,100 +328,10 @@ int GetXPMatrixSerial() {
 	return matxp_serial;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 const Eigen::Matrix4f &GetXPMatrixInverse() {
 	return mat_xpi;
 }
-
-
-//-------------------------------------------------------------------------------------------------
-void SetBackgroundColor( float r, float g, float b ) {
-	bg_color[0] = r;
-	bg_color[1] = g;
-	bg_color[2] = b;
-	fog_color[0] = r;
-	fog_color[1] = g;
-	fog_color[2] = b;
-//	glClearColor( 0.0f,0.0f,1.0f,0.0f );//bgred, bggreen, bgblue, 0.0f );
-	glClearColor( bg_color[0], bg_color[1], bg_color[2], 0.0f );
-	glFogfv(GL_FOG_COLOR, fog_color);			// Set Fog Color
-}
-
-//-------------------------------------------------------------------------------------------------
-void UseGlobalSurface() {
-	glBindFramebuffer(GL_FRAMEBUFFER_EXT, 0); 
-	glViewport( 0, 0, context.ScreenWidth(), context.ScreenHeight() );
-}
-  
-//------------------------------------------------------------------------------------------------
-void Open( int width, int height ) {
-	
-	static int first_init = 1;
-	if( first_init ) {
-		SetupConsole(); 
-
-		first_init = 0;
-		 
-	}
-	
-	context.Create( width, height );
-	
-	printf( "OpenGL Version: %s\n", glGetString(GL_VERSION) );
-
-	GLenum err = glewInit(); 
-	if( err != GLEW_OK ) {
-		throw new std::exception( "Couldn't start GLEW." );
-	}
-	
-
-	//glEnable( GL_TEXTURE_2D );
-	//glShadeModel( GL_SMOOTH );
-	glClearDepth( 1.0f );
-	glEnable( GL_DEPTH_TEST );
-	SetDepthBufferMode( ZBUFFER_ENABLED );
-	//glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
-	  
-	SetCullingMode( CULLMODE_BACK );
-	//glEnable(GL_CULL_NONE); 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	SetBackgroundColor( 255.0f/255.0f, 116.0f/255.0f, 33.0f/255.0f );
-	 
-	SetBlendMode( BLEND_OPAQUE );
-
-	field_of_view = 50.0; 
-	UpdateViewport();
-}
-
-void Close() {
-	context.Destroy();
-}
-  
-//-------------------------------------------------------------------------------------------------
-int ScreenWidth() {
-	return context.ScreenWidth();
-}
-
-//-------------------------------------------------------------------------------------------------
-int ScreenHeight() {
-	return context.ScreenHeight();
-}
-
-//-------------------------------------------------------------------------------------------------
-void Swap() {
-	context.Swap();
-}
-
-//-------------------------------------------------------------------------------------------------
-void BindTextureHandle( GLuint texture ) {
-	glBindTexture(GL_TEXTURE_2D, texture );
-}
-
-//-------------------------------------------------------------------------------------------------
-void BindTextureArrayHandle( GLuint texture ) {
-	glBindTexture( GL_TEXTURE_2D_ARRAY, texture );
-}
-
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -332,7 +389,7 @@ void FadeCameraShake( float factor ) {
 	if( camera_shake_power < 0 ) camera_shake_power = 0;
 }*/
 /*
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 float GetCSoffset( float offset ) {
 	
 	float a = rnd::get_static(offset+(camera_shake_time*0.25f)) * 8.0f;
@@ -342,7 +399,7 @@ float GetCSoffset( float offset ) {
 	return (a * (1.0f / 12.0f) - 0.5f) * 2.0f;
 }*/
 /*
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 float AddCameraShakeTime( float time ) {
 	camera_shake_time += time;
 	return camera_shake_time;
@@ -395,7 +452,7 @@ void camera_shit_that_needs_to_be_organized() {
 	
 }*/
 /*
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void SetCamera_LookAt( cml::vector3f position, cml::vector3f target, float roll ) {
 	camera_position = position;
 	camera_up = cml::vector3f( 0.0f, 1.0f, 0.0f );
@@ -422,7 +479,7 @@ void CameraLookAt( const Eigen::Vector3f& position, const Eigen::Vector3f& targe
 	mat_xp = mat_projection * mat_view;
 } */
 /*
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void SetCamera( float x, float y, float z, float angle, float pitch ) {
 	
 	camera_position[0] = x;
@@ -469,97 +526,32 @@ void SetCamera( float x, float y, float z, float angle, float pitch ) {
 	
 }*/
 
-//-------------------------------------------------------------------------------------------------
-void SetFogLength( float f ) {
-	fog_length = f;
-}
+//----------------------------------------------------------------------------------------------------------------------------
+// instance bindings
+//
+void            SetFogLength( float f )                              { g_instance->SetFogLength( f );                        }
+float           GetFogLength()                                       { return g_instance->GetFogLength();                    }
+BlendMode       GetBlendMode()                                       { return g_instance->GetBlendMode();                    }
+void            SetBlendMode( BlendMode mode )                       { g_instance->SetBlendMode( mode );                     }
+void            SetCullingMode( CullingMode mode )                   { g_instance->SetCullingMode( mode );                   }
+CullingMode     GetCullingMode()                                     { return g_instance->GetCullingMode();                  }
+void            SetDepthBufferMode( DepthBufferMode mode )           { g_instance->SetDepthBufferMode( mode );               }
+DepthBufferMode GetDepthBufferRMode()                                { return g_instance->GetDepthBufferMode();              }
+void            Clear()                                              { g_instance->Clear();                                  } 
+void            DrawQuads( int start, int size )                     { g_instance->DrawQuads( start, size );                 }
+void            DrawQuadsInstanced( int start, int size, int count ) { g_instance->DrawQuadsInstanced( start, size, count ); }
+void            SetActiveTextureSlot( int slot )                     { g_instance->SetActiveTextureSlot( slot );             }
+void            BindArrayBuffer( GLuint buffer )                     { g_instance->BindArrayBuffer( buffer );                }
+void            SetBackgroundColor( float r, float g, float b )      { g_instance->SetBackgroundColor( r, g, b );            }
+void            UseGlobalSurface()                                   { g_instance->UseGlobalSurface();                       }
+void            Open( int width, int height )                        { g_instance->Open( width, height );                    }
+void            Close()                                              { g_instance->Close();                                  }
+int             ScreenWidth()                                        { return g_instance->ScreenWidth();                     }
+int             ScreenHeight()                                       { return g_instance->ScreenHeight();                    }
+void            Swap()                                               { g_instance->Swap();                                   }
+void            BindTextureHandle( GLuint texture )                  { g_instance->BindTextureHandle( texture );             }
+void            BindTextureArrayHandle( GLuint texture )             { g_instance->BindTextureArrayHandle( texture );        }
 
-//-------------------------------------------------------------------------------------------------
-float GetFogLength() {
-	return fog_length;
-}
- 
- 
-//-------------------------------------------------------------------------------------------------
-BlendMode GetBlendMode() {
-	return blending_mode;
-}
-
-//-------------------------------------------------------------------------------------------------
-void SetBlendMode( BlendMode blend_mode ) {
-	
-	switch( blend_mode ) {
-	case BLEND_OPAQUE:
-		glDisable( GL_BLEND );
-		break;
-	case BLEND_ALPHA:
-		glEnable( GL_BLEND );
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		break;
-	case BLEND_ADD:
-		glEnable( GL_BLEND );
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		break;
-	case BLEND_SUB:
-		
-		//glEnable( GL_BLEND );
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		// TODO...
-		return;
-	default:
-		return;
-	}
-
-	blending_mode = blend_mode;
-}
-
-//-------------------------------------------------------------------------------------------------
-void SetCullingMode( CullingMode mode ) {
-	switch( mode ) {
-	case CULLMODE_NONE:
-		glDisable( GL_CULL_FACE );
-		break;
-	case CULLMODE_BACK:
-		glEnable( GL_CULL_FACE );
-		glCullFace( GL_BACK );
-		break;
-	case CULLMODE_FRONT:
-		glEnable( GL_CULL_FACE );
-		glCullFace( GL_FRONT );
-	}
-	culling_mode = mode;
-}
-
-//-------------------------------------------------------------------------------------------------
-CullingMode GetCullingMode() {
-	return culling_mode;
-}
-//-------------------------------------------------------------------------------------------------
-void SetDepthBufferMode( Video::DepthBufferMode mode ) {
-	switch( mode ) {
-	case ZBUFFER_DISABLED:
-		glDisable( GL_DEPTH_TEST );
-		break;
-	case ZBUFFER_WRITEONLY:
-		//glEnable( GL_DEPTH_TEST );
-		// todo
-		break;
-	case ZBUFFER_READONLY:
-		glEnable( GL_DEPTH_TEST );
-		glDepthMask(false);
-		break;
-	case ZBUFFER_ENABLED:
-		glEnable( GL_DEPTH_TEST );
-		glDepthMask(true);
-		break;
-	}
-	glDepthFunc(  GL_LEQUAL );
-}
-
-//-------------------------------------------------------------------------------------------------
-void Clear() {
-	glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
-}
 /*
 //-------------------------------------------------------------------------------------------------
 float GetCameraDistance( cml::vector3f point ) {
@@ -578,20 +570,7 @@ float GetCameraDistance2( cml::vector3f point ) {
 	return x+y+z;
 }*/
 
-//-------------------------------------------------------------------------------------------------
-void DrawQuads( int start, int size ) {
-	glDrawArrays( GL_QUADS, start, size );
-}
 
-//-------------------------------------------------------------------------------------------------
-void DrawQuadsInstanced( int start, int size, int instances ) {
-	glDrawArraysInstanced( GL_QUADS, start, size, instances );
-}
-
-//-------------------------------------------------------------------------------------------------
-void SetActiveTextureSlot( int slot ) {
-	glActiveTexture( GL_TEXTURE0 + slot );
-}
 /*
 //-------------------------------------------------------------------------------------------------
 cml::vector3f GetRelativeCameraPoint( float x, float y, float z ) {
@@ -635,10 +614,6 @@ void RunWindowLoop( void (*WindowFrameCallback)() ) {
 
 
 
-void BindArrayBuffer( int id ) {
-	// todo: redundancy checks?
-	glBindBuffer( GL_ARRAY_BUFFER, id );
-}
 
 }
 

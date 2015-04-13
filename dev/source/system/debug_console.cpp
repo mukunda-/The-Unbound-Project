@@ -1,17 +1,18 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
-#include "stdafx.h" 
+#include "stdafx.h"
 
-
-namespace Video {
+//-----------------------------------------------------------------------------
+namespace System {
 
 long lStdHandle;
 long hConHandle;
 
-void SetupConsole() {
-	    CONSOLE_SCREEN_BUFFER_INFO coninfo;
+//-----------------------------------------------------------------------------
+void CreateDebugConsole() {
+	CONSOLE_SCREEN_BUFFER_INFO  coninfo;
     FILE                       *fp;
 
     // allocate a console for this app
@@ -47,8 +48,8 @@ void SetupConsole() {
     
     // make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog 
     // point to console as well
-    std::ios::sync_with_stdio(); 
-	
+    std::ios::sync_with_stdio();
 }
 
+//-----------------------------------------------------------------------------
 }

@@ -1,16 +1,15 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
-//-------------------------------------------------------------------------------------------------
-#include <video/console.h>
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+#include "system/module.h"
+
 namespace Video {
 
-
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class Camera {
 
 	Eigen::Matrix3f rotation; // orientation
@@ -106,70 +105,148 @@ public:
 	 
 };
 
-
-//-------------------------------------------------------------------------------------------------
-// modes for SetDepthBufferMode
-typedef enum {
+/** ---------------------------------------------------------------------------
+ * Depth buffer modes for SetDepthBufferMode.
+ */
+typedef enum : uint8_t {
 	ZBUFFER_DISABLED,
 	ZBUFFER_WRITEONLY,
 	ZBUFFER_READONLY,
 	ZBUFFER_ENABLED
 } DepthBufferMode;
 
-//-------------------------------------------------------------------------------------------------
-// modes for Get/SetBlendMode
-typedef enum {
+/** ---------------------------------------------------------------------------
+ * Blend modes for Get/SetBlendMode
+ */
+typedef enum : uint8_t {
 	BLEND_OPAQUE,
 	BLEND_ALPHA,
 	BLEND_ADD,
 	BLEND_SUB
 } BlendMode;
 
-//-------------------------------------------------------------------------------------------------
-typedef enum {
+/** ---------------------------------------------------------------------------
+ * Culling modes for Get/SetCullingMode.
+ */
+typedef enum : uint8_t {
 	CULLMODE_NONE,
 	CULLMODE_BACK,
 	CULLMODE_FRONT
 } CullingMode;
 
-//-------------------------------------------------------------------------------------------------
-// screen modes (ptype)
-typedef enum {
+/** ---------------------------------------------------------------------------
+ * not sure what this is used for yet.
+ */
+typedef enum : uint8_t {
 	WINDOWED,
 	FULLSCREEN
 } ScreenModes;
 
-//-------------------------------------------------------------------------------------------------
-// initialize video engine
-// pwidth = width of window to create
-// pheight = height of window to creat
-void Open(   int p_width, int p_height );
+/** ---------------------------------------------------------------------------
+ * Open/create a display.
+ *
+ * @param width  Width of window to create.
+ * @param height Height of window to create.
+ */
+void Open( int p_width, int p_height );
 
-// terminate function
+/** ---------------------------------------------------------------------------
+ * Close the display.
+ */
 void Close(); 
 
-//-------------------------------------------------------------------------------------------------
-// swap view after finishing rendering operations
-//
+/** ---------------------------------------------------------------------------
+ * Swap view after finishing rendering operations.
+ */
 void Swap();
 
-//-------------------------------------------------------------------------------------------------
-// read screen dimensions
-//
+/** ---------------------------------------------------------------------------
+ * Get screen dimensions.
+ */
 int ScreenWidth();
 int ScreenHeight();
- 
-//-------------------------------------------------------------------------------------------------
-// texture binding functions
-//
+
+/** ---------------------------------------------------------------------------
+ * Direct (OpenGL) texture binding functions
+ */
 void BindTextureHandle( uint32_t texture );
 void BindTextureArrayHandle( uint32_t texture );
 
-//-------------------------------------------------------------------------------------------------
-// render to global surface
-//
+/** ---------------------------------------------------------------------------
+ * Target global surface for rendering operations.
+ */
 void UseGlobalSurface();
 
+/** ---------------------------------------------------------------------------
+ * Set the background color for the Clear function, and for custom shaders
+ * that use it.
+ *
+ * @param r,g,b Components in range [0,1]
+ */
+void SetBackgroundColor( float r, float g, float b );
+
+//-----------------------------------------------------------------------------
+class Instance : public System::Module {
+
+private:
+	BlendMode       m_blendmode;
+	CullingMode     m_cullmode;
+	DepthBufferMode m_depthmode;
+	
+	float         m_bg_color[4];
+
+	float         m_fog_color[4];
+	float         m_fog_length; 
+
+	float         m_fov; // field of view
+	float         m_view_distance;
+
+	SDL_Window   *m_window     = nullptr; 
+	SDL_GLContext m_gl_context = nullptr; 
+	
+	int           m_screen_width  = 0;
+	int           m_screen_height = 0;
+
+public:
+	Instance();
+	~Instance();
+
+	void Open( int width, int height );
+	void Close();
+
+	int ScreenWidth() const { return m_screen_width; }
+	int ScreenHeight() const { return m_screen_height; }
+
+	void Swap();
+
+	void UseGlobalSurface();
+	void SetBackgroundColor( float r, float g, float b );
+	
+	void BindTextureHandle( GLuint texture );
+	void BindTextureArrayHandle( GLuint texture );
+
+	void SetFogLength( float length );
+	float GetFogLength() const { return m_fog_length; }
+
+	void SetBlendMode( BlendMode mode );
+	BlendMode GetBlendMode() const { return m_blendmode; }
+
+	void SetCullingMode( CullingMode mode );
+	CullingMode GetCullingMode() const { return m_cullmode; }
+
+	void SetDepthBufferMode( DepthBufferMode mode );
+	DepthBufferMode GetDepthBufferMode() const { return m_depthmode; }
+
+	void Clear();
+
+	void DrawQuads( int start, int size );
+	void DrawQuadsInstanced( int start, int size, int instances );
+
+	void SetActiveTextureSlot( int slot );
+
+	void BindArrayBuffer( GLuint buffer );
+};
+ 
 //-------------------------------------------------------------------------------------------------
 // simple set camera function
 // xyz = position
@@ -242,12 +319,6 @@ void UseGlobalSurface();
 //void SetViewDistance( float distance );
 
 //-------------------------------------------------------------------------------------------------
-// set the background color for the Clear function
-// (and fog color?)
-//
-void SetBackgroundColor( float r, float g, float b );
-
-//-------------------------------------------------------------------------------------------------
 // return the distance from the camera to the near plane
 //
 //float NearPlaneZ();
@@ -265,7 +336,6 @@ void SetBackgroundColor( float r, float g, float b );
 //
 const Eigen::Matrix4f &GetXPMatrix();
 int GetXPMatrixSerial();
-
 
 //-------------------------------------------------------------------------------------------------
 // return the inverse of transformation/projection (camera) matrix

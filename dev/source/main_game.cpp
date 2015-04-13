@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "game/game.h"
 #include "video/video.h"
+#include "system/debug_console.h"
 
 #include "net/core.h"
 
@@ -14,6 +15,8 @@
 
 //-----------------------------------------------------------------------------
 INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
+
+	System::CreateDebugConsole();
 
 	if( SDL_Init( SDL_INIT_VIDEO|SDL_INIT_EVENTS ) != 0 ) {
 		std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
