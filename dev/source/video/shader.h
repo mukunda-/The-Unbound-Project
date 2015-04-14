@@ -68,13 +68,13 @@ private:
 
 	//---------------------------------------------------------------------------
 	class SourceFile {
-		size_t m_length;
+		int m_length;
 		boost::scoped_array<char> m_contents;
 
 	public:
 		SourceFile( const Stref &filename );
 
-		size_t Length() const {
+		int Length() const {
 			return m_length;
 		}
 		

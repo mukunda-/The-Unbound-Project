@@ -9,6 +9,8 @@
 //-----------------------------------------------------------------------------
 namespace Video {
 
+using Eigen::Matrix4f;
+
 Instance *g_instance = nullptr;
 
 //-----------------------------------------------------------------------------
@@ -227,6 +229,83 @@ void Instance::BindArrayBuffer( GLuint buffer ) {
 	glBindBuffer( GL_ARRAY_BUFFER, buffer );
 }
 
+//-----------------------------------------------------------------------------
+float Instance::NearPlaneZ() {
+	return 0.5f;
+}
+
+//-----------------------------------------------------------------------------
+float Instance::FarPlaneZ() {
+	return m_view_distance;
+}
+
+//-----------------------------------------------------------------------------
+float Instance::ViewPlanesRange() {
+	return m_view_distance - NearPlaneZ();
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetupProjection( float fovY, float aspect, 
+								float fnear, float ffar ) {
+	m_fov = fovY;
+	float theta = fovY*0.5f;
+	float range = ffar - fnear;
+	float invtan = 1.0f/tan(theta);
+	
+	m_mat_projection(0,0) = invtan / aspect;
+	m_mat_projection(1,1) = invtan;
+	m_mat_projection(2,2) = -(fnear + ffar) / range;
+	m_mat_projection(3,2) = -1;
+	m_mat_projection(2,3) = -2 * fnear * ffar / range;
+	m_mat_projection(3,3) = 0;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::UpdateViewport() { 
+	glViewport( 0, 0, m_screen_width, m_screen_height );
+	SetupProjection( 
+		m_fov,
+		(float)m_screen_width / (float)m_screen_height,
+		1.0, 10000.0 );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::CopyCamera( Camera &cam ) {
+
+	//Eigen::Matrix3f R;
+	//R.col(2) = (position-focus).normalized();
+	//R.col(0) = orientation.cross(R.col(2)).normalized();
+	//R.col(1) = R.col(2).cross(R.col(0));
+	
+//	mat_view.topLeftCorner<3,3>() = R.transpose();
+//	mat_view.topRightCorner<3,1>() = -R.transpose() * position;
+//	mat_view(3,3) = 1.0; 
+
+	m_mat_view.topLeftCorner<3,3>() = cam.m_rotation.transpose();
+	m_mat_view.topRightCorner<3,1>() = 
+			-cam.m_rotation.transpose() * cam.m_position;
+
+	m_mat_view(3,3) = 1.0;
+
+	///mat_view(3,0) = -R.col(0).dot(position);
+	/*
+	printf( "view matrix dump:\n" );
+	printf( "\n\n%8.4f|%8.4f|%8.4f|%8.4f\n%8.4f|%8.4f|%8.4f|%8.4f\n%8.4f|%8.4f|%8.4f|%8.4f\n%8.4f|%8.4f|%8.4f|%8.4f", 
+		mat_view(0,0), mat_view(0,1), mat_view(0,2), mat_view(0,3),
+		mat_view(1,0), mat_view(1,1), mat_view(1,2), mat_view(1,3),
+		mat_view(2,0), mat_view(2,1), mat_view(2,2), mat_view(2,3),
+		mat_view(3,0), mat_view(3,1), mat_view(3,2), mat_view(3,3) );*/
+		
+	if( m_fov != cam.m_fov ) {
+		SetupProjection( cam.m_fov, (float)m_screen_width / (float)m_screen_height, 1.0, 10000.0 );
+	}
+
+	m_mat_xp = m_mat_projection * m_mat_view;
+	m_matxp_serial++;
+}
+
+//-----------------------------------------------------------------------------
+
  /* TODO move to camera shake dongle
 //-------------------------------------------------------------------------------------------------
 float camera_shake;
@@ -242,98 +321,180 @@ static const float camera_shake_power_max = 1.0;
    
   
 //-------------------------------------------------------------------------------------------------
-Eigen::Matrix4f mat_view; 
-Eigen::Matrix4f mat_projection;
-Eigen::Matrix4f mat_xp;
-Eigen::Matrix4f mat_xpi;
-int matxp_serial=0;
 
-Eigen::Vector3f near_plane[4];
-Eigen::Vector3f far_plane[4];
+Eigen::Matrix4f mat_xpi;
+
 
 //GLint current_vertex_buffer;
   
 //-------------------------------------------------------------------------------------------------
-float NearPlaneZ() {
-	return 0.5f;
+Camera::Camera() {
+	m_rotation.setIdentity();
+	m_fov = 45.0;
+	m_fov_dirty = false;
 }
 
 //-------------------------------------------------------------------------------------------------
-float FarPlaneZ() {
-	return view_distance;
+Camera::~Camera() {}
+
+//-------------------------------------------------------------------------------------------------
+void Camera::SetFOV( float fov ) {
+	if( m_fov != fov ) {
+		m_fov = fov;
+		m_fov_dirty = true;
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
-float ViewPlanesRange() {
-	return view_distance - 1.0f;
+void Camera::SetPosition( const Eigen::Vector3f &vec_position ) {
+	m_position = vec_position;
 }
 
-//-------------------------------------------------------------------------------------------------
-void SetupProjection( float fovY, float aspect, float fnear, float ffar ) {
-	field_of_view = fovY;
-	float theta = fovY*0.5f;
-	float range = ffar - fnear;
-	float invtan = 1.0f/tan(theta);
-	 
-	mat_projection(0,0) = invtan / aspect;
-	mat_projection(1,1) = invtan;
-	mat_projection(2,2) = -(fnear + ffar) / range;
-	mat_projection(3,2) = -1;
-	mat_projection(2,3) = -2 * fnear * ffar / range;
-	mat_projection(3,3) = 0; 
+//-----------------------------------------------------------------------------
+void Camera::Move( const Eigen::Vector3f &add_to_position ) {
+	m_position += add_to_position;
 }
 
-//-------------------------------------------------------------------------------------------------
-void UpdateViewport() { 
-	glViewport( 0, 0, context.ScreenWidth(), context.ScreenHeight() );
-	SetupProjection( field_of_view, (float)context.ScreenWidth() / (float)context.ScreenHeight(), 1.0, 10000.0 );
+//-----------------------------------------------------------------------------
+void Camera::LookAt( const Eigen::Vector3f &target, 
+	                 const Eigen::Vector3f &up ) {
+		
+	m_rotation.col(2) = (m_position-target).normalized();
+	m_rotation.col(0) = up.cross(m_rotation.col(2)).normalized();
+	m_rotation.col(1) = m_rotation.col(2).cross(m_rotation.col(0));
+}
+
+//-----------------------------------------------------------------------------
+void Camera::Fixup() {
+
+	// x axis from cross of forward and up
+	m_rotation.col(0) = 
+			m_rotation.col(1).cross( m_rotation.col(2) ).normalized();
+
+	// y axis from cross of forward and right
+	m_rotation.col(1) = 
+			m_rotation.col(2).cross( m_rotation.col(0) ).normalized();
+
+	// and just normalize z axis
+	m_rotation.col(2).normalize();
+}
+
+//-----------------------------------------------------------------------------
+void Camera::Rotate( const Eigen::Vector3f &angles ) {
+	if( angles[0] != 0.0f ) {
+		Eigen::AngleAxisf rot( angles[0], m_rotation.col(0) );
+		m_rotation = rot * m_rotation;
+	}
+	if( angles[1] != 0.0f ) {
+		Eigen::AngleAxisf rot( angles[1], m_rotation.col(1) );
+		m_rotation = rot * m_rotation;
+	}
+	if( angles[2] != 0.0f ) {
+		Eigen::AngleAxisf rot( angles[2], m_rotation.col(2) );
+		m_rotation = rot * m_rotation;
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
 void Camera::UpdateVideo() {
-	//Eigen::Matrix3f R;
-	//R.col(2) = (position-focus).normalized();
-	//R.col(0) = orientation.cross(R.col(2)).normalized();
-	//R.col(1) = R.col(2).cross(R.col(0));
+	g_instance->CopyCamera( *this );
 	
-//	mat_view.topLeftCorner<3,3>() = R.transpose();
-//	mat_view.topRightCorner<3,1>() = -R.transpose() * position;
-//	mat_view(3,3) = 1.0; 
-
-	mat_view.topLeftCorner<3,3>() = rotation.transpose();
-	mat_view.topRightCorner<3,1>() = -rotation.transpose() * position;
-	mat_view(3,3) = 1.0;
-
-	///mat_view(3,0) = -R.col(0).dot(position);
-	/*
-	printf( "view matrix dump:\n" );
-	printf( "\n\n%8.4f|%8.4f|%8.4f|%8.4f\n%8.4f|%8.4f|%8.4f|%8.4f\n%8.4f|%8.4f|%8.4f|%8.4f\n%8.4f|%8.4f|%8.4f|%8.4f", 
-		mat_view(0,0), mat_view(0,1), mat_view(0,2), mat_view(0,3),
-		mat_view(1,0), mat_view(1,1), mat_view(1,2), mat_view(1,3),
-		mat_view(2,0), mat_view(2,1), mat_view(2,2), mat_view(2,3),
-		mat_view(3,0), mat_view(3,1), mat_view(3,2), mat_view(3,3) );*/
-		
-	if( field_of_view != fov ) {
-		SetupProjection( fov, (float)context.ScreenWidth() / (float)context.ScreenHeight(), 1.0, 10000.0 );
-	}
-	matxp_serial++;
-	mat_xp = mat_projection * mat_view;
 }
 
-//-----------------------------------------------------------------------------
-const Eigen::Matrix4f &GetXPMatrix() {
-	return mat_xp;
-}
-int GetXPMatrixSerial() {
-	return matxp_serial;
-}
+ 
+//----------------------------------------------------------------------------------------------------------------------------
+// instance bindings
+//
+void            SetFogLength( float a )                         { g_instance->SetFogLength( a );             }
+float           GetFogLength()                                  { return g_instance->GetFogLength();         }
+BlendMode       GetBlendMode()                                  { return g_instance->GetBlendMode();         }
+void            SetBlendMode( BlendMode a )                     { g_instance->SetBlendMode( a );             }
+void            SetCullingMode( CullingMode a )                 { g_instance->SetCullingMode( a );           }
+CullingMode     GetCullingMode()                                { return g_instance->GetCullingMode();       }
+void            SetDepthBufferMode( DepthBufferMode a )         { g_instance->SetDepthBufferMode( a );       }
+DepthBufferMode GetDepthBufferRMode()                           { return g_instance->GetDepthBufferMode();   }
+void            Clear()                                         { g_instance->Clear();                       }
+void            DrawQuads( int a, int b )                       { g_instance->DrawQuads( a, b );             }
+void            DrawQuadsInstanced( int a, int b, int c )       { g_instance->DrawQuadsInstanced( a, b, c ); }
+void            SetActiveTextureSlot( int a )                   { g_instance->SetActiveTextureSlot( a );     }
+void            BindArrayBuffer( GLuint a )                     { g_instance->BindArrayBuffer( a );          }
+void            SetBackgroundColor( float r, float g, float b ) { g_instance->SetBackgroundColor( r, g, b ); }
+void            UseGlobalSurface()                              { g_instance->UseGlobalSurface();            }
+void            Open( int a, int b )                            { g_instance->Open( a, b );                  }
+void            Close()                                         { g_instance->Close();                       }
+int             ScreenWidth()                                   { return g_instance->ScreenWidth();          }
+int             ScreenHeight()                                  { return g_instance->ScreenHeight();         }
+void            Swap()                                          { g_instance->Swap();                        }
+void            BindTextureHandle( GLuint a )                   { g_instance->BindTextureHandle( a );        }
+void            BindTextureArrayHandle( GLuint a )              { g_instance->BindTextureArrayHandle( a );   }
+float           NearPlaneZ()                                    { return g_instance->NearPlaneZ();           }
+float           FarPlaneZ()                                     { return g_instance->FarPlaneZ();            }
+float           ViewPlanesRange()                               { return g_instance->ViewPlanesRange();      }
+const Matrix4f  &GetXPMatrix()                                  { return g_instance->GetXPMatrix();          }
+int             GetXPMatrixSerial()                             { return g_instance->GetXPMatrixSerial();    }
 
-//-----------------------------------------------------------------------------
-const Eigen::Matrix4f &GetXPMatrixInverse() {
-	return mat_xpi;
-}
+/*
+//-------------------------------------------------------------------------------------------------
+float GetCameraDistance( cml::vector3f point ) {
+	return sqrt(GetCameraDistance2(point));
+}*/
+/*
+//-------------------------------------------------------------------------------------------------
+float GetCameraDistance2( cml::vector3f point ) {
+	float x,y,z;
+	x = point[0] - camera_position[0];
+	y = point[1] - camera_position[1];
+	z = point[2] - camera_position[2];
+	x = x*x;
+	y = y*y;
+	z = z*z;
+	return x+y+z;
+}*/
+
+
+/*
+//-------------------------------------------------------------------------------------------------
+cml::vector3f GetRelativeCameraPoint( float x, float y, float z ) {
+	//x,y = screen coordinates
+	//z = depth in meters
+
+	z = (z - NearPlaneZ()) / ViewPlanesRange();
+	// interpolate z
+	cml::vector3f plane[4];
+	plane[0] = cml::lerp( near_plane[0], far_plane[0], z );
+	plane[1] = cml::lerp( near_plane[1], far_plane[1], z );
+	plane[2] = cml::lerp( near_plane[2], far_plane[2], z );
+	plane[3] = cml::lerp( near_plane[3], far_plane[3], z );
+
+	plane[0] = cml::lerp( plane[0], plane[1], y );
+	plane[3] = cml::lerp( plane[3], plane[2], y );
+
+	plane[0] = cml::lerp( plane[0], plane[3], x );
+
+	return plane[0];
+
+}*/
 
 //-------------------------------------------------------------------------------------------------
+/*
+void RunWindowLoop( void (*WindowFrameCallback)() ) {
+	MSG msg;
+	ZeroMemory( &msg, sizeof( msg ) );
+	while( msg.message != WM_QUIT )
+    {
+        if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
+        {
+            TranslateMessage( &msg );
+            DispatchMessage( &msg );
+        } else {
+			WindowFrameCallback();
+			Swap();
+		}
+	}
+}*/
+
+
+
 //-------------------------------------------------------------------------------------------------
 /*
 cml::vector3f GetCamera() {
@@ -525,94 +686,6 @@ void SetCamera( float x, float y, float z, float angle, float pitch ) {
 	camera_shit_that_needs_to_be_organized();
 	
 }*/
-
-//----------------------------------------------------------------------------------------------------------------------------
-// instance bindings
-//
-void            SetFogLength( float f )                              { g_instance->SetFogLength( f );                        }
-float           GetFogLength()                                       { return g_instance->GetFogLength();                    }
-BlendMode       GetBlendMode()                                       { return g_instance->GetBlendMode();                    }
-void            SetBlendMode( BlendMode mode )                       { g_instance->SetBlendMode( mode );                     }
-void            SetCullingMode( CullingMode mode )                   { g_instance->SetCullingMode( mode );                   }
-CullingMode     GetCullingMode()                                     { return g_instance->GetCullingMode();                  }
-void            SetDepthBufferMode( DepthBufferMode mode )           { g_instance->SetDepthBufferMode( mode );               }
-DepthBufferMode GetDepthBufferRMode()                                { return g_instance->GetDepthBufferMode();              }
-void            Clear()                                              { g_instance->Clear();                                  } 
-void            DrawQuads( int start, int size )                     { g_instance->DrawQuads( start, size );                 }
-void            DrawQuadsInstanced( int start, int size, int count ) { g_instance->DrawQuadsInstanced( start, size, count ); }
-void            SetActiveTextureSlot( int slot )                     { g_instance->SetActiveTextureSlot( slot );             }
-void            BindArrayBuffer( GLuint buffer )                     { g_instance->BindArrayBuffer( buffer );                }
-void            SetBackgroundColor( float r, float g, float b )      { g_instance->SetBackgroundColor( r, g, b );            }
-void            UseGlobalSurface()                                   { g_instance->UseGlobalSurface();                       }
-void            Open( int width, int height )                        { g_instance->Open( width, height );                    }
-void            Close()                                              { g_instance->Close();                                  }
-int             ScreenWidth()                                        { return g_instance->ScreenWidth();                     }
-int             ScreenHeight()                                       { return g_instance->ScreenHeight();                    }
-void            Swap()                                               { g_instance->Swap();                                   }
-void            BindTextureHandle( GLuint texture )                  { g_instance->BindTextureHandle( texture );             }
-void            BindTextureArrayHandle( GLuint texture )             { g_instance->BindTextureArrayHandle( texture );        }
-
-/*
-//-------------------------------------------------------------------------------------------------
-float GetCameraDistance( cml::vector3f point ) {
-	return sqrt(GetCameraDistance2(point));
-}*/
-/*
-//-------------------------------------------------------------------------------------------------
-float GetCameraDistance2( cml::vector3f point ) {
-	float x,y,z;
-	x = point[0] - camera_position[0];
-	y = point[1] - camera_position[1];
-	z = point[2] - camera_position[2];
-	x = x*x;
-	y = y*y;
-	z = z*z;
-	return x+y+z;
-}*/
-
-
-/*
-//-------------------------------------------------------------------------------------------------
-cml::vector3f GetRelativeCameraPoint( float x, float y, float z ) {
-	//x,y = screen coordinates
-	//z = depth in meters
-
-	z = (z - NearPlaneZ()) / ViewPlanesRange();
-	// interpolate z
-	cml::vector3f plane[4];
-	plane[0] = cml::lerp( near_plane[0], far_plane[0], z );
-	plane[1] = cml::lerp( near_plane[1], far_plane[1], z );
-	plane[2] = cml::lerp( near_plane[2], far_plane[2], z );
-	plane[3] = cml::lerp( near_plane[3], far_plane[3], z );
-
-	plane[0] = cml::lerp( plane[0], plane[1], y );
-	plane[3] = cml::lerp( plane[3], plane[2], y );
-
-	plane[0] = cml::lerp( plane[0], plane[3], x );
-
-	return plane[0];
-
-}*/
-
-//-------------------------------------------------------------------------------------------------
-/*
-void RunWindowLoop( void (*WindowFrameCallback)() ) {
-	MSG msg;
-	ZeroMemory( &msg, sizeof( msg ) );
-	while( msg.message != WM_QUIT )
-    {
-        if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
-        {
-            TranslateMessage( &msg );
-            DispatchMessage( &msg );
-        } else {
-			WindowFrameCallback();
-			Swap();
-		}
-	}
-}*/
-
-
 
 
 }

@@ -5,8 +5,7 @@
 #pragma once
 
 namespace Graphics {
-
-
+	 
 // a simple dynamic buffer that can
 // transfer its contents into a VertexBuffer
 //---------------------------------------------------------------------------------------
@@ -15,6 +14,8 @@ class VertexStream {
 
 	std::vector<TVertexFormat> data;
 public:
+
+	virtual ~VertexStream() {}
 
 	// RESET
 	void Clear() {
@@ -28,7 +29,7 @@ public:
 
 	// LOAD INTO VERTEX BUFFER
 	void Load( Video::VertexBuffer &buffer ) {
-		buffer.Load( (void*)data.data(), data.size() * sizeof( TVertexFormat ) );
+		buffer.Load( (void*)data.data(), (int)data.size() * sizeof( TVertexFormat ) );
 	}
 };
 

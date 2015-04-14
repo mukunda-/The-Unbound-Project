@@ -24,8 +24,8 @@ public:
 		int index = Find( text );
 		if( index != -1 ) return index;
 		strings.push_back( text );
-		index_trie.Set( text, strings.size()-1 );
-		return strings.size() - 1;
+		index_trie.Set( text, (int)strings.size()-1 );
+		return (int)strings.size() - 1;
 	}
 
 	int Find( const char *text ) {

@@ -46,7 +46,7 @@ Shader::SourceFile::SourceFile( const Stref &filename ) {
 
 	// get file size
 	file.seekg( 0, std::ios::end );
-	m_length = static_cast<size_t>(file.tellg());
+	m_length = (int)file.tellg();
 	file.seekg( 0, std::ios::beg );
 
 	// allocate buffer, add an extra null terminator

@@ -9,100 +9,108 @@
 
 namespace Video {
 
-//-----------------------------------------------------------------------------
+/** ---------------------------------------------------------------------------
+ * A utility class for setting up the view matrices.
+ */
 class Camera {
 
-	Eigen::Matrix3f rotation; // orientation
-	Eigen::Vector3f position; // translation
-	//Eigen::Vector3f position;
-	//Eigen::Vector3f focus;
-	//Eigen::Vector3f orientation;
+	Eigen::Matrix3f m_rotation; // orientation
+	Eigen::Vector3f m_position; // translation
 	
-	float fov;
-	bool fov_dirty;
+	float m_fov;
+	bool  m_fov_dirty;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-	Camera() {
-		rotation.setIdentity();
-		fov = 45.0;
-		fov_dirty = false;
-		
-	}
+	Camera();
+	virtual ~Camera();
 
-	void SetFOV( float new_fov ) {
-		if( fov != new_fov ) {
-			fov = new_fov;
-			fov_dirty = true;
-		}
-	}
+	/** -----------------------------------------------------------------------
+	 * Set the field of view for this camera.
+	 *
+	 * @param fov Vertical (?) field of view in radians (TODO confirm)
+	 */
+	void SetFOV( float fov );
 	
-	Eigen::Matrix3f &GetRotation() {
-		return rotation;
-	}
+	/** -----------------------------------------------------------------------
+	 * Read the current rotation matrix.
+	 */
+	Eigen::Matrix3f &GetRotation() { return m_rotation; }
+	const Eigen::Matrix3f &GetRotation() const { return m_rotation; }
 
-	const Eigen::Vector3f &GetPosition() {
-		return position;
-	}
+	/** -----------------------------------------------------------------------
+	 * Read the current translation vector.
+	 */
+	Eigen::Vector3f &GetPosition() { return m_position; }
+	const Eigen::Vector3f &GetPosition() const { return m_position; }
 
-	void SetPosition( const Eigen::Vector3f &vec_position ) {
-		position = vec_position;
-	}
+	/** -----------------------------------------------------------------------
+	 * Set the current translation vector.
+	 */
+	void SetPosition( const Eigen::Vector3f &vec_position );
 
-	void Move( const Eigen::Vector3f &add_to_position ) {
-		position += add_to_position;
-	}
+	/** -----------------------------------------------------------------------
+	 * Add to the current translation vector.
+	 */
+	void Move( const Eigen::Vector3f &add_to_position );
 
-	void LookAt( const Eigen::Vector3f &target, const Eigen::Vector3f &up ) {
-		
-		rotation.col(2) = (position-target).normalized();
-		rotation.col(0) = up.cross(rotation.col(2)).normalized();
-		rotation.col(1) = rotation.col(2).cross(rotation.col(0));
-	}
+	/** -----------------------------------------------------------------------
+	 * Set the current rotation to Look At a point in space.
+	 *
+	 * @param target Point to look at.
+	 * @param up     Vector pointing "up", to determine orientation.
+	 */
+	void LookAt( const Eigen::Vector3f &target, const Eigen::Vector3f &up );
 	  
-	const Eigen::Vector3f Forward() const {
-		return -rotation.col(2);
-	} 
+	/** -----------------------------------------------------------------------
+	 * @returns the vector that points forward, or towards the camera's focus.
+	 */
+	Eigen::Vector3f Forward() const { return -m_rotation.col(2); } 
 
-	const Eigen::Vector3f Right() const {
-		return rotation.col(0);
-	}
+	
+	/** -----------------------------------------------------------------------
+	 * @returns the vector that points "right" from the camera's position,
+	 *          perpendicular to the "up" and "forward" vectors.
+	 */
+	Eigen::Vector3f Right() const { return m_rotation.col(0); }
 	 
-	const Eigen::Vector3f Up() const {
-		return rotation.col(1);
-	}
+	/** -----------------------------------------------------------------------
+	 * @returns the vector that points upward. Not straight up, but
+	 *          perpendicular to the right and forward vectors.
+	 */
+	const Eigen::Vector3f Up() const { return m_rotation.col(1); }
 
-	void Rotate( const Eigen::Vector3f &angles ) {
-		if( angles[0] != 0.0f ) {
-			Eigen::AngleAxisf rot( angles[0], rotation.col(0) );
-			rotation = rot * rotation;
-		}
-		if( angles[1] != 0.0f ) {
-			Eigen::AngleAxisf rot( angles[1], rotation.col(1) );
-			rotation = rot * rotation;
-		}
-		if( angles[2] != 0.0f ) {
-			Eigen::AngleAxisf rot( angles[2], rotation.col(2) );
-			rotation = rot * rotation;
-		}
-	}
-
-	 
+	/** -----------------------------------------------------------------------
+	 * Rotate the camera using euler angles.
+	 *
+	 * @param angles [0] = pitch, [1] = yaw, [2] = roll
+	 */
+	void Rotate( const Eigen::Vector3f &angles );
+	
+	/** -----------------------------------------------------------------------
+	 * Rotate the camera using euler angles.
+	 *
+	 * @param pitch,yaw,roll Euler angles.
+	 */
 	void Rotate( float pitch = 0.0f, float yaw = 0.0f, float roll = 0.0f ) {
 		Rotate( Eigen::Vector3f( pitch, yaw, roll ) );
 	} 
 
-	void Fixup() {
-		// normalize things to be orthogonal
-		rotation.col(0) = rotation.col(1).cross(rotation.col(2)).normalized();
-		rotation.col(1) = rotation.col(2).cross(rotation.col(0)).normalized();
-		rotation.col(2).normalize();
-		 
-	}
-	 
-	void UpdateVideo();
-	 
+	/** -----------------------------------------------------------------------
+	 * Normalize the rotation matrix to correct deformation from floating
+	 * point inaccuracies.
+	 *
+	 * This should be called frequently.
+	 */
+	void Fixup();
+	
+	/** -----------------------------------------------------------------------
+	 * Update the video matrices with this camera.
+	 */
+	void UpdateVideo(); 
+
+	friend class Instance;
 };
 
 /** ---------------------------------------------------------------------------
@@ -185,68 +193,6 @@ void UseGlobalSurface();
  */
 void SetBackgroundColor( float r, float g, float b );
 
-//-----------------------------------------------------------------------------
-class Instance : public System::Module {
-
-private:
-	BlendMode       m_blendmode;
-	CullingMode     m_cullmode;
-	DepthBufferMode m_depthmode;
-	
-	float         m_bg_color[4];
-
-	float         m_fog_color[4];
-	float         m_fog_length; 
-
-	float         m_fov; // field of view
-	float         m_view_distance;
-
-	SDL_Window   *m_window     = nullptr; 
-	SDL_GLContext m_gl_context = nullptr; 
-	
-	int           m_screen_width  = 0;
-	int           m_screen_height = 0;
-
-public:
-	Instance();
-	~Instance();
-
-	void Open( int width, int height );
-	void Close();
-
-	int ScreenWidth() const { return m_screen_width; }
-	int ScreenHeight() const { return m_screen_height; }
-
-	void Swap();
-
-	void UseGlobalSurface();
-	void SetBackgroundColor( float r, float g, float b );
-	
-	void BindTextureHandle( GLuint texture );
-	void BindTextureArrayHandle( GLuint texture );
-
-	void SetFogLength( float length );
-	float GetFogLength() const { return m_fog_length; }
-
-	void SetBlendMode( BlendMode mode );
-	BlendMode GetBlendMode() const { return m_blendmode; }
-
-	void SetCullingMode( CullingMode mode );
-	CullingMode GetCullingMode() const { return m_cullmode; }
-
-	void SetDepthBufferMode( DepthBufferMode mode );
-	DepthBufferMode GetDepthBufferMode() const { return m_depthmode; }
-
-	void Clear();
-
-	void DrawQuads( int start, int size );
-	void DrawQuadsInstanced( int start, int size, int instances );
-
-	void SetActiveTextureSlot( int slot );
-
-	void BindArrayBuffer( GLuint buffer );
-};
- 
 //-------------------------------------------------------------------------------------------------
 // simple set camera function
 // xyz = position
@@ -313,28 +259,37 @@ public:
 //? ? ?? ?? ? not used anymore
 //void BindFramebufferTexture();
 
-//-------------------------------------------------------------------------------------------------
-// set the far clipping plane distance
-//
-//void SetViewDistance( float distance );
+/** ---------------------------------------------------------------------------
+ * Set the far plane (clipping) distance.
+ *
+ * @param distance Distance in world units.
+ */
+void SetViewDistance( float distance );
 
-//-------------------------------------------------------------------------------------------------
-// return the distance from the camera to the near plane
-//
-//float NearPlaneZ();
+/** ---------------------------------------------------------------------------
+ * @returns the distance from the camera to the near plane.
+ */
+float NearPlaneZ();
 
-//-------------------------------------------------------------------------------------------------
-// return the distance from the camera to the far plane
-//float FarPlaneZ();
+/** ---------------------------------------------------------------------------
+ * @returns the distance from the camera to the far plane.
+ */
+float FarPlaneZ();
 
-//-------------------------------------------------------------------------------------------------
-// return the distance between the two viewing planes
-//float ViewPlanesRange();
+/** ---------------------------------------------------------------------------
+ * @returns the distance between the two view planes.
+ */
+float ViewPlanesRange();
 
-//-------------------------------------------------------------------------------------------------
-// return the transformation/projection (camera) matrix
-//
+/** ---------------------------------------------------------------------------
+ * @returns the current transformation/projection (camera) matrix
+ */
 const Eigen::Matrix4f &GetXPMatrix();
+
+/** ---------------------------------------------------------------------------
+ * @returns the current serial number for the xp matrix. This increments
+ *          every time the xp matrix changes.
+ */
 int GetXPMatrixSerial();
 
 //-------------------------------------------------------------------------------------------------
@@ -358,50 +313,149 @@ int GetXPMatrixSerial();
 //void SetFogLength( float f ); THIS SHOULD BE A SHADER INHERITANCE ?
 //float GetFogLength();
  
-//-------------------------------------------------------------------------------------------------
-// get/set the rendering blend mode (cleaner method??)
-//
+/** ---------------------------------------------------------------------------
+ * Get/set the rendering blend mode.
+ *
+ * @see BlendMode
+ */
 BlendMode GetBlendMode();
-void SetBlendMode( BlendMode blend_mode );
+void SetBlendMode( BlendMode mode );
 
-//-------------------------------------------------------------------------------------------------
-// get/set the render culling mode
-//
-CullingMode GetCullingMode();
+
+/** ---------------------------------------------------------------------------
+ * Get/set the render culling mode.
+ *
+ * @see CullingMode
+ */
 void SetCullingMode( CullingMode mode );
+CullingMode GetCullingMode();
 
-//-------------------------------------------------------------------------------------------------
-// set the depth buffer mode
-//
+/** ---------------------------------------------------------------------------
+ * Get/set the depth buffering mode.
+ *
+ * @see DepthBufferMode enum.
+ */
 void SetDepthBufferMode( DepthBufferMode mode );
+DepthBufferMode GetDepthBufferMode();
 
-//-------------------------------------------------------------------------------------------------
-// render quads from a vertex buffer
-//
+
+/** ---------------------------------------------------------------------------
+ * Render quads.
+ *
+ * @param start Starting vertex index.
+ * @param count Number of vertexes to render.
+ */
 void DrawQuads( int start_vertex_index, int number_of_vertexes );
 
-//-------------------------------------------------------------------------------------------------
-// render quads using instancing
-// start = starting vertex index
-// size = number of vertexes
-// instances = number of instances of this to render
-//
-void DrawQuadsInstanced( int start_vertex_index, int number_of_vertexes, int instances );
+/** ---------------------------------------------------------------------------
+ * Render quads using instancing.
+ *
+ * @param start     Starting vertex index.
+ * @param count     Number of vertexes to render (should be multiple of 4).
+ * @param instances Number of instances to render.
+ */
+void DrawQuadsInstanced( int start, int count, int instances );
 
-//-------------------------------------------------------------------------------------------------
-// fill the screen with the background color
-//
+/** ---------------------------------------------------------------------------
+ * Fill the screen with the background color.
+ */
 void Clear();
 
-//-------------------------------------------------------------------------------------------------
-// change the texture unit slot
-//
+/** ---------------------------------------------------------------------------
+ * Change the texture unit slot.
+ */
 void SetActiveTextureSlot( int slot );
 
-//-------------------------------------------------------------------------------------------------
-void RunWindowLoop( void (*WindowFrameCallback)() );
+/** ---------------------------------------------------------------------------
+ * Bind an array (vertex) buffer.
+ */
+void BindArrayBuffer( GLuint buffer );
 
+//-----------------------------------------------------------------------------
+class Instance : public System::Module {
 
-void BindArrayBuffer( int id );
+private:
+	BlendMode       m_blendmode;
+	CullingMode     m_cullmode;
+	DepthBufferMode m_depthmode;
+	
+	float           m_bg_color[4];
 
+	float           m_fog_color[4];
+	float           m_fog_length; 
+
+	float           m_fov; // field of view
+	float           m_view_distance;
+
+	SDL_Window     *m_window     = nullptr; 
+	SDL_GLContext   m_gl_context = nullptr; 
+	
+	int             m_screen_width  = 0;
+	int             m_screen_height = 0;
+
+	Eigen::Matrix4f m_mat_view; 
+	Eigen::Matrix4f m_mat_projection;
+	Eigen::Matrix4f m_mat_xp;
+
+	Eigen::Vector3f m_near_plane[4];
+	Eigen::Vector3f m_far_plane[4];
+
+	// this number is incremented each time the mat_xp matrix changes
+	// it's used as a quick check if the matrix in a shader should be updated
+	int             m_matxp_serial = 0;
+
+public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	
+	Instance();
+	~Instance();
+
+	void Open( int width, int height );
+	void Close();
+
+	int ScreenWidth() const { return m_screen_width; }
+	int ScreenHeight() const { return m_screen_height; }
+
+	void Swap();
+
+	void UseGlobalSurface();
+	void SetBackgroundColor( float r, float g, float b );
+	
+	void BindTextureHandle( GLuint texture );
+	void BindTextureArrayHandle( GLuint texture );
+
+	void SetFogLength( float length );
+	float GetFogLength() const { return m_fog_length; }
+
+	void SetBlendMode( BlendMode mode );
+	BlendMode GetBlendMode() const { return m_blendmode; }
+
+	void SetCullingMode( CullingMode mode );
+	CullingMode GetCullingMode() const { return m_cullmode; }
+
+	void SetDepthBufferMode( DepthBufferMode mode );
+	DepthBufferMode GetDepthBufferMode() const { return m_depthmode; }
+
+	void Clear();
+
+	void DrawQuads( int start, int size );
+	void DrawQuadsInstanced( int start, int size, int instances );
+
+	void SetActiveTextureSlot( int slot );
+
+	void BindArrayBuffer( GLuint buffer );
+
+	float NearPlaneZ();
+	float FarPlaneZ();
+	float ViewPlanesRange();
+
+	void SetupProjection( float fovY, float aspect, float fnear, float ffar );
+	void UpdateViewport();
+
+	void CopyCamera( Camera &camera );
+
+	const Eigen::Matrix4f &GetXPMatrix() const { return m_mat_xp; }
+	int GetXPMatrixSerial() const { return m_matxp_serial; }
+};
+ 
 }
