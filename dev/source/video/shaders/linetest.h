@@ -1,39 +1,21 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 #include "video/shader.h"
 #include "video/shaders/backdropshader.h"
+#include "shadercamera.h"
 
 namespace Shaders {
 
-
-class ShaderCamera : public virtual Video::Shader {
-
-	GLint u_camera;
-	int camera_serial;
-
-public:
-	ShaderCamera() {
-		AddUniform( u_camera, "camera" );
-		camera_serial = 0;
-	}
-
-	void SetCamera()  override  { 
-		int serial = Video::GetXPMatrixSerial();
-		if( serial == camera_serial ) return;
-		camera_serial = serial;
-
-		glUniformMatrix4fv( u_camera, 1, GL_FALSE, Video::GetXPMatrix().data() );
-	}
-	
-}; 
- 
+/** ---------------------------------------------------------------------------
+ * A test shader.
+ */
 class LineTester :  
 	public AttributePosition<3>,
 	public ShaderCamera,

@@ -371,6 +371,31 @@ void SetActiveTextureSlot( int slot );
  */
 void BindArrayBuffer( GLuint buffer );
 
+/** ---------------------------------------------------------------------------
+ * @returns a pointer to the currently active shader.
+ */
+Shader *GetActiveShader();
+
+/** ---------------------------------------------------------------------------
+ * Find a shader by name.
+ *
+ * @param name The name the shader registered with.
+ *
+ * @returns pointer to the shader, or nullptr if not found.
+ */
+Shader *FindShader( const Stref &name );
+
+/** ---------------------------------------------------------------------------
+ * Register a new shader.
+ *
+ * @param name The name the shader registered with.
+ *
+ * @returns pointer to the shader, or nullptr if not found.
+ */
+template< typename T, typename ... A > void RegisterShader( A ... args ) {
+	GetInstance()->RegisterShader<T>( args ... );
+}
+
 //-----------------------------------------------------------------------------
 class Instance : public System::Module {
 
@@ -403,6 +428,9 @@ private:
 	// this number is incremented each time the mat_xp matrix changes
 	// it's used as a quick check if the matrix in a shader should be updated
 	int             m_matxp_serial = 0;
+
+	std::unordered_map<	std::string, std::unique_ptr<Shader> > m_shaders;
+	Shader         *m_active_shader;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -456,6 +484,9 @@ public:
 
 	const Eigen::Matrix4f &GetXPMatrix() const { return m_mat_xp; }
 	int GetXPMatrixSerial() const { return m_matxp_serial; }
+
+	Shader *GetActiveShader();
+	Shader *FindShader( const Stref &name );
 };
  
 }

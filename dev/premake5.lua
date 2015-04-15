@@ -143,6 +143,7 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 		"source/system/*.cpp",
 		"source/util/*.cpp",
 		"source/video/*.cpp",
+		"source/video/shaders/*.cpp",
 		"source/pch/*.cpp",
 		"source/main_game.cpp",
 		

@@ -1,47 +1,37 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "video/shader.h"
+#include "video/video.h"
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 namespace Video { 
-	
-namespace Shaders {
-	//-------------------------------------------------------------------------------------------------
-	Util::StringTable2 table;  // change to trie.
-	std::vector<Shader*> pointers;
-	Shader *active = 0;
 
-	//-------------------------------------------------------------------------------------------------
-	Shader *GetActive() {
-		return active;
-	}
-
-	//-------------------------------------------------------------------------------------------------
-	Shader *Find( const Stref &name ) {
-		int index = table.Find( *name );
-		if( index == -1 ) return nullptr;
-		return pointers[index];
-	}
-
-	int FindIndex( const Stref &name ) {
-		return table.Find( *name );
-	}
-
-	Shader *Get( int index ) {
-		return pointers[index];
-	} 
+//-----------------------------------------------------------------------------
+Shader *Instance::GetActiveShader() {
+	return m_active_shader;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+Shader *Instance::FindShader( const Stref &name ) {
+
+	try {
+		return m_shaders.at( name ).get();
+	} catch( const std::out_of_range & ) {}
+
+	return nullptr;
+}
+
+//-----------------------------------------------------------------------------
 Shader::SourceFile::SourceFile( const Stref &filename ) {
  
 	// open file, make sure it's there
 	std::ifstream file( filename, std::ios::binary );
 	if( !file ) { 
-		throw std::runtime_error( std::string("Missing shader source file: ") + *filename ); 
+		throw std::runtime_error( 
+			std::string("Missing shader source file: ") + *filename ); 
 	}
 
 	// get file size
@@ -55,7 +45,7 @@ Shader::SourceFile::SourceFile( const Stref &filename ) {
 	m_contents[m_length] = 0;
 }
  
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Shader::DumpInfoLog( GLuint shader, bool program ) {
 	GLint log_length;
 	if( program )
@@ -70,7 +60,7 @@ void Shader::DumpInfoLog( GLuint shader, bool program ) {
 	std::cerr << log.get() << std::endl; 
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 GLuint Shader::Compile( const Stref &filename, GLenum type ) {
 
 	GLuint shader;
@@ -223,6 +213,7 @@ Shader::~Shader() {
 
 //-------------------------------------------------------------------------------------------------
 int Shader::Register() { 
+	
 	int index = Shaders::table.Find( id );
 	if( index != -1 ) return index;
 	table_index = Shaders::table.Add( id );
@@ -260,6 +251,14 @@ void Shader::Kernel::SetParam( const char *name, const char *value ) {
 	}
 	func( value );
 }
+
+//-----------------------------------------------------------------------------
+Shader::Kernel::Kernel() {
+	ResetToDefault();
+}
+
+//-----------------------------------------------------------------------------
+Shader::Kernel::~Kernel() {}
 
 //-------------------------------------------------------------------------------------------------
 

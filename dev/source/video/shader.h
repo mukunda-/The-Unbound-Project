@@ -1,48 +1,67 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
  
-//-------------------------------------------------------------------------------------------------
-#include "util/Trie.h"
+//-----------------------------------------------------------------------------
+#include "util/trie.h"
 #include "util/stringtable2.h"
 #include "util/stringles.h"
 #include "util/fopen2.h"
-#include "util/stringref.h"
-#include "video/VertexArrayObject.h"
+#include "util/stref.h"
+#include "video/vertexarrayobject.h"
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 namespace Video {  
 
-//-------------------------------------------------------------------------------------------------
+/** ---------------------------------------------------------------------------
+ * A Shader controls a gpu "program".
+ */
 class Shader {
 
 public:
-	//---------------------------------------------------------------------------
+	
+	/** -----------------------------------------------------------------------
+	 * A kernel is used to save the shader's state.
+	 */
 	class Kernel {
+		friend class Shader;
+
 		typedef boost::function< void(const char *) > Setfunc;
 		Util::Trie<Setfunc> set_trie;
+
+		virtual boost::shared_ptr<Kernel> Create();
 
 	protected:
 		void AddParam( const char *name, Setfunc on_set );
 
 	public:
 
-		void SetParam( const char *name, const char *value );
+		/** -------------------------------------------------------------------
+		 * Set a variable.
+		 *
+		 * @param name  Name of variable.
+		 * @param value Value to set the variable to. TODO define syntax for various types.
+		 */
+		void SetParam( const Stref &name, const Stref &value );
 
+		/** -------------------------------------------------------------------
+		 * Reset/erase this kernel's settings, returning all variables to
+		 * the values defined by the shader's implementation.
+		 */
 		virtual void ResetToDefault() {};
-
-		virtual boost::shared_ptr<Kernel> Create();
-
-		Kernel() {
-			ResetToDefault();
-		} 
-	
+		
+		Kernel();
+		virtual ~Kernel();
 	};
 
 private:
-	//---------------------------------------------------------------------------
+
+	/** -----------------------------------------------------------------------
+	 * Variables represent a single uniform variable or attribute in the
+	 * shader program.
+	 */
 	struct Variable {
 		// a single 
 		enum Type {
@@ -66,129 +85,171 @@ private:
 		} 
 	}; 
 
-	//---------------------------------------------------------------------------
+	/** -----------------------------------------------------------------------
+	 * A SourceFile is just a file reader and a buffer, for passing
+	 * to the shader compiler.
+	 */
 	class SourceFile {
 		int m_length;
 		boost::scoped_array<char> m_contents;
 
 	public:
+		/** -------------------------------------------------------------------
+		 * Read a file.
+		 *
+		 * @param filename Path to file.
+		 */
 		SourceFile( const Stref &filename );
 
+		/** -------------------------------------------------------------------
+		 * @returns the length of the contents.
+		 */
 		int Length() const {
 			return m_length;
 		}
 		
-
+		/** -------------------------------------------------------------------
+		 * @returns the text data.
+		 */
 		const char *Contents() const {
 			return m_contents.get();
 		}
 	};
 	 
-	std::vector<GLuint>   shaders;		// list of compiled shaders
-	std::vector<Variable> variables; 
-	std::vector<GLint>    attributes;	// list of vertex attributes
-	//std::vector<GLint>  uniforms;		// list of shader uniform variables (not used)
-	GLuint program;						// program ID of shader
+	// list of compiled shaders.
+	std::vector<GLuint>   m_shaders;
 
-	VertexArrayObject vertex_state;		// VAO to hold the state for this shader
+	// list of shader variables.
+	std::vector<Variable> m_variables; 
 
-	char id[32];
-	int  table_index;
+	// list of attributes, we keep this as a separate list for
+	// easy access when enabling/disabling the arrays.
+	std::vector<GLint>    m_attributes;
+	
+	// program ID of shader
+	GLuint m_program;
 
-	//static std::shared_ptr<char[]> ReadFile( const Stref &filename, 
-	//										 int &length );
+	// VAO to hold the state for this shader
+	VertexArrayObject m_vertex_state;
 
+	// Name of this shader.
+	std::string m_name;
+	 
+
+	// debug dump function
 	static void DumpInfoLog( GLuint shader, bool program );
+	
+	/** -----------------------------------------------------------------------
+	 * Compile a shader file.
+	 * 
+	 * @param filename Path to shader source.
+	 * @param type     Type of shader being compiled.
+	 *
+	 * @returns OpenGL result.
+	 */
+	static GLuint Compile( const Stref &filename, GLenum type );
 
 protected: 
+	// (used by implementation only)
 	 
-	//---------------------------------------------------------------------------
-	// compile a shader file and add it to this program
-	//
+	/** -----------------------------------------------------------------------
+	 * Compile a shader file and add it to this program.
+	 *
+	 * @param filename Path to shader source file.
+	 * @param type     The type of shader being compiled, 
+	 *                 may be GL_VERTEX_SHADER, or GL_FRAGMENT_SHADER
+	 */
 	void AddShader( const Stref &filename, GLenum type );
 
-	//---------------------------------------------------------------------------
-	// link the shader program
-	//
+	/** -----------------------------------------------------------------------
+	 * Link the shader program. This is done after all source files have
+	 * been compiled successfully.
+	 */
 	void Link();
 	
-	//---------------------------------------------------------------------------
-	// register a shader attribute
-	//
+	/** -----------------------------------------------------------------------
+	 * Register a shader "attribute".
+	 *
+	 * This should only be used during initalization.
+	 *
+	 * @param target  Member variable to store the index for later access.
+	 * @param name    Name of the variable in the shader.
+	 * @param divisor Divisor used for instanced rendering.
+	 * @param matrix  Number of rows the variable has (if it is a matrix)
+	 */
 	void AddAttribute( GLint &target, const Stref &name, 
 					   int divisor = 0, int matrix = 1 );
 	
-	//---------------------------------------------------------------------------
-	// register a shader uniform
-	//
+	/** -----------------------------------------------------------------------
+	 * Register a shader uniform variable.
+	 *
+	 * This should only be used during initalization.
+	 *
+	 * @param target  Member variable to store the index for later access.
+	 * @param name    Name of the variable in the shader.
+	 */
 	void AddUniform( GLint &target, const Stref &name );
 
-	//---------------------------------------------------------------------------
-	// register this shader
-	//
-	int Register();
-	
-	//---------------------------------------------------------------------------
-	// enable/disable the vertex attributes for this shader
-	// under normal conditions these aren't used; they are used once
-	// during initialization and the state is saved in a vao
+	/** -----------------------------------------------------------------------
+	 * Enable or disable the vertex attributes for this shader.
+	 *
+	 * Under normal conditions these aren't used. They are used
+	 * during initialization and the state is saved in a VAO.
+	 */
 	void EnableVertexAttributes();
 	void DisableVertexAttributes();
 	
-	//---------------------------------------------------------------------------
-	// read the opengl program ID
-	GLuint ProgramID();
+	/** -----------------------------------------------------------------------
+	 * @returns the OpenGL program ID.
+	 */
+	GLuint ProgramID() { return m_program; }
 	 
-	//---------------------------------------------------------------------------
-	// compile a shader file
-	static GLuint Compile( const Stref &filename, GLenum type );
-
-	Shader( const char *name );
+	/** -----------------------------------------------------------------------
+	 * Initialize.
+	 *
+	 * @param name Name of shader used for registration.
+	 */
+	Shader( const Stref &name );
 	Shader();
 
 public:
-	~Shader();
+	virtual ~Shader();
 
-	//---------------------------------------------------------------------------
-	// activate this shader program
+	/** -----------------------------------------------------------------------
+	 * Activate this shader program.
+	 */
 	void Use();
 
-	//---------------------------------------------------------------------------
-	// setup the vertex attribute pointers for the current vertex buffer
-	// offset = byte offset into the buffer where the data starts
-	// set = shader specific, selection of vertex attributes to affect
+	/** -----------------------------------------------------------------------
+	 * Setup the vertex attribute pointers for a vertex buffer that is bound.
+	 *
+	 * @param offset Byte offset into the buffer where the data starts.
+	 * @param set    (shader defined) Selection of vertex attributes to
+	 *               affect.
+	 */
 	virtual void SetVertexAttributePointers( int offset = 0, int set = 0 );
 	
-	//---------------------------------------------------------------------------
-	// copy camera from video module
-	//
+	/** -----------------------------------------------------------------------
+	 * Copy camera settings from video module. (projection/modelview matrix)
+	 */
 	virtual void SetCamera() {};
-	//virtual int GetParam( const char *name );
 
-	// is this shader active
-	//
+	/** -----------------------------------------------------------------------
+	 * @returns true if this shader is active.
+	 */
 	bool Active();
 	 
+	/** -----------------------------------------------------------------------
+	 * Setup the shader's state from a kernel.
+	 */
 	virtual void LoadKernel( Kernel &kernel ) {}; 
+
+	/** -----------------------------------------------------------------------
+	 * Create a shader kernel. Kernels are used to store the state of
+	 * all of the shader's variables.
+	 */
 	virtual boost::shared_ptr<Shader::Kernel> CreateKernel();
 };
-
-
-namespace Shaders {
-	//-------------------------------------------------------------------------------------------------
-	// get the active shader
-	//
-	Shader *GetActive();
-
-	//-------------------------------------------------------------------------------------------------
-	// find a registered shader from a keystring 
-	//
-	Shader *Find( const Stref &name );
-	int FindIndex( const Stref &name );
-
-	// get a shader instance from its registered index
-	Shader *Get( int index );
-}
 
 } 
  
