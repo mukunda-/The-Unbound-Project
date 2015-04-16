@@ -16,7 +16,7 @@
 namespace Video {  
 
 /** ---------------------------------------------------------------------------
- * A Shader controls a gpu "program".
+ * A Shader represents a shader program on the gpu.
  */
 class Shader {
 
@@ -54,6 +54,15 @@ public:
 		
 		Kernel();
 		virtual ~Kernel();
+	};
+
+protected:
+
+	/** ----------------------------------------------------------------------
+	 * A kernel map maps names to setting functions.
+	 */
+	class KernelMap {
+
 	};
 
 private:
