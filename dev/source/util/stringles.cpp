@@ -302,10 +302,8 @@ int ConvertHexByte( const char *str ) {
 
 #ifdef EIGEN_CORE_H
 //-------------------------------------------------------------------------------------------------
-bool ParseColorString( const char *input, Eigen::Vector4f &output  ) {
+bool ParseColorString( const Stref &input, Eigen::Vector4f &output  ) {
 	// parses a color string into a vector
-	
-	//
 
 	output.setOnes();
 

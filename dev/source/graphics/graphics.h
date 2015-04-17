@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
@@ -45,21 +45,25 @@ enum RenderLayer {
  */
 class Material {
 
-	// max number of textures used for a single material
-	static const int TEXTURE_SLOTS = 4;
+	enum {
+
+		// max number of textures that may be used for a single material
+		TEXTURE_SLOTS = 4
+	};
 
 	// shader to use to render this material
 	Video::Shader *shader; 
 
 	// shader kernel settings to pass to shader
-	boost::shared_ptr<Video::Shader::Kernel> kernel; 
+	std::shared_ptr<Video::Shader::Kernel> kernel; 
 
 	// texture handles for the textures used
 	Video::Texture::Pointer textures[TEXTURE_SLOTS];
 
 
 public:
-	Material( const std::string &shader_name );
+	Material( const Stref &shader_name );
+	virtual ~Material() {}
 
 	/**
 	 * Set a shader parameter.
@@ -123,8 +127,7 @@ struct Element : public Memory::FastAllocation, public Util::LinkedItem<Element>
 	GLuint m_buffer_start; // offset into the vertex data, in vertexes
 	GLuint m_buffer_size; // number of vertices to render
 	GLenum m_render_mode; // GL rendering mode (GL_TRIANGLES, etc)
-	 
-
+	
 	// auto-remove modes,
 	// after rendering this is performed:
 	enum {
@@ -134,6 +137,7 @@ struct Element : public Memory::FastAllocation, public Util::LinkedItem<Element>
 	} m_autoremove;
 	  
 	Element();
+	
 };
 
 //---------------------------------------------------------------------------------------
@@ -200,5 +204,22 @@ void RenderScene();
  */
 void SetupElement( Element &e, Video::VertexBuffer::Pointer &buffer, Video::BlendMode blendmode, 
 				  Material &mat, GLuint buffer_size, GLenum render_mode );
+
+//-----------------------------------------------------------------------------
+class Instance final {
+	
+	Util::LinkedList<Element> m_elements_opaque;
+	Util::LinkedList<Element> m_elements_blended;
+
+	Util::LinkedList<Element> m_elements_ui;
+
+	FT_Library m_ftlib;
+
+public:
+	Instance();
+	~Instance();
+
+	FT_Library *FreeType();
+};
 
 }

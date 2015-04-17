@@ -8,7 +8,7 @@
 #include "video/shaders/uishader.h"
 #include "graphics/fontmaterial.h"
 #include "graphics/vertexformats.h"
-#include "video/shaders/linetest.h"
+#include "video/shaders/linetester.h"
 #include "system/variables.h"
 #include "game/defs.h"
 
@@ -17,27 +17,8 @@
 static const char BUILD_DATE[] = __DATE__ "/" __TIME__;
 
 namespace Game {
-
-//-----------------------------------------------------------------------------
-Game::Game() : 
-	Module( "game", Levels::USER ),
-	cl_master_address( System::Variables::Create( 
-			"cl_master_address", "localhost", 
-			"Address of master server." ))
-{
 	
-}
-
-//-----------------------------------------------------------------------------
-Game::~Game() {
-
-}
-
-//-----------------------------------------------------------------------------
-void Game::OnStart() {
-
-}
-
+namespace {
 //-----------------------------------------------------------------------------
 template <class m> void PrintMatrix3( m mat ) {
 	printf( "\n%8.2f | %8.2f | %8.2f\n",
@@ -92,6 +73,35 @@ Video::VertexBuffer::Pointer GenerateTestGeometry2() {
 	return buffer;
 }
 
+}
+
+//-----------------------------------------------------------------------------
+Game::Game() : 
+	Module( "game", Levels::USER ),
+	cl_master_address( System::Variables::Create( 
+			"cl_master_address", "localhost", 
+			"Address of master server." ))
+{
+	
+}
+
+//-----------------------------------------------------------------------------
+Game::~Game() {
+
+}
+
+//-----------------------------------------------------------------------------
+void Game::OnStart() {
+	Video::RegisterShader<Shaders::LineTester>();
+	Video::RegisterShader<Shaders::Ui>();
+
+	auto *mat = Graphics::CreateMaterial( "mymat", "linetest" );
+	mat->SetParam( "color", "0.2 0.2 0.2" );
+
+	Graphics::Material *Graphics::CreateMaterial( "mymat2", "ui" );
+
+}
+
 //-----------------------------------------------------------------------------
 void Game::Run() {
 
@@ -101,8 +111,6 @@ void Game::Run() {
 		cl_master_address.GetString(), 
 		std::to_string( Game::PORT_CLIENT ) );
 		*/
-	Shaders::LineTester shader;
-	Shaders::Ui ui_shader;
 	
 	Graphics::Material mymat( "linetest" );
 	Graphics::Material mymat2( "ui" );

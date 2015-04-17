@@ -2,8 +2,9 @@
 //                                                                             //
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 
-#include "stdafx.h"
-#include "include_game.h"
+#include "stdafx.h" 
+
+#if 0
 
 //-------------------------------------------------------------------------------------------------
 namespace Shaders {
@@ -70,3 +71,5 @@ void BackdropShader::SetShaderPlanes( Eigen::Vector3f &p_near, Eigen::Vector3f *
 }
 
 }
+
+#endif

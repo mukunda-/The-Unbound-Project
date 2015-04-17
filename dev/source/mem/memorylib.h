@@ -117,6 +117,8 @@ struct FastAllocation {
 	void operator delete(void* m) {
 		FreeMem(m);
 	}
+
+	virtual ~FastAllocation() {}
 };
 
 }

@@ -6,6 +6,7 @@
 
 //-----------------------------------------------------------------------------
 #include "system/module.h"
+#include "forwards.h"
 
 namespace Video {
 
@@ -388,12 +389,16 @@ Shader *FindShader( const Stref &name );
 /** ---------------------------------------------------------------------------
  * Register a new shader.
  *
- * @param name The name the shader registered with.
+ * @param shader Shader to register. The video instance will take ownership
+ *               of this pointer.
  *
- * @returns pointer to the shader, or nullptr if not found.
+ * @returns pointer to the shader, or nullptr if an error occurred.
  */
-template< typename T, typename ... A > void RegisterShader( A ... args ) {
-	GetInstance()->RegisterShader<T>( args ... );
+Shader *RegisterShader( std::unique_ptr<Shader> &&shader );
+
+template< typename T, typename ... A >
+Shader *RegisterShader( A ... args ) {
+	return RegisterShader( std::unique_ptr<T>( new T( args ... )));
 }
 
 //-----------------------------------------------------------------------------
@@ -431,6 +436,8 @@ private:
 
 	std::unordered_map<	std::string, std::unique_ptr<Shader> > m_shaders;
 	Shader         *m_active_shader;
+
+	friend class Shader;
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -485,8 +492,10 @@ public:
 	const Eigen::Matrix4f &GetXPMatrix() const { return m_mat_xp; }
 	int GetXPMatrixSerial() const { return m_matxp_serial; }
 
-	Shader *GetActiveShader();
+	Shader *GetActiveShader() { return m_active_shader; }
 	Shader *FindShader( const Stref &name );
+
+	Shader *RegisterShader( std::unique_ptr<Shader> &&shader );
 };
  
 }

@@ -44,8 +44,10 @@ void VertexBuffer::Load( void *data, GLsizei size, GLuint index ) {
 //-------------------------------------------------------------------------------------------------
 void VertexBuffer::Render( GLenum mode, GLuint offset, GLuint start, GLuint size, GLuint index ) {
 	Bind(index);
-	Video::Shader *s = Video::Shaders::GetActive();
+
+	Video::Shader *s = Video::GetActiveShader();
 	if( !s ) return;
+
 	s->SetVertexAttributePointers( offset );
 	glDrawArrays( mode, start, size );
 }

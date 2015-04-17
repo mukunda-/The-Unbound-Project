@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "video.h"
 #include "console/console.h"
+#include "shader.h"
  
 //-----------------------------------------------------------------------------
 namespace Video {
@@ -305,6 +306,30 @@ void Instance::CopyCamera( Camera &cam ) {
 }
 
 //-----------------------------------------------------------------------------
+Shader *Instance::FindShader( const Stref &name ) {
+
+	try {
+		return m_shaders.at( name ).get();
+	} catch( const std::out_of_range & ) {}
+
+	return nullptr;
+}
+
+//-----------------------------------------------------------------------------
+Shader *Instance::RegisterShader( std::unique_ptr<Shader> &&shader ) {
+	Shader *shader_ptr = shader.get();
+
+	if( m_shaders.count( shader->Name() ) > 0 ) {
+		Console::PrintErr( "Trying to register duplicate shader \"%s\".", 
+						   shader->Name() );
+		return nullptr;
+	}
+
+	m_shaders[ shader->Name() ] = std::move(shader);
+	return shader_ptr;
+}
+
+//-----------------------------------------------------------------------------
 
  /* TODO move to camera shake dongle
 //-------------------------------------------------------------------------------------------------
@@ -432,6 +457,9 @@ float           FarPlaneZ()                                     { return g_insta
 float           ViewPlanesRange()                               { return g_instance->ViewPlanesRange();      }
 const Matrix4f  &GetXPMatrix()                                  { return g_instance->GetXPMatrix();          }
 int             GetXPMatrixSerial()                             { return g_instance->GetXPMatrixSerial();    }
+Shader         *RegisterShader( std::unique_ptr<Shader> &&s )   { return g_instance->RegisterShader( std::move(s) ); }
+Shader         *GetActiveShader()                               { return g_instance->GetActiveShader();      }
+Shader         *FindShader( const Stref &n )                    { return g_instance->FindShader( n );        }
 
 /*
 //-------------------------------------------------------------------------------------------------

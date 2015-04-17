@@ -21,6 +21,46 @@ namespace Video {
 class Shader {
 
 public:
+	class Kernel;
+	
+protected:
+
+
+	/** -----------------------------------------------------------------------
+	 * A KernelMap maps names to parameter handling functions.
+	 */
+	class KernelMap {
+
+	public:
+		using Setfunc = void (Kernel::*)( const Stref& );
+		Util::Trie<Setfunc> m_setters;
+		
+		/** -------------------------------------------------------------------
+		 * Register a parameter.
+		 *
+		 * @param name   Name of parameter.
+		 * @param func   Function that should be called when this parameter
+		 *               is being set.
+		 */
+		void AddParam( const Stref &name, Setfunc func );
+
+		template< typename T >
+		void AddParam( const Stref &name, T func ) {
+			// a little bit of magic..
+			AddParam( name, (Setfunc)func );
+		}
+
+		/** -------------------------------------------------------------------
+		 * Get the function to set a parameter.
+		 *
+		 * @param name Name of parameter.
+		 * @returns function to set parameter, or an empty function if the
+		 *          parameter doesn't exist.
+		 */
+		Setfunc Get( const Stref &name ) const;
+	};
+
+public:
 	
 	/** -----------------------------------------------------------------------
 	 * A kernel is used to save the shader's state.
@@ -28,14 +68,10 @@ public:
 	class Kernel {
 		friend class Shader;
 
-		typedef boost::function< void(const char *) > Setfunc;
-		Util::Trie<Setfunc> set_trie;
-
-		virtual boost::shared_ptr<Kernel> Create();
-
 	protected:
-		void AddParam( const char *name, Setfunc on_set );
-
+		 
+		std::shared_ptr<const KernelMap> m_map;
+		 
 	public:
 
 		/** -------------------------------------------------------------------
@@ -52,18 +88,16 @@ public:
 		 */
 		virtual void ResetToDefault() {};
 		
-		Kernel();
+		/** -------------------------------------------------------------------
+		 * Constructor.
+		 *
+		 * @param map Pointer to a KernelMap for this kernel, ideally stored
+		 *            in the shader that is creating this kernel.
+		 */
+		Kernel( std::shared_ptr<const KernelMap> &map );
 		virtual ~Kernel();
 	};
 
-protected:
-
-	/** ----------------------------------------------------------------------
-	 * A kernel map maps names to setting functions.
-	 */
-	class KernelMap {
-
-	};
 
 private:
 
@@ -124,16 +158,16 @@ private:
 			return m_contents.get();
 		}
 	};
-	 
+	
 	// list of compiled shaders.
-	std::vector<GLuint>   m_shaders;
+	std::vector<GLuint> m_shaders;
 
 	// list of shader variables.
 	std::vector<Variable> m_variables; 
 
 	// list of attributes, we keep this as a separate list for
-	// easy access when enabling/disabling the arrays.
-	std::vector<GLint>    m_attributes;
+	// easy access when enabling/disabling the arrays
+	std::vector<GLint> m_attributes;
 	
 	// program ID of shader
 	GLuint m_program;
@@ -219,7 +253,11 @@ protected:
 	 * @param name Name of shader used for registration.
 	 */
 	Shader( const Stref &name );
-	Shader();
+
+	Shader( Shader& )  = delete;
+	Shader( Shader&& ) = delete;
+	Shader& operator=( Shader& )  = delete;
+	Shader& operator=( Shader&& ) = delete;
 
 public:
 	virtual ~Shader();
@@ -236,7 +274,7 @@ public:
 	 * @param set    (shader defined) Selection of vertex attributes to
 	 *               affect.
 	 */
-	virtual void SetVertexAttributePointers( int offset = 0, int set = 0 );
+	virtual void SetVertexAttributePointers( int offset = 0, int set = 0 ) = 0;
 	
 	/** -----------------------------------------------------------------------
 	 * Copy camera settings from video module. (projection/modelview matrix)
@@ -247,17 +285,22 @@ public:
 	 * @returns true if this shader is active.
 	 */
 	bool Active();
+
+	/** -----------------------------------------------------------------------
+	 * @returns the name of this shader.
+	 */
+	const std::string &Name() { return m_name; }
 	 
 	/** -----------------------------------------------------------------------
 	 * Setup the shader's state from a kernel.
 	 */
-	virtual void LoadKernel( Kernel &kernel ) {}; 
+	virtual void LoadKernel( Kernel &kernel ) = 0; 
 
 	/** -----------------------------------------------------------------------
 	 * Create a shader kernel. Kernels are used to store the state of
 	 * all of the shader's variables.
 	 */
-	virtual boost::shared_ptr<Shader::Kernel> CreateKernel();
+	virtual std::shared_ptr<Kernel> CreateKernel() = 0;
 };
 
 } 

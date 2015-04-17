@@ -19,11 +19,13 @@ public:
 	LinkedItem() {
 		m_prev=m_next=0;
 	}
+
+	virtual ~LinkedItem() {}
 };
 
 //-------------------------------------------------------------------------------------------------
 template<class Object>
-class LinkedList {
+class LinkedList final {
 //-------------------------------------------------------------------------------------------------
 
 protected:

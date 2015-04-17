@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 // graphics.cpp
 // a newer graphics system
@@ -13,11 +13,6 @@ namespace Graphics {
 	
 //cml::vector3f viewplane_h;
 //cml::vector3f viewplane_v;
-
-Util::LinkedList<Element> g_elements_objects_opaque;
-Util::LinkedList<Element> g_elements_objects_blended;
-
-Util::LinkedList<Element> g_elements_ui;
 
 Element::Element() {
 	// element initialization
@@ -511,8 +506,8 @@ void Init() {
 
  
 
-Material::Material( const std::string &shader_name ) {
-	shader = Video::Shaders::Find( shader_name  );
+Material::Material( const Stref &shader_name ) {
+	shader = Video::FindShader( shader_name  );
 	if( !shader ) {
 		//shader = Videos::Shaders::Default(); (todo)
 		throw std::runtime_error( "Invalid shader used for material." );

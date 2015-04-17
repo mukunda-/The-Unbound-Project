@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 
+#if 0
 //-------------------------------------------------------------------------------------------------
 namespace Video { namespace Shaders {
 
@@ -64,3 +65,4 @@ void ObjectShader::SetCameraMatrix( const float *matrix ) const {
 
 }}
 
+#endif

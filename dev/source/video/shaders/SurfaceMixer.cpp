@@ -4,6 +4,8 @@
 
 #include "stdafx.h"
 
+#if 0
+
 namespace Video { namespace Shaders {
 
 //-------------------------------------------------------------------------------------------------
@@ -40,3 +42,4 @@ void SurfaceMixer::SetAlpha( float alpha ) const {
 }
 
 }}
+#endif

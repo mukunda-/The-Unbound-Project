@@ -73,7 +73,7 @@ private:
 
 public:
 	Font();
-	~Font();
+	virtual ~Font();
 
 	std::vector<std::unique_ptr<CharacterSet> > charsets;
 

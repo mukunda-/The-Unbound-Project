@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 // TRIE class
 // Associates strings with data 
@@ -22,13 +22,14 @@ namespace Util {
 
 //-----------------------------------------------------------------------------
 template <class Type>
-class Trie {
+class Trie final {
 
 //-----------------------------------------------------------------------------
 private:
 
-	static const int ASCII_BASE = 0;
-	static const int BRANCH_ENTRIES = 128; 
+	enum {
+		BRANCH_ENTRIES = 128
+	};
 	
 	//-------------------------------------------------------------------------
 	struct Branch : public Memory::FastAllocation {
@@ -61,9 +62,17 @@ private:
 
 	//-------------------------------------------------------------------------
 	Branch *FindKey( const char *key ) {
-		Branch *b = &trunk;
+
+		// this is the most beautiful line of code i have ever written
+		return const_cast<Branch*>(
+			static_cast<const Trie*>(this)->FindKey( key ) );
+	}
+
+	//-------------------------------------------------------------------------
+	const Branch *FindKey( const char *key ) const {
+		const Branch *b = &trunk;
 		for( auto k = key; *k; k++ ) {
-			int index = (*k) - ASCII_BASE;
+			int index = (*k);
 			assert( index >= 0 && index < BRANCH_ENTRIES );
 			if( b->m_branches[index] ) {
 				b = b->m_branches[index];
@@ -79,34 +88,32 @@ private:
 public:
 	
 	//-------------------------------------------------------------------------
-	Trie() {
-		
-	} 
+	Trie() {} 
 
-	/// -----------------------------------------------------------------------
-	/// Clear the trie.
-	///
-	/// Unsets all keys.
-	///
+	/** -----------------------------------------------------------------------
+	 * Clear the trie.
+	 *
+	 * Unsets all keys.
+	 */
 	void Clear() {
 		trunk.Clear();
 	}
 	
-	/// -----------------------------------------------------------------------
-	/// Set a key value.
-	///
-	/// @param key     Key string.
-	/// @param value   Key value.
-	/// @param replace If the key is already set, overwrite it.
-	///
-	/// @returns true if set, false if the key was already set and `replace`
-	///          was false.
-	///
-	bool Set( const Util::StringRef &key, Type value, bool replace=true ) {
+	/** -----------------------------------------------------------------------
+	 * Set a key value.
+	 *
+	 * @param key     Key string.
+	 * @param value   Key value.
+	 * @param replace If the key is already set, overwrite it.
+	 *
+	 * @returns true if set, false if the key was already set and `replace`
+	 *          was false.
+	 */
+	bool Set( const Stref &key, Type value, bool replace = true ) {
 		Branch *b = &trunk;
 
 		for( auto k = *key; *k; k++ ) {
-			int index = (*k) - ASCII_BASE;
+			int index = (*k);
 			assert( index >= 0 && index < BRANCH_ENTRIES );
 			if( !b->m_branches[index] ) {
 				b->m_branches[index] = new Branch;
@@ -119,47 +126,37 @@ public:
 		return true;
 	}
 
-	/// -----------------------------------------------------------------------
-	/// Reset a key value.
-	///
-	/// This checks if a key exists and then resets its 'set' flag.
-	///
-	/// @param key   Key string.
-	/// @param value "null" value to assign to the empty slot, e.g. to reset
-	///              a smart pointer.
-	/// @returns true if the key was reset, false if the key was not set.
-	///
-	bool Reset( const Util::StringRef &key, Type value = 0 ) {
+	/** -----------------------------------------------------------------------
+	 * Reset a key value.
+	 * 
+	 *  This checks if a key exists and then resets its 'set' flag.
+	 * 
+	 *  @param key   Key string.
+	 *  @param value "null" value to assign to the empty slot, e.g. to reset
+	 *               a smart pointer.
+	 *  @returns true if the key was reset, false if the key was not set.
+	 */
+	bool Reset( const Stref &key, Type value = 0 ) {
 		Branch *b = FindKey( *key );
 		if( !b ) return false;
 		b->m_data = value;
 		b->m_isset = false;
 		return true;
-	}
-
-	//-------------------------------------------------------------------------
-	bool Reset( std::string &key, Type value = 0 ) {
-		return Reset( key.c_str(), value );
-	}
+	} 
 	
-	/// -----------------------------------------------------------------------
-	/// Get a key value.
-	///
-	/// @param key   Key string to look up.
-	/// @param value Value return variable.
-	///
-	/// @returns true if the key existed and the value was copied.
-	///
-	bool Get( const char *key, Type &value ) {
-		Branch *b = FindKey(key);
+	/* ------------------------------------------------------------------------
+	 *  Get a key value.
+	 * 
+	 *  @param key   Key string to look up.
+	 *  @param value Value return variable.
+	 * 
+	 *  @returns true if the key existed and the value was copied.
+	 */
+	bool Get( const Stref &key, Type &value ) const {
+		const Branch *b = FindKey( *key );
 		if( !b ) return false;
 		value = b->m_data;
 		return true;
-	}
-
-	//-------------------------------------------------------------------------
-	bool Get( std::string &key, Type &value ) {
-		return Get( key.c_str(), value );
 	}
 };
 
