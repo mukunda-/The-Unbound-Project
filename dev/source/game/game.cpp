@@ -11,6 +11,7 @@
 #include "video/shaders/linetester.h"
 #include "system/variables.h"
 #include "game/defs.h"
+#include "graphics/material.h"
 
 #include "game/gamecamera.h"
 
@@ -95,11 +96,16 @@ void Game::OnStart() {
 	Video::RegisterShader<Shaders::LineTester>();
 	Video::RegisterShader<Shaders::Ui>();
 
-	auto *mat = Graphics::CreateMaterial( "mymat", "linetest" );
+	auto mat = Graphics::CreateMaterial( "mymat", "linetest" );
 	mat->SetParam( "color", "0.2 0.2 0.2" );
+	
+	Graphics::Element::ptr test_element = Graphics::CreateElement();
+	test_element->Setup( GenerateTestGeometry(), 
+		Video::BlendMode::OPAQUE, mat, 44, Video::RenderMode::LINES ); 
+	test_element->Add();
 
-	Graphics::Material *Graphics::CreateMaterial( "mymat2", "ui" );
-
+	mat = Graphics::CreateMaterial( "mymat2", "ui" );
+	
 }
 
 //-----------------------------------------------------------------------------
@@ -112,22 +118,11 @@ void Game::Run() {
 		std::to_string( Game::PORT_CLIENT ) );
 		*/
 	
-	Graphics::Material mymat( "linetest" );
-	Graphics::Material mymat2( "ui" );
-	mymat.SetParam( "color", "0.2 0.2 0.2" );
-
 	//Video::Texture::Pointer tex = Video::Texture::New( "test" );	
 	Graphics::FontMaterial testfont;
 	testfont.LoadFace( "cour.ttf", 20 );
 	testfont.LoadMaterial();
 
-
-	Graphics::Element test_element;
-	Graphics::SetupElement( test_element, GenerateTestGeometry(), 
-		Video::BLEND_OPAQUE, mymat, 44, GL_LINES );
-	
-
-	Graphics::AddElement( test_element );
 
 	GameCamera cam;
 	cam.SetPosition( Eigen::Vector3f( 0, 0, 5.0 ) );

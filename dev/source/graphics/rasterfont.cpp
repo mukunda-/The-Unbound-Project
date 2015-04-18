@@ -1,18 +1,19 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
-#include "video/textures.h"
-#include "graphics/rasterfont.h"
+#include "video/texture.h"
+#include "rasterfont.h"
+#include "graphics.h"
 
+#include "debug/dumpbitmap.h"
+
+//-----------------------------------------------------------------------------
 namespace Graphics { 
 
 #define padding 4
 #define bitmap_width 512
-
-FT_Library g_ftlib;
-bool g_ft_init = false;
 
 //-------------------------------------------------------------------------------------------------
 Font::CharacterSet::CharacterSet( Character *set, int p_height, int p_stroke ) {
@@ -44,16 +45,6 @@ const Font::Character * Font::CharacterSet::GetCharacter( char code ) const {
 		return &chars[code-32];
 	}
 	return 0;
-}
-
-//-------------------------------------------------------------------------------------------------
-void Font::InitFreeType() {
-	if( g_ft_init ) return;
-	int error = FT_Init_FreeType( &g_ftlib );
-	if( error ) {
-		printf( "error starting FreeType: %i\n", error );
-	}
-	g_ft_init = true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -140,7 +131,7 @@ bool Font::LoadFace( const char *filename, int height, int stroke ) {
 	if( GetCharacterSet( height, stroke ) ) return false; // character set already loaded
  
 	FT_Face face;
-	FT_New_Face( g_ftlib, filename, 0, &face );
+	FT_New_Face( Graphics::FTLib(), filename, 0, &face );
 	
 	FT_Set_Char_Size( face, 0, height*64, 72, 72 );
 
@@ -191,7 +182,10 @@ bool Font::LoadFace( const char *filename, int height, int stroke ) {
 		raster_x += slot->bitmap.width+1+stroke*2;
 	}
 
-	charsets.push_back( std::unique_ptr<CharacterSet>(new CharacterSet( chars, height, stroke )) );
+	// free memory
+	FT_Done_Face( face );
+
+	charsets.push_back( std::unique_ptr<CharacterSet>( new CharacterSet( chars, height, stroke )));
 
 	return true;
 	
@@ -212,7 +206,7 @@ void Font::DebugDump() const {
 			debug_bmp[(px+py*bitmap_width)*3+2] = t;
 		}
 	}
-	//debug_dump( bitmap_width,bitmap_width,debug_bmp);
+	Debug::DumpBitmap( bitmap_width, bitmap_width, debug_bmp );
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -244,7 +238,7 @@ void Font::LoadTexture( Video::Texture::Pointer &texture ) {
 
 //-------------------------------------------------------------------------------------------------
 Font::Font() {
-	InitFreeType();
+
 	pixels = std::unique_ptr<Pixel[]>( new Pixel[512*512] );
 	raster_x=0;
 	raster_y=0;

@@ -117,39 +117,55 @@ public:
 /** ---------------------------------------------------------------------------
  * Depth buffer modes for SetDepthBufferMode.
  */
-typedef enum : uint8_t {
-	ZBUFFER_DISABLED,
-	ZBUFFER_WRITEONLY,
-	ZBUFFER_READONLY,
-	ZBUFFER_ENABLED
-} DepthBufferMode;
+enum class DepthBufferMode {
+	DISABLED,
+	WRITEONLY,
+	READONLY,
+	NORMAL
+};
+
+#undef OPAQUE // wingdi collision
 
 /** ---------------------------------------------------------------------------
  * Blend modes for Get/SetBlendMode
  */
-typedef enum : uint8_t {
-	BLEND_OPAQUE,
-	BLEND_ALPHA,
-	BLEND_ADD,
-	BLEND_SUB
-} BlendMode;
+enum class BlendMode : uint8_t {
+	OPAQUE,		// no blending
+	ALPHA,		// alpha blending
+	ADD,		// additive
+	SUB			// subtractive
+};
 
 /** ---------------------------------------------------------------------------
  * Culling modes for Get/SetCullingMode.
  */
-typedef enum : uint8_t {
-	CULLMODE_NONE,
-	CULLMODE_BACK,
-	CULLMODE_FRONT
-} CullingMode;
+enum class CullingMode : uint8_t {
+	NONE,	// no culling.
+	BACK,	// back-face culling.
+	FRONT	// front-face culling.
+};
 
 /** ---------------------------------------------------------------------------
  * not sure what this is used for yet.
  */
-typedef enum : uint8_t {
-	WINDOWED,
-	FULLSCREEN
-} ScreenModes;
+enum class ScreenMode : uint8_t {
+	WINDOWED   = 1,
+	FULLSCREEN = 2
+};
+
+/** ---------------------------------------------------------------------------
+ * Render modes for drawing primitives.
+ */
+enum class RenderMode : uint8_t {
+	POINTS         = GL_POINTS,
+	LINE_STRIP     = GL_LINE_STRIP ,
+	LINE_LOOP      = GL_LINE_LOOP,
+	LINES          = GL_LINES,
+	TRIANGLE_STRIP = GL_TRIANGLE_STRIP,
+	TRIANGLE_FAN   = GL_TRIANGLE_FAN,
+	TRIANGLES      = GL_TRIANGLES,
+	TRIS           = GL_TRIANGLES
+};
 
 /** ---------------------------------------------------------------------------
  * Open/create a display.
@@ -401,6 +417,36 @@ Shader *RegisterShader( A ... args ) {
 	return RegisterShader( std::unique_ptr<T>( new T( args ... )));
 }
 
+/** ---------------------------------------------------------------------------
+ * Register a texture.
+ *
+ * This is called automatically when you create a named texture. The texture
+ * may be then retrieved by GetTexture later. The texture must have a unique
+ * name too.
+ *
+ * @param texture Texture to register.
+ */
+void RegisterTexture( const TexturePtr &texture );
+
+/** ---------------------------------------------------------------------------
+ * Unregister a named texture.
+ *
+ * This will delete the reference to a texture with the matching name. Does
+ * nothing if the name isn't registered. After deleting the reference, the
+ * texture may be freed if it has no other references.
+ *
+ * @param name Name of texture to delete.
+ */
+void UnregisterTexture( const Stref &name );
+
+/** ---------------------------------------------------------------------------
+ * Get a registered texture.
+ *
+ * @param name Name of texture.
+ * @returns texture handle or an empty pointer if the name isn't registered.
+ */
+TexturePtr GetTexture( const Stref &name );
+
 //-----------------------------------------------------------------------------
 class Instance : public System::Module {
 
@@ -436,6 +482,9 @@ private:
 
 	std::unordered_map<	std::string, std::unique_ptr<Shader> > m_shaders;
 	Shader         *m_active_shader;
+
+	// named textures, unnamed textures are owned by their creator
+	std::unordered_map< std::string, TexturePtr > m_textures;
 
 	friend class Shader;
 
@@ -496,6 +545,8 @@ public:
 	Shader *FindShader( const Stref &name );
 
 	Shader *RegisterShader( std::unique_ptr<Shader> &&shader );
+
+	void RegisterTexture( const TexturePtr &texture );
 };
  
 }

@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
@@ -8,10 +8,14 @@
 #include "video/video.h"
 #include "video/shader.h"
 #include "video/vertexbuffer.h"
-#include "util/LinkedList.h"
+#include "util/sharedlist.h"
+#include "util/linkedlist.h"
 #include "graphics/vertexstream.h"
-#include "video/textures.h"
+#include "video/texture.h"
 
+#include "forwards.h"
+
+//-----------------------------------------------------------------------------
 namespace Graphics {
 
 		//         7/22/2014
@@ -27,123 +31,179 @@ namespace Graphics {
 //particles			PARTICLES	YES		YES		?
 //ui				-			YES		?		ui "on-screen" elements, 2d, sorted by m_sort
 	
-enum RenderLayer {
-	LAYER_BACKDROP,
-	LAYER_SKYOBJ,
-	LAYER_CLOUDS,
-	LAYER_TERRAIN,
-	LAYER_WATER,
-	LAYER_OBJECTS,
-	//LAYER_PROPS,
-	//LAYER_PARTICLES,
-	LAYER_UI
+enum class RenderLayer : uint8_t {
+	BACKDROP,
+	SKY,
+	CLOUDS,
+	TERRAIN,
+	WATER,
+	OBJECTS,
+	PROPS,
+	PARTICLES,
+	UI
 };
 	
-//---------------------------------------------------------------------------------------
-/** Materials are a combination of rendering settings used for rendering an
- *  element.
- */
-class Material {
-
-	enum {
-
-		// max number of textures that may be used for a single material
-		TEXTURE_SLOTS = 4
-	};
-
-	// shader to use to render this material
-	Video::Shader *shader; 
-
-	// shader kernel settings to pass to shader
-	std::shared_ptr<Video::Shader::Kernel> kernel; 
-
-	// texture handles for the textures used
-	Video::Texture::Pointer textures[TEXTURE_SLOTS];
-
-
-public:
-	Material( const Stref &shader_name );
-	virtual ~Material() {}
-
-	/**
-	 * Set a shader parameter.
-	 *
-	 * \param name Name of parameter to set.
-	 * \param value Value to pass to shader kernel. 
-	 */
-	void SetParam( const std::string &name, const std::string &value ); 
-
-	/**
-	 * Set one of the material's textures.
-	 *
-	 * \param slot [0,TEXTURE_SLOTS) slot of texture to set.
-	 * \param tex Texture handle
-	 */
-	void SetTexture( int slot, const Video::Texture::Pointer &tex );
-
-	/**
-	 * Get the handle to one of the textures used in this material.
-	 *
-	 * \param slot [0,TEXTURE_SLOTS) slot of the texture to read
-	 * \return The texture handle in the slot, or nullptr if none.
-	 */
-	Video::Texture::Pointer GetTexture( int slot );
-
-	/**
-	 * Bind this texture to the GL context for rendering.
-	 */
-	void Bind();
-};
-
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /** Elements are a single entity in the graphics scene. 
  */
-struct Element : public Memory::FastAllocation, public Util::LinkedItem<Element> {
+class Element : 
+		public Memory::FastAllocation, 
+		public Util::SharedListItem<Element> {
 	
-	// translate; TODO? im guessing this is passed to 
-	// a standard shader uniform before rendering
-	//[1:59 PM 7/22/2014] this should be an extension of element, not in the base
-	//Eigen::Vector3f m_translate;
+public:
+	/** -----------------------------------------------------------------------
+	 * Actions that may be taken after the rendering is done.
+	 */
+	enum class PostAction : uint8_t {
+		NONE,		// leave in the render list for the next frame
+		REMOVE		// remove from the render list 
+	};
+
+private:
 	
-	// m_depth is for alpha sorting and
-	//   simple batch sorting for normal objects
-	//  it's calculated and stored here before rendering everything
-	float m_depth;
+	// m_depth is for alpha sorting and simple 
+	// batch sorting for normal objects
+	// it's calculated and stored here before rendering everything
+	float       m_depth = 0.0;
 
-	RenderLayer m_layer;
-	int m_sort;
+	RenderLayer m_layer = RenderLayer::OBJECTS;
 
-	// blend mode used for rendering this object
-	// 
+	// sorting order for UI elements.
+	int         m_sort;
+
+	// blend mode used for rendering
 	Video::BlendMode m_blend_mode;
 
 	// pointer to vertex buffer
-	Video::VertexBuffer::Pointer m_buffer;
-	Material *m_material;
+	Video::VertexBuffer::ptr m_buffer;
+	MaterialPtr              m_material;
 	
-	GLuint m_buffer_index; // vertex buffer index, for VertexBuffers with 
-						 // multiple buffer allocations
-	GLuint m_buffer_offset; // data offset into the vertex buffer, in bytes
-	GLuint m_buffer_start; // offset into the vertex data, in vertexes
-	GLuint m_buffer_size; // number of vertices to render
-	GLenum m_render_mode; // GL rendering mode (GL_TRIANGLES, etc)
+	int m_buffer_index  = 0;
+	int m_buffer_offset = 0;
+	int m_buffer_start  = 0;
+	int m_buffer_size   = 0;
+
+	// primitive rendering mode
+	Video::RenderMode m_render_mode = Video::RenderMode::TRIANGLES; 
 	
-	// auto-remove modes,
-	// after rendering this is performed:
-	enum {
-		AR_NONE,	// leave in the rendering list for the next frame
-		AR_REMOVE,	// remove from the render list
-		AR_DELETE	// remove from the render list and delete 'this' object
-	} m_autoremove;
-	  
+	PostAction m_postaction = PostAction::NONE;
+	
+	friend class Instance;
+protected:
 	Element();
 	
+public:
+	virtual ~Element();
+
+	/** -----------------------------------------------------------------------
+	 * Set the rendering layer.
+	 */
+	void        SetRenderLayer( RenderLayer layer ) { m_layer = layer; }
+	RenderLayer GetRenderLayer() { return m_layer; }
+
+	/** -----------------------------------------------------------------------
+	 * Set the blend mode.
+	 */
+	void SetBlendMode( Video::BlendMode mode ) { m_blend_mode = mode; }
+	Video::BlendMode GetBlendMode() { return m_blend_mode; }
+
+	/** -----------------------------------------------------------------------
+	 * Set the vertex buffer.
+	 */
+	void SetBuffer( Video::VertexBuffer::ptr &ptr ) { m_buffer = ptr; }
+	Video::VertexBuffer::ptr &GetBuffer() { return m_buffer; }
+
+	/** -----------------------------------------------------------------------
+	 * Set the material.
+	 */
+	void         SetMaterial( MaterialPtr &mat ) { m_material = mat; }
+	MaterialPtr &GetMaterial() { return m_material; }
+
+	/** -----------------------------------------------------------------------
+	 * Set the sorting order. This is only used for UI elements.
+	 */
+	void SetSort( int sort ) { m_sort = sort; }
+	int  GetSort() { return m_sort; }
+
+	/** -----------------------------------------------------------------------
+	 * Set the vertex buffer parameters.
+	 *
+	 * Specify `-1` to not change a certain parameter.
+	 *
+	 * @param index Vertex buffer index, for vertex buffers with multiple
+	 *              buffers allocated.
+	 * @param offset Byte offset into the vertex buffer for the start of the
+	 *               data.
+	 * @param start  Starting vertex index.
+	 * @param size   Number of vertices to render.
+	 */ 
+	void SetBufferParams( int index = -1, int offset = -1, int start = -1, 
+		                  int size = -1 ) {
+		if( index  != -1 ) m_buffer_index  = index;
+		if( offset != -1 ) m_buffer_offset = offset;
+		if( start  != -1 ) m_buffer_start  = start;
+		if( size   != -1 ) m_buffer_size   = size;
+	}
+
+	void GetBufferParams( int *index = nullptr, int *offset = nullptr, 
+		                  int *start = nullptr, int *size = nullptr ) {
+
+		if( index  ) *index  = m_buffer_index;
+		if( offset ) *offset = m_buffer_offset;
+		if( start  ) *start  = m_buffer_start;
+		if( size   ) *size   = m_buffer_size;
+	}
+
+	/** -----------------------------------------------------------------------
+	 * Set the rendering mode.
+	 */
+	void SetRenderMode( Video::RenderMode mode ) { m_render_mode = mode; }
+	Video::RenderMode GetRenderMode() { return m_render_mode; }
+
+	/** -----------------------------------------------------------------------
+	 * Set the action to be performed after rendering.
+	 *
+	 * @param action See PostAction.
+	 */
+	void SetPostAction( PostAction action ) { m_postaction = action; }
+	PostAction GetPostAction() { return m_postaction; }
+
+	/** -----------------------------------------------------------------------
+	 * initialize the basic attributes of an element
+	 *
+	 * This also sets all of the buffer params except for 
+	 * the size (which is an argument) to zero.
+	 */
+	void Setup( Video::VertexBuffer::ptr &buffer, 
+		        Video::BlendMode blendmode, 
+			    const MaterialPtr &mat, int buffer_size, 
+				Video::RenderMode render_mode );
+
+	/** -----------------------------------------------------------------------
+	 * Add this element into the rendering list.
+	 *
+	 * After this is done, the element handle is stored in the graphics
+	 * system, and will not (ever!) be deleted if the handle outside goes 
+	 * out of scope.
+	 *
+	 * Ideally you want to use a "remove" post-action if you are discarding
+	 * the handle outside.
+	 */
+	void Add();
+
+	/** -----------------------------------------------------------------------
+	 * Remove this element from the rendering list.
+	 */
+	void Remove();
+
+	using ptr = std::shared_ptr<Element>;
 };
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /** Particles are fixed 8-vertex primitives.
  */
-struct Particle : public Memory::FastAllocation, public Util::LinkedItem<Element> {
+struct Particle : public Memory::FastAllocation, 
+	              public Util::LinkedItem<Element> {
 
 	Video::BlendMode blend_mode;
 	float depth; // alpha-sorting for translucent, or simple sorting or opaque
@@ -152,74 +212,70 @@ struct Particle : public Memory::FastAllocation, public Util::LinkedItem<Element
 	//struct t_particle *link;
 };
 
-
-//---------------------------------------------------------------------------------------
-/**
- * REMOVED
- */
-//void Reset();
-
-/**
- * Initialize the graphic system... currently does NOTHING and may be
- * removed.
- *
- */
-void Init();
-//void new_scene();
-
-//void compute_viewing_planes();
-
-/**
- * Add a new element to the next scene to be rendered.
- *
- */
-void AddElement( Element &element );
-
-//void draw_sprite( cml::vector3f position, float width, float height, float u1, float v1, float u2, float v2, u8 blending, u8 r, u8 g, u8 b, u8 a, int rot, bool vertical );
-
-// element will be buffered if blending mode is non opaque
-//void draw_element( element *a );
-
-
-// use to ignore buffering cycle for blended elements
-//void render_element( const element *e );
-
-
-// sort translucent objects and render
-//void finalize_data();
-//void render_solid_graphics();
-//void render_blended_graphics();
-
 /**
  * TODO define
  *
  */
-void RenderScene();
+void RenderScene(); 
 
-/** 
- * initialize the basic attributes of an element
- *
- * This also sets all of the buffer params except for the size (which is an argument)
- * to zero.
+/** ---------------------------------------------------------------------------
+ * @returns the FreeType library handle.
  */
-void SetupElement( Element &e, Video::VertexBuffer::Pointer &buffer, Video::BlendMode blendmode, 
-				  Material &mat, GLuint buffer_size, GLenum render_mode );
+FT_Library FTLib();
+
+/** ---------------------------------------------------------------------------
+ * Create a new material.
+ *
+ * @param name   Name of material.
+ * @param shader Name of shader the material will use.
+ *
+ * @returns pointer to material.
+ */
+MaterialPtr CreateMaterial( const Stref &name, const Stref &shader );
+
+/** ---------------------------------------------------------------------------
+ * Delete a material.
+ *
+ * @param name Name of material.
+ */
+void DeleteMaterial( const Stref &name );
+
+/** ---------------------------------------------------------------------------
+ * Create a new element.
+ */
+Element::ptr CreateElement();
+
+
+/** ---------------------------------------------------------------------------
+ * Render a list of elements.
+ */
+void RenderList( Util::SharedList<Element> &list );
 
 //-----------------------------------------------------------------------------
 class Instance final {
 	
-	Util::LinkedList<Element> m_elements_opaque;
-	Util::LinkedList<Element> m_elements_blended;
+	Util::SharedList<Element> m_elements_opaque;
+	Util::SharedList<Element> m_elements_blended;
 
-	Util::LinkedList<Element> m_elements_ui;
+	Util::SharedList<Element> m_elements_ui;
 
 	FT_Library m_ftlib;
 
+	std::unordered_map<std::string, MaterialPtr> m_materials;
+
+	//-------------------------------------------------------------------------
 public:
 	Instance();
 	~Instance();
 
-	FT_Library *FreeType();
+	FT_Library FTLib() { return m_ftlib; }
+
+	MaterialPtr CreateMaterial( const Stref &name, const Stref &shader );
+	void DeleteMaterial( const Stref &name );
+	
+	void RenderList( Util::SharedList<Element> &list );
+
+	Element::ptr CreateElement();
 };
 
 }

@@ -1,36 +1,24 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
-// graphics.cpp
-// a newer graphics system
+// graphics subsystem
 
 #include "stdafx.h" 
 #include "graphics/graphics.h"
+#include "graphics/material.h"
+#include "console/console.h"
  
 namespace Graphics {
 
+Instance *g_instance = nullptr;
 	
 //cml::vector3f viewplane_h;
 //cml::vector3f viewplane_v;
 
 Element::Element() {
-	// element initialization
-	m_material = 0; 
-	m_buffer_index = 0;
-	m_buffer_offset = 0;
-	m_buffer_start = 0;
-	m_buffer_size = 0;
-	m_render_mode = 0;
-	m_layer = LAYER_OBJECTS;
 
-	//m_texture = 0;
-	//m_translate.Zero(); 
-	m_autoremove = AR_NONE;
 }
-
-//Element *opaque_elements;
-//Element *blended_elements;
 
 /*
 float sine[256];
@@ -462,28 +450,8 @@ void draw_sprite( cml::vector3f position, float width, float height, float u1, f
 
 }*/
 
-/**
- * Render a linked list of graphic elements.
- *
- */
-void RenderList( Util::LinkedList<Element> &list ) {
-	Element *next;
-	for( Element* e = list.GetFirst(); e; e = next ) {
-		next = e->m_next;
 
-		e->m_material->Bind();
-		e->m_buffer->Render( e->m_render_mode, e->m_buffer_offset, e->m_buffer_start, e->m_buffer_size, e->m_buffer_index );
-
-		if( e->m_autoremove == Element::AR_DELETE ) {
-			list.Remove( e );
-			delete e;
-		} else if( e->m_autoremove == Element::AR_REMOVE ) {
-			list.Remove( e );
-		}
-	}
-}
-
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void RenderScene() {
 	Video::SetBlendMode( Video::BLEND_OPAQUE );
 	RenderList( g_elements_objects_opaque );
@@ -494,61 +462,51 @@ void RenderScene() {
 	RenderList( g_elements_ui );
 }
 
-//-------------------------------------------------------------------------------------------------
-void Init() {
-//	init_tables();
-//
-//	blended_particles_buffer.Create( Video::VF_GENERIC );
-//	solid_particles_buffer.Create( Video::VF_GENERIC );
-}
+//-----------------------------------------------------------------------------
+Instance::Instance() {
+	assert( g_instance == nullptr );
+	g_instance = this;
 
-//-------------------------------------------------------------------------------------------------
-
- 
-
-Material::Material( const Stref &shader_name ) {
-	shader = Video::FindShader( shader_name  );
-	if( !shader ) {
-		//shader = Videos::Shaders::Default(); (todo)
-		throw std::runtime_error( "Invalid shader used for material." );
-	}
-
-	kernel = shader->CreateKernel();
-}
-
-void Material::SetTexture( int slot, const Video::Texture::Pointer &tex ) {
-	textures[slot] = tex;
-}
-
-Video::Texture::Pointer Material::GetTexture( int slot ) {
-	return textures[slot];
-}
-
-void Material::SetParam( const std::string &name, const std::string &value ) {
-	/*if( name == "texture" ) {
-		SetTexture( 0, value );
-		return;
-	} else if( name == "texture2" ) {
-		SetTexture( 1, value );
-		return;
-	} else if( name == "texture3" ) {
-		SetTexture( 2, value );
-		return;
-	} else if( name == "texture4" ) {
-		SetTexture( 3, value );
-		return;
-	}*/
-	kernel->SetParam( name.c_str(), value.c_str() );
-}
-
-void Material::Bind() {
-	shader->Use();
-	shader->LoadKernel( *kernel );
-
-	if( textures[0].get() != nullptr ) {
-		textures[0]->Bind();
+	int error = FT_Init_FreeType( &m_ftlib );
+	if( error ) {
+		Console::PrintErr( "Error starting FreeType: %i", error );
 	}
 }
 
+//-----------------------------------------------------------------------------
+Instance::~Instance() {
+	g_instance = nullptr;
+
+	FT_Done_FreeType( m_ftlib );
+}
+
+void RenderList( Util::SharedList<Element> &list ) {
+	
+	Element::ptr next;
+	Element::ptr e;
+
+	for( e = list.First(); e; e = next ) {
+		next = e->NextLink();
+
+		e->GetMaterial()->Bind();
+
+		int offset, start, size, index;
+
+		e->GetBufferParams( &index, &offset, &start, &size );
+
+		e->GetBuffer()->Render( e->GetRenderMode(), 
+			                    offset, start, size, index );
+
+		if( e->GetPostAction() == Element::PostAction::REMOVE ) {
+			list -= e;
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
+FT_Library    FTLib()                                          { return g_instance->FTLib();                }
+Material::ptr CreateMaterial( const Stref &n, const Stref &s ) { return g_instance->CreateMaterial( n, s ); }
+void          DeleteMaterial( const Stref &n )                 { g_instance->DeleteMaterial( n );           }
+void          RenderList( Util::SharedList<Element> &l )       { g_instance->RenderList( l );               }  
 
 } // namespace Graphics
