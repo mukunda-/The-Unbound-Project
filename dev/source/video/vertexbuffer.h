@@ -1,62 +1,108 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
-
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright Â© 2015, Mukunda Johnson, All rights reserved. =========//
+ 
 #pragma once
 
 #include "video/video.h"
 #include "mem/memorylib.h"
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 namespace Video {
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class VertexBuffer : public Memory::FastAllocation {	
-	GLuint *m_ids;			// list of buffer IDs, usually just a single id
-	GLuint m_buffer_count;	// number of buffers allocated from gl
-	int m_format;			// unused for now
 
-	GLenum m_usage;			// usage hint for rendering 
-	 
 public:
-	typedef std::shared_ptr<VertexBuffer> Pointer;
+	
+	//-------------------------------------------------------------------------
+	enum class Usage {
 
-	// create a vertex buffer
-	// usage : opengl usage hint
-	// p_format : unused
-	// buffers : number of vertex buffer objects to allocate
-	//
-	VertexBuffer( GLenum usage = GL_STATIC_DRAW, int p_format = 0, GLuint buffers = 1 );
-	~VertexBuffer();
+		// Usage hints
 
-	// bind a vertex buffer
-	//
-	void Bind( GLuint index = 0 );
+		// STATIC means the data in VBO will not be changed (specified once 
+		// and used many times), DYNAMIC means the data will be changed 
+		// frequently (specified and used repeatedly), and STREAM means the 
+		// data will be changed every frame (specified once and used once). 
+		
+		// DRAW means the data will be sent to GPU in order to draw 
+		// (application to GL), READ means the data will be read by the 
+		// client's application (GL to application), and COPY means the data 
+		// will be used both drawing and reading (GL to GL).
 
-	// get the GL handle
-	//
-	GLuint GetHandle( GLuint index = 0 );
+		STREAM_DRAW  = GL_STREAM_DRAW,
+		STREAM_READ  = GL_STREAM_READ,
+		STREAM_COPY  = GL_STREAM_COPY,
+		STATIC_DRAW  = GL_STATIC_DRAW,
+		STATIC_READ  = GL_STATIC_READ,
+		STATIC_COPY  = GL_STATIC_COPY,
+		DYNAMIC_DRAW = GL_DYNAMIC_DRAW,
+		DYNAMIC_READ = GL_DYNAMIC_READ,
+		DYNAMIC_COPY = GL_DYNAMIC_COPY
+	};
 
-	// load vertex data into the buffer
-	// data : vertex data pointer
-	// size : size of vertex data in bytes
-	// index: index of VBO to use
-	//
-	void Load( void *data, GLsizei size, GLuint index = 0 );
+private:
+	std::unique_ptr<GLuint[]> m_ids; // list of buffer IDs, 
+	                                 // usually just a single id.
+	int    m_buffer_count;	// number of buffers allocated from gl
+	int    m_format;		// unused for now
 
-	// do a primitive render call
-	// mode   : gl rendering mode
-	// offset : offset into vertex data in bytes
-	// start  : vertex index to start on
-	// size   : number of vertices to render
-	// index: index of VBO to use
-	//
-	void Render( GLenum mode, GLuint offset, GLuint start, GLuint size, GLuint index = 0 );
+	Usage  m_usage;			// usage hint for rendering 
+	 
+	VertexBuffer( Usage usage, int format, int buffers );
 
-	// wrapper to create a shared vertex buffer pointer
-	//
-	static Pointer Create( GLenum usage = GL_STATIC_DRAW, int p_format = 0, GLuint buffers = 1 ) {
-		return Pointer( new VertexBuffer( usage, p_format, buffers ) );
+	//-------------------------------------------------------------------------
+public:
+	typedef std::shared_ptr<VertexBuffer> ptr;
+
+	virtual ~VertexBuffer();
+
+	/** -----------------------------------------------------------------------
+	 * Bind this buffer.
+	 *
+	 * @param index Index of buffer to bind, if multiple buffers were
+	 *        allocated.
+	 */
+	void Bind( int index );
+
+	/** -----------------------------------------------------------------------
+	 * Get the OpenGL buffer handle.
+	 */
+	GLuint GetHandle( int index );
+	
+	/** -----------------------------------------------------------------------
+	 * Load data into the buffer.
+	 *
+	 * @param data  Vertex data pointer.
+	 * @param size  Size of data in bytes.
+	 * @param index Index of VBO to use
+	 */
+	void Load( void *data, int size, int index = 0 );
+
+	/** -----------------------------------------------------------------------
+	 * Do a primitive render call.
+	 *
+	 * @param mode Rendering mode.
+	 * @param offset Offset into the vertex data in bytes.
+	 * @param start  Vertex index to start on.
+	 * @param size   Number of vertices to render.
+	 * @param index  Index of buffer to draw from.
+	 */
+	void Render( Video::RenderMode mode, int offset, int start, int size, 
+		         int index = 0 );
+
+	
+	/** -----------------------------------------------------------------------
+	 * Create a vertex buffer.
+	 *
+	 * @param usage   Usage hint.
+	 * @param format  Vertex format, currently not used.
+	 * @param buffers Number of vertex buffer objects to allocate.
+	 */
+	static ptr Create( Usage usage = Usage::STATIC_DRAW, int format = 0, 
+		               int buffers = 1 ) {
+
+		return std::make_shared<VertexBuffer>( usage, format, buffers );
 	}
 };
 

@@ -12,42 +12,29 @@
 //-----------------------------------------------------------------------------
 namespace Graphics { 
 
-#define padding 4
-#define bitmap_width 512
+enum {
+	PADDING = 4,
+	BITMAP_WIDTH = 512
+};
 
-//-------------------------------------------------------------------------------------------------
-Font::CharacterSet::CharacterSet( Character *set, int p_height, int p_stroke ) {
+//-----------------------------------------------------------------------------
+Font::CharacterSet::CharacterSet( Character *set, int height, int stroke ) {
 	for( int i = 0; i < 96; i++ ) {
-		chars[i] = set[i];
+		m_chars[i] = set[i];
 	}
-	height = p_height;
-	stroke = p_stroke;
+	m_height = height;
+	m_stroke = stroke;
 }
 
-//-------------------------------------------------------------------------------------------------
-int Font::CharacterSet::GetHeight() const {
-	return height;
-}
-
-//-------------------------------------------------------------------------------------------------
-int Font::CharacterSet::GetStroke() const {
-	return stroke;
-}
-
-//-------------------------------------------------------------------------------------------------
-bool Font::CharacterSet::Matches( int p_height, int p_stroke ) const {
-	return ( height == p_height && stroke == p_stroke );
-}
-
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 const Font::Character * Font::CharacterSet::GetCharacter( char code ) const {
 	if( code >= 32 && code <= 127 ) {
-		return &chars[code-32];
+		return &m_chars[code-32];
 	}
-	return 0;
+	return nullptr;
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Font::CopyBitmap( FT_Bitmap &source, DrawingRect &rt ) {
 	
 	for( int py = 0; py < source.rows; py++ ) {
@@ -61,16 +48,16 @@ void Font::CopyBitmap( FT_Bitmap &source, DrawingRect &rt ) {
 
 			int pix = source.buffer[px+py*source.width];
 
-			pixels[(tx+ty*bitmap_width)].r = 255;
-			pixels[(tx+ty*bitmap_width)].g = 255;
-			pixels[(tx+ty*bitmap_width)].b = 255;
-			pixels[(tx+ty*bitmap_width)].a = pix;
+			pixels[(tx+ty*BITMAP_WIDTH)].r = 255;
+			pixels[(tx+ty*BITMAP_WIDTH)].g = 255;
+			pixels[(tx+ty*BITMAP_WIDTH)].b = 255;
+			pixels[(tx+ty*BITMAP_WIDTH)].a = pix;
 			
 		}	
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Font::OverlayBitmap( FT_Bitmap &source, DrawingRect &rt ) {
 	
 	for( int py = 0; py < source.rows; py++ ) {
@@ -84,16 +71,18 @@ void Font::OverlayBitmap( FT_Bitmap &source, DrawingRect &rt ) {
 
 			int pix = source.buffer[px+py*source.width];
 
-			pixels[(tx+ty*bitmap_width)].r += pix;
-			pixels[(tx+ty*bitmap_width)].g += pix;
-			pixels[(tx+ty*bitmap_width)].b += pix;
+			pixels[(tx+ty*BITMAP_WIDTH)].r += pix;
+			pixels[(tx+ty*BITMAP_WIDTH)].g += pix;
+			pixels[(tx+ty*BITMAP_WIDTH)].b += pix;
 			
 		}	
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
-void Font::CopyBitmapStroked( FT_Bitmap &source, DrawingRect &rt, int stroke ) {
+//-----------------------------------------------------------------------------
+void Font::CopyBitmapStroked( FT_Bitmap &source, DrawingRect &rt, 
+	                          int stroke ) {
+
 	for( int py = 0; py < source.rows; py++ ) {
 		for( int px = 0; px < source.width; px++ ) {
 			int tx = rt.x + px ;
@@ -110,8 +99,8 @@ void Font::CopyBitmapStroked( FT_Bitmap &source, DrawingRect &rt, int stroke ) {
 						
 					for( int gx = -stroke; gx <= stroke; gx++ ) {
 						 
-						if( pix > pixels[(tx+gx)+(ty+gy)*bitmap_width].a ) { 
-							pixels[(tx+gx)+(ty+gy)*bitmap_width].a = pix;
+						if( pix > pixels[(tx+gx)+(ty+gy)*BITMAP_WIDTH].a ) { 
+							pixels[(tx+gx)+(ty+gy)*BITMAP_WIDTH].a = pix;
 						} 
 						
 					}
@@ -125,10 +114,12 @@ void Font::CopyBitmapStroked( FT_Bitmap &source, DrawingRect &rt, int stroke ) {
 
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Font::LoadFace( const char *filename, int height, int stroke ) {
 
-	if( GetCharacterSet( height, stroke ) ) return false; // character set already loaded
+	if( GetCharacterSet( height, stroke ) ) {
+		return false; // character set already loaded
+	}
  
 	FT_Face face;
 	FT_New_Face( Graphics::FTLib(), filename, 0, &face );
@@ -156,7 +147,7 @@ bool Font::LoadFace( const char *filename, int height, int stroke ) {
 
 			rt.x = raster_x;
 			rt.y = raster_y;
-			if( rt.y + rt.h >= bitmap_width ) break; // out of texture space!
+			if( rt.y + rt.h >= BITMAP_WIDTH ) break; // out of texture space!
 		}
 
 		//rt.x+=1;
@@ -187,30 +178,29 @@ bool Font::LoadFace( const char *filename, int height, int stroke ) {
 
 	charsets.push_back( std::unique_ptr<CharacterSet>( new CharacterSet( chars, height, stroke )));
 
-	return true;
-	
-	
+	return true; 
 }
 
 //-------------------------------------------------------------------------------------------------
 void Font::DebugDump() const {
-	boost::uint8_t debug_bmp[bitmap_width*bitmap_width*3];
-	for( int py = 0; py < bitmap_width; py++ ) {
-		for( int px = 0; px < bitmap_width; px++ ) {
-			int a = pixels[px+py*bitmap_width].a;
-			int t = pixels[px+py*bitmap_width].r;
+	boost::uint8_t debug_bmp[BITMAP_WIDTH*BITMAP_WIDTH*3];
+	for( int py = 0; py < BITMAP_WIDTH; py++ ) {
+		for( int px = 0; px < BITMAP_WIDTH; px++ ) {
+			int a = pixels[px+py*BITMAP_WIDTH].a;
+			int t = pixels[px+py*BITMAP_WIDTH].r;
 			t = 255 * (255-a) + t * a;
 			t /= 255;
-			debug_bmp[(px+py*bitmap_width)*3] = t;
-			debug_bmp[(px+py*bitmap_width)*3+1] = t;
-			debug_bmp[(px+py*bitmap_width)*3+2] = t;
+			debug_bmp[(px+py*BITMAP_WIDTH)*3] = t;
+			debug_bmp[(px+py*BITMAP_WIDTH)*3+1] = t;
+			debug_bmp[(px+py*BITMAP_WIDTH)*3+2] = t;
 		}
 	}
-	Debug::DumpBitmap( bitmap_width, bitmap_width, debug_bmp );
+	Debug::DumpBitmap( BITMAP_WIDTH, BITMAP_WIDTH, debug_bmp );
 }
 
-//-------------------------------------------------------------------------------------------------
-const Font::CharacterSet * Font::GetCharacterSet( int height, int stroke ) const {
+//-----------------------------------------------------------------------------
+const Font::CharacterSet * Font::GetCharacterSet( 
+									int height, int stroke ) const {
 
 	for( boost::uint32_t i = 0; i < charsets.size(); i++ ) {
 		if( charsets[i]->Matches(height,stroke) ) {
@@ -225,27 +215,28 @@ const char *Font::GetBitmap() const {
 	return (const char*)pixels.get();
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Font::LoadTexture( Video::Texture &texture ) {
-	texture.Create( Video::Texture::FORMAT_RGBA8, bitmap_width, bitmap_width, 1, 1 );
+	texture.Create( Video::Texture::Format::RGBA8, 
+		            BITMAP_WIDTH, BITMAP_WIDTH, 1, 1 );
 	texture.Load( GetBitmap() );
 }
 
-//-------------------------------------------------------------------------------------------------
-void Font::LoadTexture( Video::Texture::Pointer &texture ) {
+//-----------------------------------------------------------------------------
+void Font::LoadTexture( Video::Texture::ptr &texture ) {
 	LoadTexture( *texture );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Font::Font() {
 
-	pixels = std::unique_ptr<Pixel[]>( new Pixel[512*512] );
-	raster_x=0;
-	raster_y=0;
-	raster_largest_height=0;
-	for( int i = 0; i < 512*512; i++ ) {
-		pixels[i].r = pixels[i].g = pixels[i].b = pixels[i].a = 0;
-	}
+	pixels = std::unique_ptr<Pixel[]>( 
+					new Pixel[BITMAP_WIDTH * BITMAP_WIDTH] );
+	raster_x = 0;
+	raster_y = 0;
+	raster_largest_height = 0;
+
+	memset( (void*)pixels.get(), 0, BITMAP_WIDTH*BITMAP_WIDTH*4 );
 }
 
 //-------------------------------------------------------------------------------------------------

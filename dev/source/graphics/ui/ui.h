@@ -1,42 +1,37 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
  
 #include "util/linkedlist.h"
 #include "graphics/fontmaterial.h"
+#include "graphics/builder.h"
 
-namespace Gui {
-	
-//-------------------------------------------------------------------------------------------------
-static bool PointInsideRect( const Eigen::Vector2i &position, const Eigen::Vector4i &rect ) {
-	return
-				position[0] >= rect[0] && 
-				position[0] < (rect[0] + rect[2]) && 
-				position[1] >= rect[1] && 
-				position[1] < (rect[1] + rect[3]);
-}
+//-----------------------------------------------------------------------------
+namespace Ui {
 
-//-------------------------------------------------------------------------------------------------
-enum {
-	ALIGN_CENTER,
-	ALIGN_LEFT,
-	ALIGN_RIGHT,
+//-----------------------------------------------------------------------------
+enum class Alignment {
+	CENTER,
+	LEFT,
+	RIGHT,
 
-	ALIGN_TOP=ALIGN_LEFT,
-	ALIGN_BOTTOM=ALIGN_RIGHT
+	TOP    = LEFT,
+	BOTTOM = RIGHT
 };
 
-enum {
-	BUTTON_NONE,
-	BUTTON_LEFT,
-	BUTTON_MIDDLE,
-	BUTTON_RIGHT,
-	BUTTON_4,
-	BUTTON_5
+//-----------------------------------------------------------------------------
+enum class Button {
+	NONE,
+	LEFT,
+	MIDDLE,
+	RIGHT,
+	M4,
+	M5
 };
 
+//-----------------------------------------------------------------------------
 struct Event {
 	enum {
 		MOUSEDOWN,
@@ -54,6 +49,7 @@ struct Event {
 
 };
 
+//-----------------------------------------------------------------------------
 struct MouseEvent : public Event {
 	Eigen::Vector2i pos;
 	Eigen::Vector2i abs_pos;
@@ -61,6 +57,7 @@ struct MouseEvent : public Event {
 };
 
 
+//-----------------------------------------------------------------------------
 enum {
 	EVENT_MOUSEDOWN,
 	EVENT_MOUSEUP,
@@ -71,14 +68,14 @@ typedef boost::function< bool(const Event &) > EventHandler;
 
 //-------------------------------------------------------------------------------------------------
 class Widget : public Util::LinkedItem<Widget> {
-	// Gui::Widget, base class for all gui objects
 
 	friend struct Gui;
 protected:
 	
 
 	Eigen::Vector4i m_rect; // location relative to parent, and size
-	Eigen::Vector4i m_abs_rect; // computed area in "screen" (the object) space after applying hiearchy
+	Eigen::Vector4i m_abs_rect; // computed area in "screen" (the object) space 
+	                            // after applying hierarchy
 	bool m_mouseover;		// mouse is hovering over the object
 	bool m_focusable;		// this object can take input focus by clicking on it or tabbing
 	bool m_focused;			// this object has input focus
@@ -119,19 +116,30 @@ public:
 	virtual void OnDraw();
 };
 
-
-
-
 bool HandleEvent( const SDL_Event &event );
 
 void RenderText( Graphics::FontMaterial &font, int sort, int height, int x, int y, const char *text );
 void EndRendering();
 
-// Gui::Interface must be declared in the Game class to use Gui functions
-// gui functions cannot be called before this interface is created.
-struct Interface {
-	Interface();
-	~Interface();
+//-----------------------------------------------------------------------------
+class Instance final {
+	
+	Widget m_screen; // screen widget, has no parent, parent of all.
+	Widget *m_focused_widget;
+	Widget *m_held_widget;
+	Widget *m_hot_widget;
+	int     m_held_button;
+	Util::LinkedList<Widget> m_widgets;
+	Eigen::Vector2i m_mouse_position;
+
+	Graphics::Builder m_gfx_builder;
+
+public:
+	Instance();
+	~Instance();
+
+
+
 };
 
 //-------------------------------------------------------------------------------------------------

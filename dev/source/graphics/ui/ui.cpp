@@ -1,12 +1,10 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright Â© 2015, Mukunda Johnson, All rights reserved. =========//
 
 // gui.cpp
 // core of the user interface
-
-//hi
-
+ 
 #include "stdafx.h"
 #include "util/minmax.h"
 
@@ -18,152 +16,19 @@
 
 namespace Gui {
 	
+Instance *g_gui;
+
 struct Gui {
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-	class GfxStream {
-
-	private:
-
-		Graphics::Material *m_mat;
-		int m_sort;
-
-		int m_buffer_start;
-		int m_buffer_size;
-		
-		Graphics::Element *m_element;
-
-		Graphics::VertexStream<Graphics::Vertex::Texcola2D> m_vertex_data;
-		Video::VertexBuffer::Pointer m_vbo;
-
-		/**
-		 * Output the current graphics element being built and start a new one.
-		 *
-		 * \param mat Material to use for the new element.
-		 * \param sort sorting order for the new element.
-		 */
-		void Split( Graphics::Material &mat, int sort ) {
-			OutputElement();
-			
-			m_mat = &mat;
-			m_sort = sort;
-			m_buffer_size = 0;
-
-			// setup default Split settings
-			m_element = new Graphics::Element;
-			m_element->m_autoremove = Graphics::Element::AR_DELETE;
-			m_element->m_blend_mode = Video::BLEND_ALPHA;
-			m_element->m_buffer = m_vbo;
-			m_element->m_buffer_index = 0;
-			m_element->m_buffer_offset = 0;
-			m_element->m_buffer_size = 0;
-			m_element->m_buffer_start = m_buffer_start;
-			m_element->m_sort = sort;
-			m_element->m_material = m_mat;
-			m_element->m_render_mode = GL_TRIANGLES;
-			m_element->m_layer = Graphics::LAYER_UI;
-		}
-		
-		/**
-		 * Output the current element being built and reset the pointer.
-		 *
-		 */
-		void OutputElement() {
-			if( m_element ) {
-				if( m_buffer_size != 0 ) {
-					m_element->m_buffer_size = m_buffer_size;
-					m_buffer_start += m_buffer_size;
-					Graphics::AddElement( *m_element );
-				} else {
-					delete m_element;
-				}
-				m_element = nullptr;
-			}
-		}
-
-	public:
-		/**
-		 * Construct a new GfxStream object.
-		 *
-		 * GfxStreams are used to buffer vertices and output
-		 * them to elements.
-		 */
-		GfxStream()  {
-			//
-			m_element = nullptr;
-			m_vbo = Video::VertexBuffer::Create( GL_STREAM_DRAW );
-			m_buffer_start = 0;
-			m_buffer_size = 0;
-		}
-
-		/**
-		 * Start a new sub-element in this stream.
-		 *
-		 * \param mat Material to use for rendering the upcoming vertice.s
-		 * \param sort sorting order when rendering this object
-		 */
-		void Start( Graphics::Material &mat, int sort ) {
-
-			// start is called before adding more vertices
-			// it splits the element if the material or sorting dont match
-			//
-			if( !m_element || m_element->m_material != &mat || m_element->m_sort != sort ) {
-				Split( mat, sort );
-			}
-			
-		}
-
-		/**
-		 * End is called after EVERYTHING is loaded, to output the final element being worked on
-		 * and load the vertex buffer.
-		 * 
-		 * End is not called for each Start called, only at the very end.
-		 */
-		void End() {
-			// end is called after everything is added, to add the final element
-			// and load the vertex buffer
-			OutputElement();
-
-			m_vertex_data.Load( *m_vbo );
-
-			m_buffer_start = 0;
-			m_buffer_size = 0;
-		}
-
-		/**
-		 * Add a vertex to the current element.
-		 */
-		void AddVertex( float x, float y, float u, float v, uint8_t r, uint8_t g, uint8_t b, uint8_t a ) {
-			m_vertex_data.Push( Graphics::Vertex::Texcola2D( x, y, u, v, r, g, b, a ) );
-			m_buffer_size++;
-		}
-		
-		/**
-		 * Add a vertex to the current element.
-		 */
-		void AddVertex( float x, float y, float u, float v  ) {
-			m_vertex_data.Push( Graphics::Vertex::Texcola2D( x, y, u, v, 255,255,255,255 ) );
-			m_buffer_size++;
-		}
-	};
 	
-	Widget m_screen; // screen widget, has no parent, parent of all.
-	Widget *m_focused_widget;
-	Widget *m_held_widget;
-	Widget *m_hot_widget;
-	int  m_held_button;
-	Util::LinkedList<Widget> m_widgets;
-	Eigen::Vector2i m_mouse_position;
-
-	GfxStream m_gfx_stream;
 
 	//-------------------------------------------------------------------------------------------------
 	Gui() {
 		m_focused_widget = nullptr;
-		m_held_widget = nullptr;
-		m_hot_widget = nullptr;
-		m_held_button = 0;
-		 
+		m_held_widget    = nullptr;
+		m_hot_widget     = nullptr;
+		m_held_button    = 0;
 	}
 
 	//-------------------------------------------------------------------------------------------------
@@ -383,17 +248,6 @@ struct Gui {
 		return false;
 	}
 };
-
-//-------------------------------------------------------------------------------------------------
-Gui *g_gui = nullptr; 
-
-Interface::Interface() {
-	g_gui = new Gui;
-}
-
-Interface::~Interface() {
-	delete g_gui;
-}
  
 //-------------------------------------------------------------------------------------------------
 void RenderText( Graphics::FontMaterial &font, int sort, int height, int x, int y, const char *text ) {

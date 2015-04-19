@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright Â© 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
   
@@ -52,7 +52,7 @@ public:
 	 *
 	 * @param item Item to add.
 	 */
-	void Push( ptr &item ) {
+	void Push( const ptr &item ) {
 
 		item->m_next = nullptr;
 		
@@ -99,7 +99,7 @@ public:
 	 *
 	 * @param item Pointer to item to remove. 
 	 */
-	void Pull( ptr &item ) {
+	void Pull( const ptr &item ) {
 
 		if( item->m_next ) {
 			item->m_next->m_prev = item->m_prev;
@@ -115,25 +115,25 @@ public:
 	}
 
 	// operator fun :)
-	void operator +=( ptr &a        ) { Push( a ); }
+	void operator +=( const ptr &a  ) { Push( a ); }
 	void operator +=( SharedList &a ) { Push( a ); }
-	void operator -=( ptr &a        ) { Pull( a ); } 
+	void operator -=( const ptr &a  ) { Pull( a ); } 
 
-	SharedList &operator +( ptr &a        ) { Push( a ); return *this; }
+	SharedList &operator +( const ptr &a  ) { Push( a ); return *this; }
 	SharedList &operator +( SharedList &a ) { Push( a ); return *this; }
-	SharedList &operator -( ptr &a        ) { Pull( a ); return *this; }
+	SharedList &operator -( const ptr &a  ) { Pull( a ); return *this; }
 
 	/** -----------------------------------------------------------------------
 	 * Returns first item in the list, or nullptr if the list is empty.
 	 */
 	ptr First() { return m_first; }
-	const ptr First() const { return m_first; }
+	const ptr &First() const { return m_first; }
 	
 	/** -----------------------------------------------------------------------
 	 * Returns last item in list, or nullptr if the list is empty.
 	 */
 	ptr Last() { return m_last; }
-	const ptr Last() const { return m_last; }
+	const ptr &Last() const { return m_last; }
 };
 
 }

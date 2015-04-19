@@ -6,6 +6,7 @@
 #include "video.h"
 #include "console/console.h"
 #include "shader.h"
+#include "texture.h"
  
 //-----------------------------------------------------------------------------
 namespace Video {
@@ -53,15 +54,15 @@ void Instance::Open( int width, int height ) {
 	//glShadeModel( GL_SMOOTH );
 	glClearDepth( 1.0f );
 	glEnable( GL_DEPTH_TEST );
-	SetDepthBufferMode( ZBUFFER_ENABLED );
+	SetDepthBufferMode( DepthBufferMode::NORMAL );
 	//glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
-	SetCullingMode( CULLMODE_BACK );
+	SetCullingMode( CullingMode::BACK );
 	//glEnable(GL_CULL_NONE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	SetBackgroundColor( 255.0f/255.0f, 116.0f/255.0f, 33.0f/255.0f );
 	 
-	SetBlendMode( BLEND_OPAQUE );
+	SetBlendMode( BlendMode::OPAQUE );
 
 	m_fov = 50.0;
 	UpdateViewport();
@@ -127,21 +128,21 @@ void Instance::SetBlendMode( BlendMode mode ) {
 
 	switch( mode ) {
 
-	case BLEND_OPAQUE:
+	case BlendMode::OPAQUE:
 		glDisable( GL_BLEND );
 		break;
 
-	case BLEND_ALPHA:
+	case BlendMode::ALPHA:
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		break;
 
-	case BLEND_ADD:
+	case BlendMode::ADD:
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 		break;
 
-	case BLEND_SUB:
+	case BlendMode::SUB:
 		//glEnable( GL_BLEND );
 		//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		// TODO...
@@ -159,16 +160,16 @@ void Instance::SetCullingMode( CullingMode mode ) {
 	if( m_cullmode == mode ) return;
 
 	switch( mode ) {
-	case CULLMODE_NONE:
+	case CullingMode::NONE:
 		glDisable( GL_CULL_FACE );
 		break;
 
-	case CULLMODE_BACK:
+	case CullingMode::BACK:
 		glEnable( GL_CULL_FACE );
 		glCullFace( GL_BACK );
 		break;
 
-	case CULLMODE_FRONT:
+	case CullingMode::FRONT:
 		glEnable( GL_CULL_FACE );
 		glCullFace( GL_FRONT );
 	}
@@ -180,21 +181,21 @@ void Instance::SetDepthBufferMode( DepthBufferMode mode ) {
 	if( m_depthmode == mode ) return;
 
 	switch( mode ) {
-	case ZBUFFER_DISABLED:
+	case DepthBufferMode::DISABLED:
 		glDisable( GL_DEPTH_TEST );
 		break;
 
-	case ZBUFFER_WRITEONLY:
+	case DepthBufferMode::WRITEONLY:
 		//glEnable( GL_DEPTH_TEST );
 		// todo
 		break;
 
-	case ZBUFFER_READONLY:
+	case DepthBufferMode::READONLY:
 		glEnable( GL_DEPTH_TEST );
 		glDepthMask( false );
 		break;
 
-	case ZBUFFER_ENABLED:
+	case DepthBufferMode::NORMAL:
 		glEnable( GL_DEPTH_TEST );
 		glDepthMask( true );
 		break;
@@ -330,6 +331,15 @@ Shader *Instance::RegisterShader( std::unique_ptr<Shader> &&shader ) {
 }
 
 //-----------------------------------------------------------------------------
+void Instance::RegisterTexture( const TexturePtr &texture ) {
+	if( m_textures.count( texture->Name() )) {
+		Console::PrintErr( "Error, duplicate texture registration: %s", 
+			               texture->Name() );
+		return;
+	}
+
+	m_textures[ texture->Name() ] = texture;
+}
 
  /* TODO move to camera shake dongle
 //-------------------------------------------------------------------------------------------------
@@ -460,6 +470,7 @@ int             GetXPMatrixSerial()                             { return g_insta
 Shader         *RegisterShader( std::unique_ptr<Shader> &&s )   { return g_instance->RegisterShader( std::move(s) ); }
 Shader         *GetActiveShader()                               { return g_instance->GetActiveShader();      }
 Shader         *FindShader( const Stref &n )                    { return g_instance->FindShader( n );        }
+void            RegisterTexture( TexturePtr &t )                { return g_instance->RegisterTexture( t );   }
 
 /*
 //-------------------------------------------------------------------------------------------------

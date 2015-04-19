@@ -12,14 +12,29 @@
 namespace Graphics {
 
 Instance *g_instance = nullptr;
-	
-//cml::vector3f viewplane_h;
-//cml::vector3f viewplane_v;
 
 Element::Element() {
 
 }
 
+//-------------------------------------------------------------------------------------------------
+void Element::Setup( const Video::VertexBuffer::ptr &buffer, Video::BlendMode blendmode, 
+					 const MaterialPtr &mat, int buffer_size, Video::RenderMode render_mode ) {
+
+	m_buffer = buffer;
+	m_blend_mode = blendmode;
+	m_material = mat;
+	m_buffer_index = 0;
+	m_buffer_offset = 0;
+	m_buffer_start = 0;
+	m_buffer_size = buffer_size;
+	m_render_mode = render_mode;
+}
+
+//-------------------------------------------------------------------------------------------------
+void Element::Add() {
+	g_instance->AddElement( shared_from_this() );
+}
 /*
 float sine[256];
 
@@ -122,18 +137,6 @@ split elements into shaders and material groups
 
 */
 
-//-------------------------------------------------------------------------------------------------
-void AddElement( Element &element ) {
-	if( element.m_layer == LAYER_OBJECTS ) {
-		if( element.m_blend_mode == Video::BLEND_OPAQUE ) {
-			g_elements_objects_opaque.Add( &element );
-		} else {
-			g_elements_objects_blended.Add( &element );
-		}
-	} else if( element.m_layer == LAYER_UI ) {
-		g_elements_ui.Add( &element );
-	}
-}
 /*
 //-------------------------------------------------------------------------------------------------
 void render_element( const element *e ) {
@@ -339,20 +342,6 @@ void render_blended_graphics() {
 */
 
 //-------------------------------------------------------------------------------------------------
-void SetupElement( Element &e, Video::VertexBuffer::Pointer &buffer, Video::BlendMode blendmode, 
-					Material &mat, GLuint buffer_size, GLenum render_mode ) {
-
-	e.m_buffer = buffer;
-	e.m_blend_mode = blendmode;
-	e.m_material = &mat;
-	e.m_buffer_index = 0;
-	e.m_buffer_offset = 0;
-	e.m_buffer_start = 0;
-	e.m_buffer_size = buffer_size;
-	e.m_render_mode = render_mode;
-}
-
-//-------------------------------------------------------------------------------------------------
 /*
 void add_vertex( float x, float y, float z, float u, float v, u8 r, u8 g, u8 b, u8 a, bool blend ) {
 	Video::generic_vertex *w;
@@ -451,16 +440,6 @@ void draw_sprite( cml::vector3f position, float width, float height, float u1, f
 }*/
 
 
-//-----------------------------------------------------------------------------
-void RenderScene() {
-	Video::SetBlendMode( Video::BLEND_OPAQUE );
-	RenderList( g_elements_objects_opaque );
-
-	Video::SetBlendMode( Video::BLEND_ALPHA );
-	Video::SetDepthBufferMode( Video::ZBUFFER_DISABLED );
-	// todo sort ui elements
-	RenderList( g_elements_ui );
-}
 
 //-----------------------------------------------------------------------------
 Instance::Instance() {
@@ -480,6 +459,7 @@ Instance::~Instance() {
 	FT_Done_FreeType( m_ftlib );
 }
 
+//-----------------------------------------------------------------------------
 void RenderList( Util::SharedList<Element> &list ) {
 	
 	Element::ptr next;
@@ -504,9 +484,35 @@ void RenderList( Util::SharedList<Element> &list ) {
 }
 
 //-----------------------------------------------------------------------------
+void Instance::RenderScene() {
+	Video::SetBlendMode( Video::BlendMode::OPAQUE );
+	RenderList( m_elements_opaque );
+
+	Video::SetBlendMode( Video::BlendMode::ALPHA );
+	Video::SetDepthBufferMode( Video::DepthBufferMode::DISABLED );
+
+
+	// todo sort ui elements
+	RenderList( m_elements_ui );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::AddElement( const Element::ptr &e ) {
+	if( e->GetRenderLayer() == RenderLayer::OBJECTS ) {
+		if( e->GetBlendMode() == Video::BlendMode::OPAQUE ) {
+			m_elements_opaque += e;
+		} else {
+			m_elements_blended += e;
+		}
+	} else if( e->GetRenderLayer() == RenderLayer::UI ) {
+		m_elements_ui += e;
+	}
+}
+
+//-----------------------------------------------------------------------------
 FT_Library    FTLib()                                          { return g_instance->FTLib();                }
 Material::ptr CreateMaterial( const Stref &n, const Stref &s ) { return g_instance->CreateMaterial( n, s ); }
 void          DeleteMaterial( const Stref &n )                 { g_instance->DeleteMaterial( n );           }
 void          RenderList( Util::SharedList<Element> &l )       { g_instance->RenderList( l );               }  
-
+void          RenderScene()                                    { g_instance->RenderScene();                 }
 } // namespace Graphics

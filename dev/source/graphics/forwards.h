@@ -4,13 +4,9 @@
 
 #pragma once
 
-namespace Video {
+namespace Graphics {
 
-	class Instance;
-	class Shader;
-	class Camera;
+class Material;
+using MaterialPtr = std::shared_ptr<Material>;
 
-	class Texture;
-	using TexturePtr = std::shared_ptr<Texture>;
-
-};
+}

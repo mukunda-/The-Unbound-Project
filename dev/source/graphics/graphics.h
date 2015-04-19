@@ -48,7 +48,8 @@ enum class RenderLayer : uint8_t {
  */
 class Element : 
 		public Memory::FastAllocation, 
-		public Util::SharedListItem<Element> {
+		public Util::SharedListItem<Element>,
+		std::enable_shared_from_this<Element> {
 	
 public:
 	/** -----------------------------------------------------------------------
@@ -174,7 +175,7 @@ public:
 	 * This also sets all of the buffer params except for 
 	 * the size (which is an argument) to zero.
 	 */
-	void Setup( Video::VertexBuffer::ptr &buffer, 
+	void Setup( const Video::VertexBuffer::ptr &buffer, 
 		        Video::BlendMode blendmode, 
 			    const MaterialPtr &mat, int buffer_size, 
 				Video::RenderMode render_mode );
@@ -245,11 +246,15 @@ void DeleteMaterial( const Stref &name );
  */
 Element::ptr CreateElement();
 
-
 /** ---------------------------------------------------------------------------
  * Render a list of elements.
  */
 void RenderList( Util::SharedList<Element> &list );
+
+/** ---------------------------------------------------------------------------
+ * Render the scene.
+ */
+void RenderScene();
 
 //-----------------------------------------------------------------------------
 class Instance final {
@@ -274,6 +279,9 @@ public:
 	void DeleteMaterial( const Stref &name );
 	
 	void RenderList( Util::SharedList<Element> &list );
+	void RenderScene();
+
+	void AddElement( const Element::ptr &e );
 
 	Element::ptr CreateElement();
 };

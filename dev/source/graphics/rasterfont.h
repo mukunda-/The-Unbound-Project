@@ -60,17 +60,20 @@ public:
 	class CharacterSet {
 
 	private:
-		int       height;
-		int       stroke;
-		Character chars[96];
+		int       m_height;
+		int       m_stroke;
+		Character m_chars[96];
 
 	public:
 		CharacterSet( Character *set, int height, int stroke );
 
 		const Character *GetCharacter( char code ) const;
-		int GetHeight() const ;
-		int GetStroke() const ;
-		bool Matches( int height, int stroke ) const;
+		int GetHeight() const { return m_height; }
+		int GetStroke() const { return m_stroke; }
+		bool Matches( int height, int stroke ) const { 
+			return m_height == height && m_stroke == stroke; 
+		}
+
 	};
 	 
 private:

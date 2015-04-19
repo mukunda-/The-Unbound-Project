@@ -4,13 +4,13 @@
 
 #pragma once
 
-namespace Video {
+//-----------------------------------------------------------------------------
+namespace Ui {
 
-	class Instance;
-	class Shader;
-	class Camera;
-
-	class Texture;
-	using TexturePtr = std::shared_ptr<Texture>;
-
+/** ---------------------------------------------------------------------------
+ * The base of all UI elements.
+ */
+class Object {
 };
+
+}
