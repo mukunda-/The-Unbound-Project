@@ -146,6 +146,7 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 		"source/video/shaders/*.cpp",
 		"source/pch/*.cpp",
 		"source/debug/*.cpp",
+		"source/ui/*.cpp",
 		"source/main_game.cpp",
 		
 		"libsource/stb_image.c",

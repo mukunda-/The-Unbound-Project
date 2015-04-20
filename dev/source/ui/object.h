@@ -4,13 +4,19 @@
 
 #pragma once
 
+#include "util/uniquelist.h"
+
 //-----------------------------------------------------------------------------
 namespace Ui {
 
 /** ---------------------------------------------------------------------------
- * The base of all UI elements.
+ * The base of all UI entities.
  */
-class Object {
+class Object : public Util::UniqueListItem<Object> {
+	
+public:
+	void OnEvent( const Event &event );
 };
+
 
 }

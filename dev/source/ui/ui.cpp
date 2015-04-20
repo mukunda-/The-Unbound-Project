@@ -11,85 +11,83 @@
 #include "video/vertexbuffer.h"
 #include "graphics/vertexformats.h"
 #include "graphics/graphics.h"
-#include "graphics/gui/gui.h"
 #include "graphics/fontmaterial.h"
+#include "ui.h"
 
 namespace Ui {
 	
 Instance *g_ui;
 
+//-----------------------------------------------------------------------------
+Instance::Instance() {
+	
+	m_focused_widget = nullptr;
+	m_held_widget    = nullptr;
+	m_hot_widget     = nullptr;
+	m_held_button    = 0;
+}
+
+Instance::~Instance() {
+
+}
+	
+//-----------------------------------------------------------------------------
+void Instance::RenderText( Graphics::FontMaterial &font, int sort, int height, 
+	                       int stroke, int x, int y, const Stref &text, 
+						   float scale ) {
+
+	const Graphics::Font::CharacterSet *font_charset = font.GetCharacterSet( height, stroke );
+	if( !font_charset ) return;
+
+	m_gfx_builder.New( font.m_material, sort );
+
+	y += font_charset->GetHeight() / 4;
+
+	float penx, peny, scalex, scaley;
+	scalex = 1.0f / (float)Video::ScreenWidth();
+	scaley = 1.0f / (float)Video::ScreenHeight();
+	penx = (float)x * scalex;
+	peny = (float)y * scaley;
+
+	const char *ctext = *text;
+
+	while( *ctext ) {
+		char c = *ctext;
+
+		const auto *cter = font_charset->GetCharacter(c);
+
+		float u,v,u2,v2;
+		u =      (float)cter->x / 512.0f;
+		v =      (float)cter->y / 512.0f;
+		u2 = u + (float)cter->w / 512.0f;
+		v2 = v + (float)cter->h / 512.0f;
+
+		float x1, y1, x2, y2;
+		x1 = penx + (float)cter->left * scalex * scale;
+		y1 = peny - (float)cter->top  * scaley * scale;
+		x2 = x1   + (float)cter->w    * scalex * scale;
+		y2 = y1   + (float)cter->h    * scaley * scale;
+		
+		m_gfx_builder.AddVertex( x1, y1, u,  v  );
+		m_gfx_builder.AddVertex( x1, y2, u,  v2 );
+		m_gfx_builder.AddVertex( x2, y2, u2, v2 );
+		m_gfx_builder.AddVertex( x2, y2, u2, v2 );
+		m_gfx_builder.AddVertex( x2, y1, u2, v  );
+		m_gfx_builder.AddVertex( x1, y1, u,  v  );
+		
+		penx += ((float)cter->advance / 64.0f) * scalex * scale;
+
+		ctext++;
+	}
+}
+
+//-----------------------------------------------------------------------------
+void Instance::EndRendering() {
+	m_gfx_builder.Finish();
+}
+
 struct Gui {
 	
-	//-------------------------------------------------------------------------------------------------
-	Gui() {
-		m_focused_widget = nullptr;
-		m_held_widget    = nullptr;
-		m_hot_widget     = nullptr;
-		m_held_button    = 0;
-	}
-
-	//-------------------------------------------------------------------------------------------------
-	static int ConvertSDLButton( int sdl_button ) {
-		// convert sdl event mouse button index into our button index
-
-		// (right now there is no change)
-		return sdl_button;
-	}
-
-	//-------------------------------------------------------------------------------------------------
-	void RenderText( Graphics::FontMaterial &font, int sort, int height, int stroke, 
-					int x, int y, const char *text, float scale ) {
-
-		const Graphics::Font::CharacterSet *font_charset = font.GetCharacterSet( height, stroke );
-		if( !font_charset ) return;
-
-		m_gfx_stream.Start( font.m_material, sort );
-
-		y += font_charset->GetHeight() / 4;
-
-		
-		float penx, peny, scalex, scaley;
-		scalex = 1.0f / (float)Video::ScreenWidth();
-		scaley = 1.0f / (float)Video::ScreenHeight();
-		penx = (float)x * scalex;
-		peny = (float)y * scaley;
-
-	
-
-		while( *text ) {
-			char c = *text;
-
-			float u,v,u2,v2;
-			u = (float)font_charset->GetCharacter(c)->x / 512.0f;
-			v = (float)font_charset->GetCharacter(c)->y / 512.0f;
-			u2 = u + (float)font_charset->GetCharacter(c)->w / 512.0f;
-			v2 = v + (float)font_charset->GetCharacter(c)->h / 512.0f;
-
-			float x1, y1, x2, y2;
-			x1 = penx + (float)font_charset->GetCharacter(c)->left * scalex * scale;
-			y1 = peny - (float)font_charset->GetCharacter(c)->top * scaley * scale;
-			x2 = x1 + (float)font_charset->GetCharacter(c)->w * scalex * scale;
-			y2 = y1 + (float)font_charset->GetCharacter(c)->h * scaley * scale;
-		
-		
-			m_gfx_stream.AddVertex( x1, y1, u,  v );
-			m_gfx_stream.AddVertex( x1, y2, u,  v2 );
-			m_gfx_stream.AddVertex( x2, y2, u2, v2 );
-			m_gfx_stream.AddVertex( x2, y2, u2, v2 );
-			m_gfx_stream.AddVertex( x2, y1, u2, v );
-			m_gfx_stream.AddVertex( x1, y1, u,  v );
-		
-			penx += ((float)font_charset->GetCharacter(c)->advance / 64.0f) * scalex * scale;
-
-			text++;
-		}
-	}
-
-	void EndRendering() {
-		m_gfx_stream.End();
-	}
-
-
 	//-------------------------------------------------------------------------------------------------
 	void ResetHot() {
 		if( m_hot_widget ) {
