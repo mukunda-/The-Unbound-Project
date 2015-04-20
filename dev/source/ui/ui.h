@@ -3,8 +3,9 @@
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
- 
+
 #include "util/linkedlist.h"
+#include "util/uniquelist.h"
 #include "graphics/fontmaterial.h"
 #include "graphics/builder.h"
 
@@ -33,7 +34,7 @@ enum class Button {
 
 //-----------------------------------------------------------------------------
 struct Event {
-	enum {
+	enum class Type {
 		MOUSEDOWN,
 		MOUSEUP,
 		MOUSEMOVE,
@@ -44,16 +45,16 @@ struct Event {
 		TYPING,
 
 		DRAW
-	} type;
+	};
 
-
+	Type type;
 };
 
 //-----------------------------------------------------------------------------
 struct MouseEvent : public Event {
 	Eigen::Vector2i pos;
 	Eigen::Vector2i abs_pos;
-	int button;
+	Button button;
 };
 
 
@@ -64,9 +65,9 @@ enum {
 
 };
 
-typedef boost::function< bool(const Event &) > EventHandler;
+using EventHandler = std::function< bool( const Event & ) >;
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class Widget : public Util::LinkedItem<Widget> {
 
 	friend struct Gui;
@@ -82,9 +83,6 @@ protected:
 	
 	bool m_pressed;			// the mouse is pressed and is in the object area
 	
-
-
-
 	//Font &font;			// font used to render text in this Widget
 
 	Widget *m_parent;		// parent Widget or NULL for screen
@@ -116,6 +114,17 @@ public:
 	virtual void OnDraw();
 };
 
+class Object : public Util::UniqueListItem<Object> {
+	
+public:
+	void OnEvent( const Event &event );
+};
+
+/** ---------------------------------------------------------------------------
+ * Handle an input event from SDL.
+ *
+ * @param event SDL event to handle.
+ */
 bool HandleEvent( const SDL_Event &event );
 
 void RenderText( Graphics::FontMaterial &font, int sort, int height, int x, int y, const char *text );
@@ -123,18 +132,22 @@ void EndRendering();
 
 //-----------------------------------------------------------------------------
 class Instance final {
-	
+		 
 	Widget m_screen; // screen widget, has no parent, parent of all.
 	Widget *m_focused_widget;
 	Widget *m_held_widget;
 	Widget *m_hot_widget;
 	int     m_held_button;
-	Util::LinkedList<Widget> m_widgets;
+
+	Util::UniqueList<Object> m_objects;
+
 	Eigen::Vector2i m_mouse_position;
 
 	Graphics::Builder m_gfx_builder;
 
 public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 	Instance();
 	~Instance();
 

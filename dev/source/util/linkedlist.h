@@ -17,7 +17,7 @@ public:
 	Object *m_next;
 
 	LinkedItem() {
-		m_prev=m_next=0;
+		m_prev = m_next = nullptr;
 	}
 
 	virtual ~LinkedItem() {}
@@ -37,6 +37,8 @@ public:
 	LinkedList() {
 		Erase();
 	}
+
+	virtual ~LinkedList() {}
 	
 	//---------------------------------------------------------------------------------------------
 	// add new item

@@ -20,6 +20,7 @@ private:
 	std::shared_ptr<T> m_next;
 
 public:
+	virtual ~SharedListItem() {}
 	std::shared_ptr<T> NextLink()     { return m_next; }
 	std::shared_ptr<T> PreviousLink() { return m_prev; }
 };

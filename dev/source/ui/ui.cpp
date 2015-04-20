@@ -14,15 +14,12 @@
 #include "graphics/gui/gui.h"
 #include "graphics/fontmaterial.h"
 
-namespace Gui {
+namespace Ui {
 	
-Instance *g_gui;
+Instance *g_ui;
 
 struct Gui {
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
 	
-
 	//-------------------------------------------------------------------------------------------------
 	Gui() {
 		m_focused_widget = nullptr;
