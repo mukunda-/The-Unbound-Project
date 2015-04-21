@@ -24,6 +24,12 @@ struct AnchorSet {
 	// "parent" meaning "anchor region", and not the "parent region"!
 };
 
+//-----------------------------------------------------------------------------
+struct Rect {
+	Eigen::Vector2i pos;
+	Eigen::Vector2i size;
+};
+
 /** ---------------------------------------------------------------------------
  * A region is an area on the screen. Regions are invisible by themselves
  * and rely on an implementation to display things.
@@ -33,9 +39,9 @@ class Region : public Object {
 	friend struct Ui;
 protected:
 	 
-	Eigen::Vector4i m_rect;     // location relative to parent and size
-	Eigen::Vector4i m_abs_rect; // computed area in screen space 
-	                            // after applying hierarchy
+	Rect m_rect;     // area relative to parent 
+	Rect m_abs_rect; // computed area in screen space 
+	                 // after applying hierarchy
 	
 	// interecept mouse events
 	bool m_clickable;
@@ -79,12 +85,16 @@ public:
 	 *
 	 * The rect is defined as [x, y, width, height]
 	 */
-	const Eigen::Vector4i &Rect()    { return m_rect;     }
+	const Rect &GetRect()    { return m_rect;     }
 
 	/** ----------------------------------------------------------------------
 	 * Read the location and size of this region in absolute coordinates.
 	 */
-	const Eigen::Vector4i &AbsRect() { return m_abs_rect; }
+	const Rect &GetAbsRect() { return m_abs_rect; }
+
+	void SetParent() {
+
+	}
 
 	/** -----------------------------------------------------------------------
 	 * Check if a point lies within this region.

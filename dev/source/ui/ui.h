@@ -66,6 +66,8 @@ class Instance final : public System::Module {
 	// rendering buffer
 	Graphics::Builder m_gfx_builder; 
 
+	void UpdateMousePosition( int x, int y );
+
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -81,6 +83,7 @@ public:
 	bool HandleInputEvent( const SDL_Event &sdlevent );
 };
 
+//-----------------------------------------------------------------------------
 static inline int ConvertSDLButton( int sdl_button ) {
 	// convert sdl event mouse button index into our button index
 
@@ -89,6 +92,6 @@ static inline int ConvertSDLButton( int sdl_button ) {
 
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 } // namespace Ui
 

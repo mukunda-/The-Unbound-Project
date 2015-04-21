@@ -2,7 +2,6 @@
 //                                                                           //
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
-// gui.cpp
 // core of the user interface
  
 #include "stdafx.h"
@@ -13,6 +12,7 @@
 #include "graphics/builder.h"
 #include "graphics/fontmaterial.h"
 #include "ui.h"
+#include "region.h"
 
 namespace Ui {
 	
@@ -91,11 +91,45 @@ void Instance::EndRendering() {
 }
 
 //-----------------------------------------------------------------------------
-bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
+void Instance::UpdateMousePosition( int x, int y ) {
+
+	Eigen::Vector2i pos(x,y);
+	pos -= m_screen->GetAbsRect().pos;
 	
+	if( pos == m_mouse_position ) return; // no change.
+
+	
+
+}
+
+//-----------------------------------------------------------------------------
+bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
+	/*
+	  some notes about the input handling
+
+	  mouse input should be buffered until a game tick happens
+	  at that point all of the input events are processed at once
+
+	  multiple mouse clicks may occur on a single tick, although unlikely
+
+	  clicks should never be lost.
+
+	  multiple mouse motion events should be condensed into a single
+	  mouse motion event, the mouse position may change between events
+	  on the same tick if click events are mixed in, 
+	  e.g. (motion)-(motion)-(event)-(click)-(event)-(more motion)-(event)
+
+	  not sure if the click events can change the position from the last
+	  motion event, but handle that as if it can happen, maybe also
+	  ignoring motion events if there is a click event, making the above
+	  sequence something like
+
+	  (motion)-(motion)-(click)-(motionevent)-(clickevent)...
+	  -(more motion)-(motionevent)
+
+	*/
 	if( sdlevent.type == SDL_MOUSEBUTTONDOWN ) {
-		m_mouse_position[0] = sdlevent.button.x - m_screen.m_rect[0];
-		m_mouse_position[1] = sdlevent.button.y - m_screen.m_rect[1];
+		UpdateMousePosition( sdlevent.button.x, sdlevent.button.y ); 
 
 		ReleaseFocus();
 		ResetHold();
