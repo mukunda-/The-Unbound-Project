@@ -12,7 +12,6 @@
 #include "util/linkedlist.h"
 #include "graphics/vertexstream.h"
 #include "video/texture.h"
-
 #include "forwards.h"
 
 //-----------------------------------------------------------------------------

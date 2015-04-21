@@ -8,9 +8,9 @@
 #include "stdafx.h"
 #include "util/minmax.h"
 
-#include "video/vertexbuffer.h"
 #include "graphics/vertexformats.h"
 #include "graphics/graphics.h"
+#include "graphics/builder.h"
 #include "graphics/fontmaterial.h"
 #include "ui.h"
 
@@ -19,14 +19,18 @@ namespace Ui {
 Instance *g_ui;
 
 //-----------------------------------------------------------------------------
-Instance::Instance() {
+Instance::Instance() : System::Module( "ui", Levels::USER ), 
+					   m_gfx_builder( Video::VertexBuffer::Usage::STREAM_DRAW, 
+					                  Video::RenderMode::TRIANGLES, 
+									  Graphics::RenderLayer::UI ) {
 	
-	m_focused_widget = nullptr;
-	m_held_widget    = nullptr;
+	m_focused_region = nullptr;
+	//m_held_region    = nullptr;
 	m_hot_widget     = nullptr;
 	m_held_button    = 0;
 }
 
+//-----------------------------------------------------------------------------
 Instance::~Instance() {
 
 }
@@ -36,7 +40,7 @@ void Instance::RenderText( Graphics::FontMaterial &font, int sort, int height,
 	                       int stroke, int x, int y, const Stref &text, 
 						   float scale ) {
 
-	const Graphics::Font::CharacterSet *font_charset = font.GetCharacterSet( height, stroke );
+	const auto *font_charset = font.GetCharacterSet( height, stroke );
 	if( !font_charset ) return;
 
 	m_gfx_builder.New( font.m_material, sort );
@@ -84,6 +88,103 @@ void Instance::RenderText( Graphics::FontMaterial &font, int sort, int height,
 //-----------------------------------------------------------------------------
 void Instance::EndRendering() {
 	m_gfx_builder.Finish();
+}
+
+//-----------------------------------------------------------------------------
+bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
+	
+	if( sdlevent.type == SDL_MOUSEBUTTONDOWN ) {
+		m_mouse_position[0] = sdlevent.button.x - m_screen.m_rect[0];
+		m_mouse_position[1] = sdlevent.button.y - m_screen.m_rect[1];
+
+		ReleaseFocus();
+		ResetHold();
+		Widget *e = PickWidget( m_mouse_position );
+		if( e ) {
+			if( e->m_focusable ) {
+				SetFocus(*e);
+			}
+				
+			HoldWidget(*e, ConvertSDLButton( sdlevent.button.button ) );
+			e->m_pressed = true;
+			e->m_held = true;
+
+			MouseEvent event;
+			event.abs_pos = m_mouse_position;
+			event.pos[0] = m_mouse_position[0] - e->m_abs_rect[0];
+			event.pos[1] = m_mouse_position[1] - e->m_abs_rect[1];
+			event.button = ConvertSDLButton( sdlevent.button.button );
+			event.type = Event::MOUSEDOWN;
+				
+			e->FireEvent( event );
+			return true;
+		}
+		return false;
+	} else if( sdlevent.type == SDL_MOUSEBUTTONUP ) {
+		m_mouse_position[0] = sdlevent.button.x;
+		m_mouse_position[1] = sdlevent.button.y;
+			 
+		if( m_held_widget ) {
+				
+			MouseEvent event;
+			event.abs_pos = m_mouse_position;
+			event.pos[0] = m_mouse_position[0] - m_held_widget->m_abs_rect[0];
+			event.pos[1] = m_mouse_position[1] - m_held_widget->m_abs_rect[1];
+			event.button = ConvertSDLButton( sdlevent.button.button );
+	 
+			event.type = Event::MOUSEUP;
+
+			m_held_widget->FireEvent( event );
+
+			if( m_held_widget->Picked( m_mouse_position ) ) {
+					
+				event.type = Event::MOUSECLICK;
+				m_held_widget->FireEvent( event );
+				return true;
+			}
+		}
+		return false;
+	} else if( sdlevent.type == SDL_MOUSEMOTION ) {
+		m_mouse_position[0] = sdlevent.motion.x;
+		m_mouse_position[1] = sdlevent.motion.y;
+
+		Widget *e = PickWidget( m_mouse_position );
+		if( e ) {
+			SetHot(*e);
+		} else {
+			ResetHot();
+		}
+
+		if( m_held_widget ) {
+
+			MouseEvent event;
+			event.abs_pos = m_mouse_position;
+			event.button = m_held_button;
+			event.pos[0] = m_mouse_position[0] - m_held_widget->m_abs_rect[0];
+			event.pos[1] = m_mouse_position[1] - m_held_widget->m_abs_rect[1];
+			event.type = Event::MOUSEMOVE;
+			m_held_widget->FireEvent( event );
+			return true;
+		} else {
+			Widget *e = PickWidget( m_mouse_position );
+			if( e ) {
+
+				MouseEvent event;
+				event.abs_pos = m_mouse_position;
+				event.button = BUTTON_NONE;
+				event.pos[0] = m_mouse_position[0] - e->m_abs_rect[0];
+				event.pos[1] = m_mouse_position[1] - e->m_abs_rect[1];		
+				e->FireEvent( event );	
+				return false;
+			}
+			return false;
+		} 
+			
+	} 
+	
+	// filter out unhandled events
+ 
+	return false;
 }
 
 struct Gui {
@@ -144,120 +245,15 @@ struct Gui {
 		}
 		return nullptr;
 	}
-
-	//-------------------------------------------------------------------------------------------------
-	// pass SDL events here.
-	bool HandleEvent( const SDL_Event &sdlevent ) {
 	
-		if( sdlevent.type == SDL_MOUSEBUTTONDOWN ) {
-			m_mouse_position[0] = sdlevent.button.x - m_screen.m_rect[0];
-			m_mouse_position[1] = sdlevent.button.y - m_screen.m_rect[1];
-
-			ReleaseFocus();
-			ResetHold();
-			Widget *e = PickWidget( m_mouse_position );
-			if( e ) {
-				if( e->m_focusable ) {
-					SetFocus(*e);
-				}
-				
-				HoldWidget(*e, ConvertSDLButton( sdlevent.button.button ) );
-				e->m_pressed = true;
-				e->m_held = true;
-
-				MouseEvent event;
-				event.abs_pos = m_mouse_position;
-				event.pos[0] = m_mouse_position[0] - e->m_abs_rect[0];
-				event.pos[1] = m_mouse_position[1] - e->m_abs_rect[1];
-				event.button = ConvertSDLButton( sdlevent.button.button );
-				event.type = Event::MOUSEDOWN;
-				
-				e->FireEvent( event );
-				return true;
-			}
-			return false;
-		} else if( sdlevent.type == SDL_MOUSEBUTTONUP ) {
-			m_mouse_position[0] = sdlevent.button.x;
-			m_mouse_position[1] = sdlevent.button.y;
-			 
-			if( m_held_widget ) {
-				
-				MouseEvent event;
-				event.abs_pos = m_mouse_position;
-				event.pos[0] = m_mouse_position[0] - m_held_widget->m_abs_rect[0];
-				event.pos[1] = m_mouse_position[1] - m_held_widget->m_abs_rect[1];
-				event.button = ConvertSDLButton( sdlevent.button.button );
-	 
-				event.type = Event::MOUSEUP;
-
-				m_held_widget->FireEvent( event );
-
-				if( m_held_widget->Picked( m_mouse_position ) ) {
-					
-					event.type = Event::MOUSECLICK;
-					m_held_widget->FireEvent( event );
-					return true;
-				}
-			}
-			return false;
-		} else if( sdlevent.type == SDL_MOUSEMOTION ) {
-			m_mouse_position[0] = sdlevent.motion.x;
-			m_mouse_position[1] = sdlevent.motion.y;
-
-			Widget *e = PickWidget( m_mouse_position );
-			if( e ) {
-				SetHot(*e);
-			} else {
-				ResetHot();
-			}
-
-			if( m_held_widget ) {
-
-				MouseEvent event;
-				event.abs_pos = m_mouse_position;
-				event.button = m_held_button;
-				event.pos[0] = m_mouse_position[0] - m_held_widget->m_abs_rect[0];
-				event.pos[1] = m_mouse_position[1] - m_held_widget->m_abs_rect[1];
-				event.type = Event::MOUSEMOVE;
-				m_held_widget->FireEvent( event );
-				return true;
-			} else {
-				Widget *e = PickWidget( m_mouse_position );
-				if( e ) {
-
-					MouseEvent event;
-					event.abs_pos = m_mouse_position;
-					event.button = BUTTON_NONE;
-					event.pos[0] = m_mouse_position[0] - e->m_abs_rect[0];
-					event.pos[1] = m_mouse_position[1] - e->m_abs_rect[1];		
-					e->FireEvent( event );	
-					return false;
-				}
-				return false;
-			} 
-			
-		} 
-	
-		// filter out unhandled events
- 
-		return false;
-	}
 };
- 
-//-------------------------------------------------------------------------------------------------
-void RenderText( Graphics::FontMaterial &font, int sort, int height, int x, int y, const char *text ) {
-	g_gui->RenderText( font, sort, height, 0, x, y, text, 1.0 );
-}
 
-//-------------------------------------------------------------------------------------------------
-void EndRendering() {
-	g_gui->EndRendering();
-}
+//-----------------------------------------------------------------------------
+void RenderText( Graphics::FontMaterial &f, int s, int h, int x, int y, const Stref &t ) 
+                                       { g_ui->RenderText( f, s, h, 0, x, y, t, 1.0 ); }
+void EndRendering()                    { g_ui->EndRendering();                         }
+bool HandleEvent( const SDL_Event &e ) { return g_ui->HandleInputEvent( e );           }
 
-//-------------------------------------------------------------------------------------------------
-bool HandleEvent( const SDL_Event &event ) {
-	return g_gui->HandleEvent( event );
-}
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 }

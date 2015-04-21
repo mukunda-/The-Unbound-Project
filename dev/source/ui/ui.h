@@ -14,15 +14,17 @@
 //-----------------------------------------------------------------------------
 namespace Ui {
 
-using EventHandler = std::function< bool( const Event & ) >;
+//using EventHandler = std::function< bool( const Event & ) >;
 
 
 /** ---------------------------------------------------------------------------
  * Handle an input event from SDL.
  *
  * @param event SDL event to handle.
+ * @returns true if the event interacted with the ui, false if it should
+ *          be passed to the game.
  */
-bool HandleEvent( const SDL_Event &event );
+bool HandleInputEvent( const SDL_Event &event );
 
 /** ---------------------------------------------------------------------------
  * Render text onto the screen.
@@ -36,13 +38,6 @@ bool HandleEvent( const SDL_Event &event );
  */
 void RenderText( Graphics::FontMaterial &font, int sort, int height, 
 	             int x, int y, const Stref &text );
-
-/** ---------------------------------------------------------------------------
- * Called after everything is rendered.
- *
- * TODO should this be exposed?
- */
-void EndRendering();
 
 //-----------------------------------------------------------------------------
 class Instance final : public System::Module {
@@ -69,9 +64,7 @@ class Instance final : public System::Module {
 	Eigen::Vector2i m_mouse_position;
 
 	// rendering buffer
-	Graphics::Builder m_gfx_builder;
-	
-	std::vector<Object*> m_hot_objects;
+	Graphics::Builder m_gfx_builder; 
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -84,6 +77,8 @@ public:
 					 float scale );
 
 	void EndRendering();
+
+	bool HandleInputEvent( const SDL_Event &sdlevent );
 };
 
 static inline int ConvertSDLButton( int sdl_button ) {
@@ -93,8 +88,6 @@ static inline int ConvertSDLButton( int sdl_button ) {
 	return sdl_button; 
 
 }
-
-
 
 //-------------------------------------------------------------------------------------------------
 } // namespace Ui
