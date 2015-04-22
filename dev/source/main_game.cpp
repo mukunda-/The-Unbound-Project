@@ -28,16 +28,7 @@ INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
 	System::RegisterModule<Video::Instance>();
 	System::RegisterModule<Game::Game>();
 	System::Start();
-
-	 /*
-	{ 
-		Video::Open( 1200, 675 );
-
-		RunGame();
-
-		Video::Close();
-	}
-	*/
+	
 	SDL_Quit();
 	return 0;
 }

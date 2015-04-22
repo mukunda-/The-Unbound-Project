@@ -110,9 +110,9 @@ bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 	  mouse input should be buffered until a game tick happens
 	  at that point all of the input events are processed at once
 
-	  multiple mouse clicks may occur on a single tick, although unlikely
+	  multiple mouse clicks may occur on a single tick (although unlikely).
 
-	  clicks should never be lost.
+	  clicks should never be lost!
 
 	  multiple mouse motion events should be condensed into a single
 	  mouse motion event, the mouse position may change between events
