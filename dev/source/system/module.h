@@ -38,8 +38,8 @@ protected:
 	Module( const Stref &name, Levels level );
 
 	// non copyable/movable
-	Module( Module&  ) = delete;
-	Module( Module&& ) = delete;
+	Module( Module&  )            = delete;
+	Module( Module&& )            = delete;
 	Module& operator=( Module&  ) = delete;
 	Module& operator=( Module&& ) = delete;
 

@@ -68,9 +68,13 @@ private:
 	static int  TranslateWrapModeGL( int mode );
 	void        SaveDimensions( int width, int height, int depth = 1 );
 	
-	Texture( const Stref &name, Type type = Type::FLAT );
 
 public:
+	/** -----------------------------------------------------------------------
+	 * Use New().
+	 */
+	Texture( const Stref &name, Type type = Type::FLAT );
+
 	virtual ~Texture();
 
 	/** -----------------------------------------------------------------------

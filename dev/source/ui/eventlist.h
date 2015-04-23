@@ -4,21 +4,19 @@
 
 #pragma once
 
-#include "graphics/graphics.h"
-#include "graphics/rasterfont.h"
-#include "graphics/forwards.h"
+namespace Ui {
 
-namespace Graphics {
+/** ---------------------------------------------------------------------------
+ * A buffer and preprocessor for SDL input events.
+ */
+class EventList final {
 
-
-class FontMaterial : public Graphics::Font {
+	std::vector<SDL_Event> m_list;
 
 public:
-	//Font m_font;
-	MaterialPtr m_material; 
 
-	FontMaterial();
-	void LoadMaterial();
+	void Push( const SDL_Event &sdlevent );
 };
 
 }
+

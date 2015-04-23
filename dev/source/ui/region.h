@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "object.h"
+
 //-----------------------------------------------------------------------------
 namespace Ui {
 	
@@ -36,7 +38,7 @@ struct Rect {
  */
 class Region : public Object {
 
-	friend struct Ui;
+	friend class Instance;
 protected:
 	 
 	Rect m_rect;     // area relative to parent 

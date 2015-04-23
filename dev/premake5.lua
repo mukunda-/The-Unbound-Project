@@ -159,6 +159,39 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 		
 		"protocol/compiled/**.cc"
 	}
+	
+
+project_path = CreateProject( "test2", "TEST2", "WindowedApp", true )
+	defines { "UB_CLIENT" }
+	
+	files { 
+		"source/console/*.cpp",
+		"source/asev/*.cpp",
+		"source/graphics/*.cpp",
+		"source/graphics/gui/*.cpp",
+		"source/io/*.cpp",
+		"source/mem/*.cpp",
+		"source/mem/arena/*.cpp",
+		"source/net/*.cpp",
+		"source/system/*.cpp",
+		"source/util/*.cpp",
+		"source/video/*.cpp",
+		"source/video/shaders/*.cpp",
+		"source/pch/*.cpp",
+		"source/debug/*.cpp",
+		"source/ui/*.cpp",
+		"source/main_test2.cpp",
+		
+		"libsource/stb_image.c",
+		
+		"source/**.h",
+		"libsource/**.h",
+		
+		"libsource/hash/*.c",
+		"libsource/hash/*.cpp",
+		
+		"protocol/compiled/**.cc"
+	}
 
 project_path = CreateProject( "master", "MASTER", "ConsoleApp", true )
 	defines { "UB_SERVER" }

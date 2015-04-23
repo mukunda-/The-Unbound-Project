@@ -48,7 +48,7 @@ enum class RenderLayer : uint8_t {
 class Element : 
 		public Memory::FastAllocation, 
 		public Util::SharedListItem<Element>,
-		std::enable_shared_from_this<Element> {
+		public std::enable_shared_from_this<Element> {
 	
 public:
 	/** -----------------------------------------------------------------------
@@ -90,9 +90,9 @@ private:
 	
 	friend class Instance;
 protected:
-	Element();
 	
 public:
+	Element();
 	virtual ~Element();
 
 	/** -----------------------------------------------------------------------
@@ -197,6 +197,11 @@ public:
 	void Remove();
 
 	using ptr = std::shared_ptr<Element>;
+
+	static Element::ptr Create() {
+		// TODO allocate_shared and use pool allocator
+		return std::make_shared<Element>();
+	}
 };
 
 //-----------------------------------------------------------------------------

@@ -25,8 +25,7 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 									  Graphics::RenderLayer::UI ) {
 	
 	m_focused_region = nullptr;
-	//m_held_region    = nullptr;
-	m_hot_widget     = nullptr;
+	m_held_region    = nullptr;
 	m_held_button    = 0;
 }
 
@@ -103,6 +102,17 @@ void Instance::UpdateMousePosition( int x, int y ) {
 }
 
 //-----------------------------------------------------------------------------
+void Instance::PushInputEvent( const SDL_Event &sdlevent ) {
+	m_input_events.push_back( sdlevent );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::ProcessInputEvents() {
+	// remove redundant mouse events
+
+}
+#if 0
+//-----------------------------------------------------------------------------
 bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 	/*
 	  some notes about the input handling
@@ -128,6 +138,7 @@ bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 	  -(more motion)-(motionevent)
 
 	*/
+
 	if( sdlevent.type == SDL_MOUSEBUTTONDOWN ) {
 		UpdateMousePosition( sdlevent.button.x, sdlevent.button.y ); 
 
@@ -220,8 +231,9 @@ bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
  
 	return false;
 }
+#endif
 
-struct Gui {
+#if 0
 	
 	//-------------------------------------------------------------------------------------------------
 	void ResetHot() {
@@ -280,13 +292,12 @@ struct Gui {
 		return nullptr;
 	}
 	
-};
-
+#endif
 //-----------------------------------------------------------------------------
 void RenderText( Graphics::FontMaterial &f, int s, int h, int x, int y, const Stref &t ) 
                                        { g_ui->RenderText( f, s, h, 0, x, y, t, 1.0 ); }
 void EndRendering()                    { g_ui->EndRendering();                         }
-bool HandleEvent( const SDL_Event &e ) { return g_ui->HandleInputEvent( e );           }
+//bool HandleEvent( const SDL_Event &e ) { return g_ui->HandleInputEvent( e );           }
 
 
 //-----------------------------------------------------------------------------

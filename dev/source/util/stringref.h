@@ -98,7 +98,7 @@ public:
 	/** -----------------------------------------------------------------------
 	 * Returns true if the string is empty.
 	 */
-	bool Empty() {
+	bool Empty() const {
 		return m_text[0] == 0;
 	}
 

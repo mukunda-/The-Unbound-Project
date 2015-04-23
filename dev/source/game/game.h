@@ -3,6 +3,8 @@
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 #pragma once
 
+#if 0 // outdated
+
 // the Game class is created after the subsystem is initialized
 // ie there is a game window and the actual game is starting
 
@@ -38,3 +40,5 @@ public:
 };
 
 }
+
+#endif

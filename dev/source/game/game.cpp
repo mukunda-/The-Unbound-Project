@@ -33,7 +33,7 @@ template <class m> void PrintMatrix3( m mat ) {
 }
 
 //-----------------------------------------------------------------------------
-Video::VertexBuffer::Pointer GenerateTestGeometry() {
+Video::VertexBuffer::ptr GenerateTestGeometry() {
 	Graphics::VertexStream<Graphics::Vertex::Generic3D> verts; 
 	
 	// create a grid 
@@ -53,13 +53,13 @@ Video::VertexBuffer::Pointer GenerateTestGeometry() {
 			verts.Push( v[i] );
 	}
 
-	Video::VertexBuffer::Pointer buffer = Video::VertexBuffer::Create();
+	auto buffer = Video::VertexBuffer::Create();
 	verts.Load( *buffer );
 	return buffer;
 }
  
 //-----------------------------------------------------------------------------
-Video::VertexBuffer::Pointer GenerateTestGeometry2() {
+Video::VertexBuffer::ptr GenerateTestGeometry2() {
 	using Graphics::Vertex::Texcola2D;
 	Graphics::VertexStream<Texcola2D> verts; 
 	verts.Push( Texcola2D(0.0,0.0,0.0,0.0,255,255,255,255) );
@@ -100,8 +100,8 @@ void Game::OnStart() {
 	mat->SetParam( "color", "0.2 0.2 0.2" );
 	
 	Graphics::Element::ptr test_element = Graphics::CreateElement();
-	test_element->Setup( GenerateTestGeometry(), 
-		Video::BlendMode::OPAQUE, mat, 44, Video::RenderMode::LINES ); 
+	test_element->Setup( GenerateTestGeometry(), Video::BlendMode::OPAQUE, 
+		                 mat, 44, Video::RenderMode::LINES ); 
 	test_element->Add();
 
 	mat = Graphics::CreateMaterial( "mymat2", "ui" );
@@ -126,13 +126,12 @@ void Game::Run() {
 
 	GameCamera cam;
 	cam.SetPosition( Eigen::Vector3f( 0, 0, 5.0 ) );
-	cam.LookAt( Eigen::Vector3f( 0,0,0 ) );
+	cam.LookAt( Eigen::Vector3f( 0, 0, 0 ) );
 	cam.UpdateVideo();
-	  
+	
 	float angle = 0.0;
 
-
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	SDL_SetRelativeMouseMode( SDL_TRUE );
 	
 	SDL_Event e;
 	bool quit = false;

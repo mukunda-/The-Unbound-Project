@@ -386,7 +386,7 @@ void SetActiveTextureSlot( int slot );
 /** ---------------------------------------------------------------------------
  * Bind an array (vertex) buffer.
  */
-void BindArrayBuffer( GLuint buffer );
+void BindArrayBuffer( uint32_t buffer );
 
 /** ---------------------------------------------------------------------------
  * @returns a pointer to the currently active shader.

@@ -71,9 +71,10 @@
 #   include "pch_auth.h"
 #elif PROJECT_TEST
 #   include "pch_test.h"
+#elif PROJECT_TEST2
+#   include "pch_test2.h"
 #elif PROJECT_RXGSERV
 #   include "pch_rxgserv.h"
 #elif PROJECT_UNIT
 #   include "pch_unit.h"
 #endif
-

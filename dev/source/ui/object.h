@@ -15,17 +15,25 @@ namespace Ui {
  * The base of all UI entities.
  */
 class Object : public Util::UniqueListItem<Object> {
+
+	std::string m_name;
 	
 public:
 
-	virtual ~Object() {}
+	Object( const Stref &name );
+	virtual ~Object();
+
+	/** -----------------------------------------------------------------------
+	 * Get the name for this object.
+	 */
+	std::string &GetName() { return m_name; }
 
 	/** -----------------------------------------------------------------------
 	 * Called when an event was triggered that this object is registered for.
 	 *
 	 * @param event The event data.
 	 */
-	virtual void OnEvent( const Event &event );
+	virtual void OnEvent( const Event &e );
 
 	/** -----------------------------------------------------------------------
 	 * Register for an event.

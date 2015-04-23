@@ -49,10 +49,7 @@ class Instance final : public System::Module {
 	Region *m_focused_region;
 
 	// region that is held by the mouse
-	Region *m_held_widget;
-
-	// region that is hovered over with the mouse button released
-	Region *m_hot_widget;
+	Region *m_held_region; 
 
 	// button that is holding a region
 	int     m_held_button;
@@ -65,6 +62,8 @@ class Instance final : public System::Module {
 
 	// rendering buffer
 	Graphics::Builder m_gfx_builder; 
+
+	std::vector<SDL_Event> m_input_events;
 
 	void UpdateMousePosition( int x, int y );
 
@@ -79,6 +78,9 @@ public:
 					 float scale );
 
 	void EndRendering();
+
+	void PushInputEvent( const SDL_Event &sdlevent );
+	void ProcessInputEvents();
 
 	bool HandleInputEvent( const SDL_Event &sdlevent );
 };

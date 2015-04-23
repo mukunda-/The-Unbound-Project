@@ -17,6 +17,9 @@ Element::Element() {
 
 }
 
+Element::~Element() {
+}
+
 //-------------------------------------------------------------------------------------------------
 void Element::Setup( const Video::VertexBuffer::ptr &buffer, Video::BlendMode blendmode, 
 					 const MaterialPtr &mat, int buffer_size, Video::RenderMode render_mode ) {
@@ -460,7 +463,7 @@ Instance::~Instance() {
 }
 
 //-----------------------------------------------------------------------------
-void RenderList( Util::SharedList<Element> &list ) {
+void Instance::RenderList( Util::SharedList<Element> &list ) {
 	
 	Element::ptr next;
 	Element::ptr e;
@@ -510,9 +513,42 @@ void Instance::AddElement( const Element::ptr &e ) {
 }
 
 //-----------------------------------------------------------------------------
+Material::ptr Instance::CreateMaterial( const Stref &name, 
+	                                    const Stref &shader ) {
+	assert( !name.Empty() );
+
+	if( m_materials.count( name ) > 0 ) {
+		Console::PrintErr( "CreateMaterial name collision." );
+		return m_materials.at( name );
+	}
+
+	auto ptr = std::make_shared<Material>( shader );
+	m_materials[name] = ptr;
+	return ptr;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::DeleteMaterial( const Stref &name ) {
+	
+	if( m_materials.count( name ) == 0 ) {
+		Console::PrintErr( "DeleteMaterial name not found." );
+		return;
+	}
+
+	m_materials.erase( name );
+}
+
+//-----------------------------------------------------------------------------
+Element::ptr Instance::CreateElement() {
+	return Element::Create();
+}
+
+//-----------------------------------------------------------------------------
 FT_Library    FTLib()                                          { return g_instance->FTLib();                }
 Material::ptr CreateMaterial( const Stref &n, const Stref &s ) { return g_instance->CreateMaterial( n, s ); }
 void          DeleteMaterial( const Stref &n )                 { g_instance->DeleteMaterial( n );           }
 void          RenderList( Util::SharedList<Element> &l )       { g_instance->RenderList( l );               }  
 void          RenderScene()                                    { g_instance->RenderScene();                 }
+Element::ptr  CreateElement()                                  { return g_instance->CreateElement();        }
+
 } // namespace Graphics

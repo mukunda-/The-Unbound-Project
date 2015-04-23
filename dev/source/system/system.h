@@ -220,7 +220,7 @@ public:
 					     bool command_only = false ); 
 	bool ExecuteScript( const Stref &file );
 	
-	void Start( bool join );
+	void Start();
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );

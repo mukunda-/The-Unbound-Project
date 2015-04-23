@@ -2,6 +2,9 @@
 //                                                                             //
 //========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
 #include "stdafx.h"
+/* obsolete
+
+#include "stdafx.h"
 #include "gui.h"
 
 namespace Gui {
@@ -42,3 +45,5 @@ void Widget::OnDraw() {
 }
 
 }
+
+*/

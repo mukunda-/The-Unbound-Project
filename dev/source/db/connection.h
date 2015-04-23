@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "util/slinkedlist.h"
+#include "util/uniquelist.h"
 #include "transaction.h"
 #include "forwards.h"
 #include "endpoint.h"

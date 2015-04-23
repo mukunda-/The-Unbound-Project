@@ -54,7 +54,8 @@ void RegisterModule( Module *module ) {
 
 //-----------------------------------------------------------------------------
 void Start( bool join ) {
-	g_main->Start( join );
+	Post( std::bind( &Main::Start, g_main )); 
+	if( join ) Join();
 }
 
 //-----------------------------------------------------------------------------
@@ -129,7 +130,8 @@ void Main::PostSystem( std::function<void()> handler,
 						   bool main, int delay ) {
 	
 	if( main ) {
-		m_service.Post( m_strand.wrap( handler ), delay );
+		// TODO delay
+		m_strand.post( handler );
 	} else {
 		m_service.Post( handler, delay );
 	}
@@ -163,13 +165,12 @@ void Main::RegisterModule( Module *module_ptr ) {
 }
 
 //-----------------------------------------------------------------------------
-void Main::Start( bool join ) {
-
+void Main::Start() {
+	// must be called in system strand.
 	for( auto &i : m_modules ) {
 		i->OnStart();
 	}
 
-	if( join ) Join();
 }
 
 //-----------------------------------------------------------------------------

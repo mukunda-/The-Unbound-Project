@@ -49,10 +49,14 @@ private:
 
 	Usage  m_usage;			// usage hint for rendering 
 	 
-	VertexBuffer( Usage usage, int format, int buffers );
 
 	//-------------------------------------------------------------------------
 public:
+	/** -----------------------------------------------------------------------
+	 * Use Create().
+	 */
+	VertexBuffer( Usage usage, int format, int buffers );
+
 	typedef std::shared_ptr<VertexBuffer> ptr;
 
 	virtual ~VertexBuffer();

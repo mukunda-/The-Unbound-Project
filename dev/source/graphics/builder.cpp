@@ -24,6 +24,9 @@ Builder::Builder( Video::VertexBuffer::Usage usage,
 }
 
 //-----------------------------------------------------------------------------
+Builder::~Builder() {}
+
+//-----------------------------------------------------------------------------
 void Builder::New( const Graphics::MaterialPtr &mat, int sort ) {
 
 	// New is called before adding more vertices

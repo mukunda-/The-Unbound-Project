@@ -470,7 +470,7 @@ int             GetXPMatrixSerial()                             { return g_insta
 Shader         *RegisterShader( std::unique_ptr<Shader> &&s )   { return g_instance->RegisterShader( std::move(s) ); }
 Shader         *GetActiveShader()                               { return g_instance->GetActiveShader();      }
 Shader         *FindShader( const Stref &n )                    { return g_instance->FindShader( n );        }
-void            RegisterTexture( TexturePtr &t )                { return g_instance->RegisterTexture( t );   }
+void            RegisterTexture( const TexturePtr &t )          { return g_instance->RegisterTexture( t );   }
 
 /*
 //-------------------------------------------------------------------------------------------------
