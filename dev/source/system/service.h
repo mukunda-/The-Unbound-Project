@@ -25,7 +25,7 @@ protected:
 	 
 public:
 	Service();
-	~Service();
+	virtual ~Service();
 	
 	/// -----------------------------------------------------------------------
 	/// Get the underlying asio::io_service
@@ -54,7 +54,8 @@ public:
 	///
 	/// Called by deconstructor.
 	///
-	void Stop();
+	// obsolete: does not promote clean shutdown.
+	//void Stop();
 
 	/// -----------------------------------------------------------------------
 	/// Finishes work and destroys threads. Blocking function.

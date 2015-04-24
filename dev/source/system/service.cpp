@@ -18,7 +18,7 @@ Service::Service() {
 //-----------------------------------------------------------------------------
 Service::~Service() {
 	Finish( true );
-	Stop();
+//	Stop();
 }
 
 //-----------------------------------------------------------------------------
@@ -41,13 +41,13 @@ void Service::Run( int count ) {
 void Service::Join() {
 	m_io_service.run();
 }
-
+/*
 //-----------------------------------------------------------------------------
 void Service::Stop() {
 	// terminate io service
 	m_io_service.stop();
 	m_threads.join_all();
-} 
+} */
 
 //-----------------------------------------------------------------------------
 void Service::Post( std::function<void()> handler, int delay ) {

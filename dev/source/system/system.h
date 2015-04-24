@@ -16,9 +16,9 @@ namespace System {
  
 //-----------------------------------------------------------------------------
 template<typename F, typename ... Args>
-void LogEx( F output, const std::string &format, Args ... args ) {
+void LogEx( F output, const Stref &format, Args ... args ) {
 	try {
-		boost::format formatter(format); 
+		boost::format formatter( format ); 
 		Util::Feed( formatter, args... ); 
 		output( formatter.str().c_str() );
 	} catch( boost::io::format_error &e ) {
@@ -27,85 +27,70 @@ void LogEx( F output, const std::string &format, Args ... args ) {
 	}
 }
 
-/// ---------------------------------------------------------------------------
-/// Print a formatted message to the info log.
-///
-/// @param format boost::format format string. (printf compatible)
-/// @param ...    Formatted arguments.
-///
+/** ---------------------------------------------------------------------------
+ * Print a formatted message to the info log.
+ *
+ * @param format boost::format format string. (printf compatible)
+ * @param ...    Formatted arguments.
+ */
 template<typename ... Args>
-void Log( const std::string &format, Args ... args ) {
+void Log( const Stref &format, Args ... args ) {
 	LogEx( Log, format, args... );
 }
 
-/// ---------------------------------------------------------------------------
-/// Print a message to the info log. May also print to the console.
-///
-/// @param message Message to log.
-///
-void Log( const std::string &message );
+/** ---------------------------------------------------------------------------
+ * Print a message to the info log. May also print to the console.
+ *
+ * @param message Message to log.
+ */
+void Log( const Stref &message );
 
-/// ---------------------------------------------------------------------------
-/// Print a formatted message to the error log.
-///
-/// @param format boost::format format string. (printf compatible)
-/// @param ...    Formatted arguments.
-///
+/** ---------------------------------------------------------------------------
+ * Print a formatted message to the error log.
+ *
+ * @param format boost::format format string. (printf compatible)
+ * @param ...    Formatted arguments.
+ */
 template<typename Arg, typename ... Args>
-void LogError( const std::string &format, Arg arg1, Args ... args ) {
+void LogError( const Stref &format, Arg arg1, Args ... args ) {
 	LogEx( LogError, format, arg1, args... );
 }
 
-/// ---------------------------------------------------------------------------
-/// Print a message to the error logs. May also print to the console.
-///
-/// @param message Message to log.
-///
-void LogError( const std::string &message );
+/** ---------------------------------------------------------------------------
+ * Print a message to the error logs. May also print to the console.
+ *
+ * @param message Message to log.
+ */
+void LogError( const Stref &message );
 
-/// ---------------------------------------------------------------------------
-/// Get the main Service instance.
-///
+/** ---------------------------------------------------------------------------
+ * Get the work Service instance.
+ */
 Service &GetService();
 
-/// ---------------------------------------------------------------------------
-/// Post a task to be executed by the system.
-///
-/// @param handler Function to run.
-/// @param main    If true, the handler will be wrapped in the system strand.
-/// @param delay   If nonzero, will wait this many milliseconds before
-///                executing the handler.
-/// 
+/** ---------------------------------------------------------------------------
+ * Post a task to be executed by the system.
+ *
+ * @param handler Function to run.
+ * @param main    If true, the handler will be wrapped in the system strand.
+ * @param delay   If nonzero, will wait this many milliseconds before
+ *                executing the handler.
+ */
 void Post( std::function<void()> handler, bool main = true, int delay = 0 );
 
-/// ---------------------------------------------------------------------------
-/// Checks the status of the system.
-///
-/// @returns true if the system is live and running. false if the system
-///          hasn't started yet or is shutting down.
-///
+/** ---------------------------------------------------------------------------
+ * Checks the status of the system.
+ *
+ * @returns true if the system is live and running. false if the system
+ *          hasn't started yet or is shutting down.
+ */
 bool Live();
-
-/// ---------------------------------------------------------------------------
-/// Merge current thread with the system service.
-///
-void Join();
-
-/// ---------------------------------------------------------------------------
-/// Run a Program
-///
-/// This also joins the current thread into the system thread pool.
-///
-/// @param program Program instance. Both prototypes take ownership 
-///                of the pointer.
-///
-//void RunProgram( std::unique_ptr<Program> &&program );
-//void RunProgram( Program *program );
-
-//template <class T, typename ... A> void RunProgram( A...args ) {
-//	RunProgram( new T( args... ));
-//}
-
+ 
+/** ---------------------------------------------------------------------------
+ * Register a system module.
+ *
+ * System modules work together to implement program behavior.
+ */
 void RegisterModule( std::unique_ptr<Module> &&program );
 void RegisterModule( Module *program );
 
@@ -113,63 +98,93 @@ template <class T, typename ... A> void RegisterModule( A...args ) {
 	RegisterModule( new T( args... ));
 }
 
-/// ---------------------------------------------------------------------------
-/// Start program operation.
-///
-/// @param join Merge current thread with system, if true this function
-///             will not return until the system shuts down.
-///
-void Start( bool join = true );
+/** ---------------------------------------------------------------------------
+ * Behavior of the main thread on Start()
+ */
+enum class StartMode {
 
-/// ---------------------------------------------------------------------------
-/// Start clean program exit sequence.
-///
+	/** -----------------------------------------------------------------------
+	 * Merge as a dedicated thread. Main-posts will execute on this thread
+	 * only, and it will not share time with the worker threads. This is
+	 * to keep compatibility with APIs that require certain functions to
+	 * be executed on one thread only.
+	 */
+	DEDICATED_MAIN,
+
+	/** -----------------------------------------------------------------------
+	 * Merge as a normal work thread. Main-posts will run in a dedicated
+	 * strand, but may execute on any of the worker threads.
+	 */
+	JOIN_WORK,
+
+	/** -----------------------------------------------------------------------
+	 * The main thread will not join with the system, and Start will return
+	 * immediately allowing it to execute additional code from the outside.
+	 */
+	PASS
+
+	// a Main-post is a task that is scheduled via Post with main=true
+};
+
+/** ---------------------------------------------------------------------------
+ * Start the system.
+ *
+ * This is called after all desired modules are registered. Must only be
+ * called by main thread.
+ *
+ * If using the DEDICATED_MAIN or JOIN_WORK start modes, this function
+ * will block until the system shuts down. 
+ *
+ * If using PASS, this will return immediately and allow you to execute 
+ * additional code from the outside. Care should be taken as that is not 
+ * normal behavior (but may be used for testing etc.)
+ */
+void Start();
+
+/** ---------------------------------------------------------------------------
+ * Notifies all modules of a shutdown, and enters shutdown mode.
+ *
+ * Basically starts a clean program exit sequence.
+ */
 void Shutdown();
 
-/// ---------------------------------------------------------------------------
-/// Execute a system command.
-///
-/// @param command_string Command to execute.
-/// @param command_only   If true, only try to execute a command, and do not
-///                       change system variables.
-///
+/** ---------------------------------------------------------------------------
+ * Execute a system command.
+ *
+ * @param command_string Command to execute.
+ * @param command_only   If true, only try to execute a command, and do not
+ *                       change system variables.
+ */
 void ExecuteCommand( const Stref &command_string, 
 					 bool command_only = false );
 
-/// ---------------------------------------------------------------------------
-/// Execute a script file.
-///
-/// @param file Path to script file, relative to game contents folder.
-///
+/** ---------------------------------------------------------------------------
+ * Execute a script file.
+ *
+ * @param file Path to script file, relative to game contents folder.
+ * @returns false if the file is not found.
+ */
 bool ExecuteScript( const Stref &file );
   
-/// ---------------------------------------------------------------------------
-/// Main system class
-///
+/** ---------------------------------------------------------------------------
+ * Main system class.
+ */
 class Main final {
 	 
 public:
 
-	/// -----------------------------------------------------------------------
-	/// @param threads Number of threads to add to the system service. 
-	///                Note that this argument may be 0, and that calling
-	///                System::Join (from the main/init thread) adds 
-	///                an additional work thread.
-	///
-	Main( int threads );
-
+	/** -----------------------------------------------------------------------
+	 * Construct the Main instance.
+	 *
+	 * @param threads    Number of threads to add to the system service. 
+	 *                   This arguement may be 0 if you plan on merging
+	 *                   the main thread as a work thread in System::Start
+	 * @param start_mode How Start() works, see StartModes.
+	 */
+	Main( int threads, StartMode start_mode = StartMode::DEDICATED_MAIN );
 	~Main();
-	bool Live() { return m_live; }
-	void PostSystem( std::function<void()> handler, 
-					 bool main = true, int delay = 0 );
-	void Shutdown();
 
-	//void RunProgram( std::unique_ptr<Program> &&program );
-	void RegisterModule( Module *module );
-
-	Service &GetService();
-
-private: 
+private:
 
 	std::unique_ptr<::Console::Instance> m_console;
 
@@ -179,17 +194,28 @@ private:
 	
 	Mem::Arena::Manager i_arenas;
 	Service m_service;
+
+	// main-thread dedicated service, used in DEDICATED_MAIN startup mode,
+	// not used otherwise.
+	Service m_service_main;
+
+	// startup mode, set by constructor
+	StartMode m_start_mode;
+
+	bool m_started; // has Start been called.
+
+	// using a strand for the main thread or dedicated service
+	bool m_using_strand;
+
 	boost::asio::strand m_strand;
-
-	//std::unique_ptr<Program> m_program;
-
+	
 	// list of modules, these are ordered by their system level
 	std::vector<std::unique_ptr<Module>> m_modules;
 
 	// module map indexed by module names
 	std::unordered_map<std::string, Module*> m_module_map;
 
-	// registered variables
+	// registered system variables
 	std::unordered_map<std::string, VariablePtr> m_variables;
 	
 	// "global" commands are commands that belong to the system 
@@ -198,12 +224,16 @@ private:
 	
 	// mapping of command names to command instances
 	std::unordered_map< std::string, Commands::Instance* > m_command_map;
-
+	
 	std::mutex m_mutex;
 
+	// cvar and variable for blocking the destructor until shutdown completes.
 	std::condition_variable m_cvar_shutdown;
 	bool m_shutdown_complete = false;
 
+	// number of modules that are busy, updated with Module::SetBusy
+	// when shutdown is active, the system waits for this to become zero
+	// before terminating the program.
 	int m_busy_modules = 0;
 
 public: 
@@ -221,6 +251,16 @@ public:
 	bool ExecuteScript( const Stref &file );
 	
 	void Start();
+	void StartI();
+	bool Live() { return m_live; }
+	void Post( std::function<void()> handler, bool main, int delay );
+	void Shutdown();
+	
+	void RegisterModule( Module *module );
+
+	Service &GetService() { return m_service; }
+	void Log( const Stref &message );
+	void LogError( const Stref &message );
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );
@@ -231,7 +271,7 @@ private:
 	void OnModuleBusy( Module &module );
 
 	bool AnyModulesBusy();
-	void ShutdownEx();
+	void ShutdownI();
 	void SystemEnd();
 
 	friend class Module;

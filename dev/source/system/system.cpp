@@ -16,7 +16,7 @@
 //-----------------------------------------------------------------------------
 namespace System {
 
-Main *g_main;
+Main *g_main = nullptr;
 
 //-----------------------------------------------------------------------------
 namespace {
@@ -25,82 +25,37 @@ namespace {
 	void Command_Quit( Util::ArgString &args ) {
 		
 		System::Shutdown();
-	}
-
-}
-  
-//-----------------------------------------------------------------------------
-Service &GetService() {
-	assert(g_main);
-	return g_main->GetService();
+	} 
 }
 
 //-----------------------------------------------------------------------------
-void Finish() {
-	GetService().Finish( true );
-}
-
-//-----------------------------------------------------------------------------
-void RegisterModule( std::unique_ptr<Module> &&module ) {
-
-	Post( std::bind( &Main::RegisterModule, g_main, module.release() ));
-}
-
-//-----------------------------------------------------------------------------
-void RegisterModule( Module *module ) {
-	
-	Post( std::bind( &Main::RegisterModule, g_main, module ));
-}
-
-//-----------------------------------------------------------------------------
-void Start( bool join ) {
-	Post( std::bind( &Main::Start, g_main )); 
-	if( join ) Join();
-}
-
-//-----------------------------------------------------------------------------
-void Shutdown() {
-	::Console::Print( "Shutting down." );
-	g_main->Shutdown();
-}
-
-//-----------------------------------------------------------------------------
-void Log( const std::string &message ) {
-	::Console::Print( message );
-	// todo: log to file
-} 
-
-//-----------------------------------------------------------------------------
-void LogError( const std::string &message ) {
-	::Console::PrintErr( message );
-	// todo: log to error file
-}
-
-//-----------------------------------------------------------------------------
-bool Live() {
-	return g_main->Live();
-}
-
-//-----------------------------------------------------------------------------
-void Join() {
-	g_main->GetService().Join();
-}
-
-//-----------------------------------------------------------------------------
-void Post( std::function<void()> handler, bool main, int delay ) {
-	g_main->PostSystem( handler, main, delay );
-}
-
-//-----------------------------------------------------------------------------
-Main::Main( int threads ) : m_strand( m_service() ) {
+Main::Main( int threads, StartMode start_mode ) : m_strand( m_service() ) {
 	assert( g_main == nullptr );
+
 	g_main = this;
+
+	m_start_mode = start_mode;
+	m_live       = true;
+	m_started    = false;
+
+	if( start_mode == StartMode::DEDICATED_MAIN ) {
+
+		m_using_strand = false;
+
+	} else if( start_mode == StartMode::JOIN_WORK ) {
+
+		m_using_strand = true;
+
+	} else if( start_mode == StartMode::PASS ) {
+
+		m_using_strand = true;
+
+	}
 
 	m_console.reset( new ::Console::Instance() );
 
 	m_service.Run( threads );
-	m_live = true;
-
+	 
 	AddGlobalCommand( "quit", "Quit program.", Command_Quit );
 }
 
@@ -111,7 +66,10 @@ Main::~Main() {
 	{
 		
 
-		// block until shutdown completes
+		// block until shutdown completes; normally the shutdown would
+		// be complete already, but in some cases (eg unit testing) the
+		// system goes out of scope before the program is finished.
+
 		std::unique_lock<std::mutex> lock( m_mutex );
 		m_cvar_shutdown.wait( lock, 
 			[&]() { return m_shutdown_complete; } 
@@ -126,12 +84,17 @@ Main::~Main() {
 }
 
 //-----------------------------------------------------------------------------
-void Main::PostSystem( std::function<void()> handler, 
-						   bool main, int delay ) {
+void Main::Post( std::function<void()> handler, bool main_thread, int delay ) {
 	
-	if( main ) {
-		// TODO delay
-		m_strand.post( handler );
+	if( main_thread ) {
+		
+		if( m_using_strand ) {
+			// TODO delay
+			m_strand.post( handler );
+		} else {
+			m_service_main.Post( handler, delay );
+		}
+		
 	} else {
 		m_service.Post( handler, delay );
 	}
@@ -165,28 +128,39 @@ void Main::RegisterModule( Module *module_ptr ) {
 }
 
 //-----------------------------------------------------------------------------
-void Main::Start() {
-	// must be called in system strand.
+void Main::Start() { 
+	m_started = true;
+
+	Post( std::bind( &Main::StartI, this ), true, 0 );
+
+	if( m_start_mode == StartMode::DEDICATED_MAIN ) {
+		m_service_main.Join();
+	} else if( m_start_mode == StartMode::JOIN_WORK ) {
+		m_service.Join();
+	} else if( m_start_mode == StartMode::PASS ) {
+		return;
+	}
+}
+
+//-----------------------------------------------------------------------------
+void Main::StartI() {
+	
 	for( auto &i : m_modules ) {
 		i->OnStart();
 	}
-
 }
-
-//-----------------------------------------------------------------------------
-Service &Main::GetService() {
-	return m_service;
-}
-
+  
 //-----------------------------------------------------------------------------
 void Main::Shutdown() {
-	m_strand.post( std::bind( &Main::ShutdownEx, this ));
+	Post( std::bind( std::bind( &Main::ShutdownI, this )), true, 0 );
 }
 
 //-----------------------------------------------------------------------------
-void Main::ShutdownEx() {
+void Main::ShutdownI() {
 	if( !m_live ) return; // already shut down.
 	
+	::Console::Print( "Shutting down." );
+
 	std::lock_guard<std::mutex> lock(m_mutex);
 	m_live = false;
 
@@ -196,7 +170,7 @@ void Main::ShutdownEx() {
 
 	if( m_busy_modules == 0 ) {
 		// all modules are idle.
-		m_strand.post( std::bind( &Main::SystemEnd, this ));
+		Post( std::bind( &Main::SystemEnd, this ), true, 0 );
 	}
 }
 
@@ -208,14 +182,13 @@ void Main::OnModuleIdle( Module &module ) {
 
 	if( !m_live && m_busy_modules == 0 ) {
 		// shutdown is in progress, and all modules are idle 
-		m_strand.post( std::bind( &Main::SystemEnd, this ));
+		Post( std::bind( &Main::SystemEnd, this ), true, 0 );
 	}
 }
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleBusy( Module &module ) {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	
+	std::lock_guard<std::mutex> lock(m_mutex); 
 	m_busy_modules++;
 }
 
@@ -338,6 +311,33 @@ bool Main::ExecuteScript( const Stref &file ) {
 	return true;
 	
 }
+
+//----------------------------------------------------------------------------
+void Main::Log( const Stref &message ) {
+	// todo: log to file
+	::Console::Print( message ); 
+}
+
+//-----------------------------------------------------------------------------
+void Main::LogError( const Stref &message ) {
+	::Console::PrintErr( message );
+	// todo: log to error file
+}
+
+//-----------------------------------------------------------------------------
+Service &GetService()                    { return g_main->GetService();   }
+void     Finish()                        { GetService().Finish( true );   }
+void     RegisterModule( Module *m )     { g_main->RegisterModule( m );   }
+void     RegisterModule( ModulePtr &&m ) { RegisterModule( m.release() ); }
+void     Start()                         { g_main->Start();               }
+void     Shutdown()                      { g_main->Shutdown();            }
+void     Log( const Stref &m )           { g_main->Log( m );              }
+void     LogError( const Stref &m )      { g_main->LogError( m );         } 
+bool     Live()                          { return g_main->Live();         }
+void     Post( std::function<void()> h, bool m, int d ) { g_main->Post( h, m, d ); }
+
+/*void Join() {g_main->GetService().Join();}*/
+ 
 
 }
 

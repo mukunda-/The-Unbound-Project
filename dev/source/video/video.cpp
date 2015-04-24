@@ -34,8 +34,8 @@ void Instance::Open( int width, int height ) {
 	m_screen_height = height;
 
 	m_window = SDL_CreateWindow( "CLIENT", 
-		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-		width, height, SDL_WINDOW_OPENGL );
+			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+			width, height, SDL_WINDOW_OPENGL );
 
 	if( !m_window ) {
 		throw std::exception( "Window creation error." );
@@ -49,16 +49,11 @@ void Instance::Open( int width, int height ) {
 	if( err != GLEW_OK ) {
 		throw new std::exception( "Couldn't start GLEW." );
 	}
-
-	//glEnable( GL_TEXTURE_2D );
-	//glShadeModel( GL_SMOOTH );
+	 
 	glClearDepth( 1.0f );
 	glEnable( GL_DEPTH_TEST );
-	SetDepthBufferMode( DepthBufferMode::NORMAL );
-	//glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST );
-	SetCullingMode( CullingMode::BACK );
-	//glEnable(GL_CULL_NONE);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	SetDepthBufferMode( DepthBufferMode::NORMAL ); 
+	SetCullingMode( CullingMode::BACK ); 
 
 	SetBackgroundColor( 255.0f/255.0f, 116.0f/255.0f, 33.0f/255.0f );
 	 
@@ -94,9 +89,9 @@ void Instance::UseGlobalSurface() {
 
 //-----------------------------------------------------------------------------
 void Instance::SetBackgroundColor( float r, float g, float b ) {
-	m_bg_color[0] = r;
-	m_bg_color[1] = g;
-	m_bg_color[2] = b;
+	m_bg_color[0]  = r;
+	m_bg_color[1]  = g;
+	m_bg_color[2]  = b;
 	m_fog_color[0] = r;
 	m_fog_color[1] = g;
 	m_fog_color[2] = b;
