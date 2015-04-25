@@ -47,3 +47,5 @@
 
 #include "ft2build.h"
 #include "freetype/freetype.h"
+
+#include <boost/asio/high_resolution_timer.hpp>
