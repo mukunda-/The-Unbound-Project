@@ -6,9 +6,9 @@
 
 namespace System {
 
-/// ---------------------------------------------------------------------------
-/// Wrapper for boost::asio::io_service, also manages a thread pool.
-///
+/** ---------------------------------------------------------------------------
+ * Wrapper for boost::asio::io_service, also manages a thread pool.
+ */
 class Service {
 
 private:
@@ -27,53 +27,53 @@ public:
 	Service();
 	virtual ~Service();
 	
-	/// -----------------------------------------------------------------------
-	/// Get the underlying asio::io_service
-	///
+	/** -----------------------------------------------------------------------
+	 * Get the underlying asio::io_service
+	 */
 	boost::asio::io_service &operator ()() {
 		return m_io_service;   
 	}
 
-	/// -----------------------------------------------------------------------
-	/// Add threads into the thread pool.
-	///
-	/// This function can be called multiple times. but
-	/// threads cannot be stopped.
-	///
+	/** -----------------------------------------------------------------------
+	 * Add threads into the thread pool.
+	 *
+	 * This function can be called multiple times. but
+	 * threads cannot be stopped.
+	 */
 	void Run( int number_of_threads );
 	
-	/// -----------------------------------------------------------------------
-	/// Add the current thread into the thread pool.
-	///
+	/** -----------------------------------------------------------------------
+	 * Add the current thread into the thread pool.
+	 */
 	void Join();
 
-	/// -----------------------------------------------------------------------
-	/// Shutdown system.
-	///
-	/// Runs io_service.stop and all threads should terminate.
-	///
-	/// Called by deconstructor.
-	///
+	/** -----------------------------------------------------------------------
+	 * Shutdown system.
+	 *
+	 * Runs io_service.stop and all threads should terminate.
+	 *
+	 * Called by deconstructor.
+	 */
 	// obsolete: does not promote clean shutdown.
 	//void Stop();
 
-	/// -----------------------------------------------------------------------
-	/// Finishes work and destroys threads. Blocking function.
-	///
-	/// Will stall if a thread is not told to exit.
-	///
-	/// @param wait Join the thread pool. Set to false if this is being called
-	///             from inside a service handler.
-	///
+	/** -----------------------------------------------------------------------
+	 * Finishes work and destroys threads.
+	 * 
+	 * Will stall if a thread is not told to exit.
+	 *
+	 * @param wait Join the thread pool. Set to false if this is being called
+	 *             from inside a service handler.
+	 */
 	void Finish( bool wait );
 
-	/// -----------------------------------------------------------------------
-	/// Run a task in the thread pool.
-	///
-	/// @param handler Handler to execute.
-	/// @param delay   Optional delay in milliseconds to 
-	///                wait before execution.
-	///
+	/** -----------------------------------------------------------------------
+	 * Run a task in the thread pool.
+	 *
+	 * @param handler Handler to execute.
+	 * @param delay   Optional delay in milliseconds to 
+	 *                wait before execution.
+	 */
 	void Post( std::function<void()> handler, int delay = 0 ); 
 	 
 	static void PostDelayedHandler( 

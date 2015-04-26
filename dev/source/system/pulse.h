@@ -13,7 +13,7 @@ class Pulse {
  
 public:
 
-	using Func = std::function<void()>;
+	using Func  = std::function<void()>;
 	using Timer = boost::asio::high_resolution_timer;
 
 	/** -----------------------------------------------------------------------
@@ -38,9 +38,12 @@ public:
 	//-------------------------------------------------------------------------
 private:
 
-	float m_freq;
-	Func  m_handler;
-	Timer m_timer;
+	double m_freq;
+	double m_period;
+	Func   m_handler;
+	Timer  m_timer;
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> m_next_tick;
 
 	void OnTick();
 };
