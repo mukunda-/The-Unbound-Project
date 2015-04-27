@@ -42,9 +42,9 @@ protected:
 	void SetUp() {
 		m_lock = new std::mutex;
 		
-		i_system = new System::Main( NUM_THREADS );
+		i_system = new System::Main( NUM_THREADS, System::StartMode::PASS );
 		System::RegisterModule<Net::Instance>(); 
-		System::Start( false );
+		System::Start();
 	}
 	
 	void TearDown() { 

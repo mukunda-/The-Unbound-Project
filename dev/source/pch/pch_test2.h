@@ -49,3 +49,4 @@
 #include "freetype/freetype.h"
 
 #include <boost/asio/high_resolution_timer.hpp>
+#include <boost/asio/steady_timer.hpp>

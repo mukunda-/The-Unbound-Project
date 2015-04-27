@@ -12,9 +12,9 @@ namespace System {
 class Pulse {
  
 public:
-
+	
 	using Func  = std::function<void()>;
-	using Timer = boost::asio::high_resolution_timer;
+	using Timer = boost::asio::steady_timer;
 
 	/** -----------------------------------------------------------------------
 	 * Create a pulse.
@@ -40,10 +40,11 @@ private:
 
 	double m_freq;
 	double m_period;
+	int    m_period_us;
 	Func   m_handler;
 	Timer  m_timer;
 
-	std::chrono::time_point<std::chrono::high_resolution_clock> m_next_tick;
+	std::chrono::steady_clock::time_point m_next_tick;
 
 	void OnTick();
 };
