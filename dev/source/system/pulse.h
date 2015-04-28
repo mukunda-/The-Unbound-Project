@@ -7,14 +7,15 @@
 namespace System {
 
 /** ---------------------------------------------------------------------------
- * A Pulse posts a task on an interval.
+ * A Pulse keeps track of time for doing tick processing.
  */
 class Pulse {
  
 public:
 	
-	using Func  = std::function<void()>;
-	using Timer = boost::asio::steady_timer;
+	using Handler = std::function<void()>;
+	using Timer   = boost::asio::steady_timer;
+	using Clock   = std::chrono::steady_clock;
 
 	/** -----------------------------------------------------------------------
 	 * Create a pulse.
@@ -22,18 +23,20 @@ public:
 	 * @param frequency Frequency at which the event should be generated.
 	 * @param handler   Handler to call.
 	 */
-	Pulse( float frequency, Func handler );
+	Pulse( float frequency );
 	virtual ~Pulse();
 	
 	/** -----------------------------------------------------------------------
-	 * Start the loop.
+	 * Reset the time for the next tick.
 	 */
-	void Start();
+	void Reset();
 
 	/** -----------------------------------------------------------------------
-	 * Stop the loop.
+	 * Wait until the next tick.
+	 *
+	 * @param callback Function to call after waiting.
 	 */
-	void Stop();
+	void Wait( Handler callback );
 
 	//-------------------------------------------------------------------------
 private:
@@ -41,10 +44,9 @@ private:
 	double m_freq;
 	double m_period;
 	int    m_period_us;
-	Func   m_handler;
 	Timer  m_timer;
 
-	std::chrono::steady_clock::time_point m_next_tick;
+	Clock::time_point m_next_tick;
 
 	void OnTick();
 };

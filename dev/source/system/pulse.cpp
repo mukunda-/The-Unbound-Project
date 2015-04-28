@@ -17,11 +17,27 @@ Pulse::Pulse( float frequency, Func handler ) :
 	m_freq = frequency;
 	m_period = 1.0 / m_freq;
 	m_period_us = (int)(m_period * 1000000.0);
+
+	Reset();
 }
 
 //-----------------------------------------------------------------------------
 Pulse::~Pulse() {
 
+}
+
+//-----------------------------------------------------------------------------
+void Pulse::Reset() {
+	using namespace std::chrono; 
+	m_next_tick = Clock::now() + microseconds( m_period_us );
+}
+
+void Pulse::Wait( Handler handler ) {
+
+	auto timer = std::make_shared<Timer>( GetService()() );
+
+	timer->expires_at( m_next_tick );
+	// todo...
 }
 
 //-----------------------------------------------------------------------------
