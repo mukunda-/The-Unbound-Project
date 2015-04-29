@@ -13,17 +13,19 @@ class Pulse {
  
 public:
 	
-	using Handler = std::function<void()>;
-	using Timer   = boost::asio::steady_timer;
-	using Clock   = std::chrono::steady_clock;
+	using Handler  = std::function<void()>;
+	using Timer    = boost::asio::steady_timer;
+	using TimerPtr = std::shared_ptr<Timer>;
+	using Clock    = std::chrono::steady_clock;
 
 	/** -----------------------------------------------------------------------
 	 * Create a pulse.
 	 *
 	 * @param frequency Frequency at which the event should be generated.
-	 * @param handler   Handler to call.
+	 * @param main      Use the main thread or main strand for executing
+	 *                  handlers.
 	 */
-	Pulse( float frequency );
+	Pulse( float frequency, bool main_thread = true );
 	virtual ~Pulse();
 	
 	/** -----------------------------------------------------------------------
@@ -44,6 +46,7 @@ private:
 	double m_freq;
 	double m_period;
 	int    m_period_us;
+	bool   m_main;
 	Timer  m_timer;
 
 	Clock::time_point m_next_tick;

@@ -7,30 +7,90 @@
 #include "system/system.h"
 #include "system/debug_console.h"
 #include "system/module.h"
+#include "system/pulse.h"
 #include "video/video.h"
 
 //-----------------------------------------------------------------------------
 class Test : public System::Module {
+
+	System::Pulse m_pulse;
+
 public:
 	Test();
 
 	void OnStart() override;
 	void OnShutdown() override;
+
+	void DoTick();
 };
 
 //-----------------------------------------------------------------------------
-Test::Test() : Module( "testapp", Levels::USER ) {
-
+Test::Test() : 
+		Module( "testapp", Levels::USER ), 
+		m_pulse( 60.0 )  {
+	
 };
 
 //-----------------------------------------------------------------------------
 void Test::OnStart() {
+	SetBusy( true );
 	Video::Open( 1000, 800 );
+
+	m_pulse.Reset();
+	DoTick();
+}
+
+//-----------------------------------------------------------------------------
+void Test::DoTick() {
+
+	static float r = 0.0;
+	r = fmod( r + 0.01, 1.0 );
+	Video::SetBackgroundColor( r/2,r,1 ); 
+	Video::Clear();
+	Video::Swap();
+	
+	SDL_Event e;
+	bool quit = false;
+
+	static int mx,my;
+
+	while (SDL_PollEvent(&e)){
+		if (e.type == SDL_QUIT) {
+			quit = true;
+		}
+
+		if( e.type == SDL_MOUSEMOTION ) {
+			mx = e.motion.x;
+			my = e.motion.y;
+
+		//	Console::Print( "motion: %4d %4d", e.motion.x, e.motion.y );
+		}
+
+		if( e.type == SDL_MOUSEBUTTONDOWN ) {
+			Console::Print( "button: %4d %4d", e.button.x, e.button.y );
+			if( e.button.x != mx || e.button.y != my ) {
+				Console::Print( "Button/Motion mismatch" );
+			}
+		}
+		if( e.type == SDL_MOUSEBUTTONUP ) {
+			Console::Print( "button: %4d %4d", e.button.x, e.button.y );
+			if( e.button.x != mx || e.button.y != my ) {
+				Console::Print( "Button/Motion mismatch" );
+			}
+		}
+	}
+
+	if( quit ) {
+		System::Shutdown( "User exited." );
+		SetBusy( false );
+	} else {
+		m_pulse.Wait( std::bind( &Test::DoTick, this ));
+	}
 }
 
 //-----------------------------------------------------------------------------
 void Test::OnShutdown() {
-
+	
 }
  
 //-----------------------------------------------------------------------------

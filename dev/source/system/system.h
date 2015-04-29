@@ -145,8 +145,10 @@ void Start();
  * Notifies all modules of a shutdown, and enters shutdown mode.
  *
  * Basically starts a clean program exit sequence.
+ *
+ * @param reason Reason the shutdown was requested.
  */
-void Shutdown();
+void Shutdown( const Stref &reason );
 
 /** ---------------------------------------------------------------------------
  * Execute a system command.
@@ -254,7 +256,7 @@ public:
 	void StartI();
 	bool Live() { return m_live; }
 	void Post( std::function<void()> handler, bool main, int delay );
-	void Shutdown();
+	void Shutdown( const Stref &reason );
 	
 	void RegisterModule( Module *module );
 
@@ -271,7 +273,7 @@ private:
 	void OnModuleBusy( Module &module );
 
 	bool AnyModulesBusy();
-	void ShutdownI();
+	void ShutdownI( const Stref &reason );
 	void SystemEnd();
 
 	friend class Module;

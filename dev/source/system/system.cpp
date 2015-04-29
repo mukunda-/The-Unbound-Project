@@ -24,7 +24,7 @@ namespace {
 	//-------------------------------------------------------------------------
 	void Command_Quit( Util::ArgString &args ) {
 		
-		System::Shutdown();
+		System::Shutdown( "Quit command." );
 	} 
 }
 
@@ -61,7 +61,7 @@ Main::Main( int threads, StartMode start_mode ) : m_strand( m_service() ) {
 
 //-----------------------------------------------------------------------------
 Main::~Main() {
-	Shutdown();
+	Shutdown( "System Destructed." );
 
 	{
 		
@@ -151,15 +151,15 @@ void Main::StartI() {
 }
   
 //-----------------------------------------------------------------------------
-void Main::Shutdown() {
-	Post( std::bind( std::bind( &Main::ShutdownI, this )), true, 0 );
+void Main::Shutdown( const Stref &reason ) {
+	Post( std::bind( &Main::ShutdownI, this, reason.Copy() ), true, 0 );
 }
 
 //-----------------------------------------------------------------------------
-void Main::ShutdownI() {
+void Main::ShutdownI( const Stref &reason ) {
 	if( !m_live ) return; // already shut down.
 	
-	::Console::Print( "Shutting down." );
+	::Console::Print( "Shutting down. (%s)", reason );
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 	m_live = false;
@@ -330,7 +330,7 @@ void     Finish()                        { GetService().Finish( true );   }
 void     RegisterModule( Module *m )     { g_main->RegisterModule( m );   }
 void     RegisterModule( ModulePtr &&m ) { RegisterModule( m.release() ); }
 void     Start()                         { g_main->Start();               }
-void     Shutdown()                      { g_main->Shutdown();            }
+void     Shutdown( const Stref &r )      { g_main->Shutdown( r );         }
 void     Log( const Stref &m )           { g_main->Log( m );              }
 void     LogError( const Stref &m )      { g_main->LogError( m );         } 
 bool     Live()                          { return g_main->Live();         }

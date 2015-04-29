@@ -11,8 +11,8 @@
 namespace System {
 
 //-----------------------------------------------------------------------------
-Pulse::Pulse( float frequency, Func handler ) : 
-		m_handler( handler ), m_timer( GetService()() ) {
+Pulse::Pulse( float frequency, bool main_thread ) : 
+		m_timer( GetService()() ), m_main(main_thread) {
 
 	m_freq = frequency;
 	m_period = 1.0 / m_freq;
@@ -22,9 +22,7 @@ Pulse::Pulse( float frequency, Func handler ) :
 }
 
 //-----------------------------------------------------------------------------
-Pulse::~Pulse() {
-
-}
+Pulse::~Pulse() {}
 
 //-----------------------------------------------------------------------------
 void Pulse::Reset() {
@@ -32,29 +30,29 @@ void Pulse::Reset() {
 	m_next_tick = Clock::now() + microseconds( m_period_us );
 }
 
+//-----------------------------------------------------------------------------
 void Pulse::Wait( Handler handler ) {
+	using namespace std::chrono; 
 
 	auto timer = std::make_shared<Timer>( GetService()() );
 
 	timer->expires_at( m_next_tick );
-	// todo...
+	m_next_tick += microseconds( m_period_us );
+	
+	bool main_thread = m_main;
+
+	timer->async_wait( 
+		[timer,handler,main_thread]( const boost::system::error_code &err ) {
+
+		if( err ) return; // (TODO)
+
+		if( main_thread ) {
+			System::Post( handler, true );
+		} else {
+			handler();
+		}
+	});
 }
-
-//-----------------------------------------------------------------------------
-void Pulse::Start() {
-	using namespace std::chrono; 
-
-	m_next_tick = steady_clock::now() + microseconds( m_period_us );
-
-	m_timer.expires_at( m_next_tick );
-	m_timer.async_wait( std::bind( 
-	//m_timer.expires_from_now( 
-}
-
-//-----------------------------------------------------------------------------
-void Pulse::Stop() {
-
-}
-
+  
 //-----------------------------------------------------------------------------
 }
