@@ -51,13 +51,13 @@ protected:
 	virtual void OnLoad();
 	
 	/** -----------------------------------------------------------------------
-	 * Called when the system starts up. (most modules will be loaded)
+	 * Called when the system starts up. 
 	 */
 	virtual void OnStart();
 
 	/** -----------------------------------------------------------------------
-	 * Called when the system is shutting down, this module and any other
-	 * modules will not be destroyed until all return not Busy().
+	 * Called when the system is shutting down. This module and any other
+	 * modules will not be destroyed until all are not busy.
 	 */
 	virtual void OnShutdown();
 
@@ -91,14 +91,14 @@ private:
 
 	// name of module, ie "net", "db", etc.
 	std::string m_name;
-	
+
 	bool m_busy = false;
 
 public:
 
-	Levels GetLevel() { return m_level; }
+	Levels             GetLevel()      { return m_level; }
 	const std::string &GetName() const { return m_name; }
-	bool Busy() { return m_busy; }
+	bool               Busy()          { return m_busy; }
 };
 
 }

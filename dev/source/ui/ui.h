@@ -59,6 +59,7 @@ class Instance final : public System::Module {
 
 	// mouse position
 	Eigen::Vector2i m_mouse_position;
+	Eigen::Vector2i m_mouse_position_new;
 
 	// rendering buffer
 	Graphics::Builder m_gfx_builder; 
@@ -79,10 +80,10 @@ public:
 
 	void EndRendering();
 
-	void PushInputEvent( const SDL_Event &sdlevent );
-	void ProcessInputEvents();
+	
 
 	bool HandleInputEvent( const SDL_Event &sdlevent );
+	void FinishInputEvents();
 };
 
 //-----------------------------------------------------------------------------

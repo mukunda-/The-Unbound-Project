@@ -92,26 +92,17 @@ void Instance::EndRendering() {
 //-----------------------------------------------------------------------------
 void Instance::UpdateMousePosition( int x, int y ) {
 
-	Eigen::Vector2i pos(x,y);
-	pos -= m_screen->GetAbsRect().pos;
-	
-	if( pos == m_mouse_position ) return; // no change.
-
-	
-
+	Eigen::Vector2i pos( x, y );
+	m_mouse_position_new = pos - m_screen->GetAbsRect().pos;
 }
+ 
 
 //-----------------------------------------------------------------------------
-void Instance::PushInputEvent( const SDL_Event &sdlevent ) {
-	m_input_events.push_back( sdlevent );
-}
-
-//-----------------------------------------------------------------------------
-void Instance::ProcessInputEvents() {
+void Instance::FinishInputEvents() {
 	// remove redundant mouse events
 
 }
-#if 0
+ 
 //-----------------------------------------------------------------------------
 bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 	/*

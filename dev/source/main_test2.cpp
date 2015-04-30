@@ -27,7 +27,7 @@ public:
 //-----------------------------------------------------------------------------
 Test::Test() : 
 		Module( "testapp", Levels::USER ), 
-		m_pulse( 60.0 )  {
+		m_pulse( 10.0 )  {
 	
 };
 
@@ -52,19 +52,22 @@ void Test::DoTick() {
 	SDL_Event e;
 	bool quit = false;
 
-	static int mx,my;
+	static int mx, my;
 
 	while (SDL_PollEvent(&e)){
 		if (e.type == SDL_QUIT) {
 			quit = true;
 		}
 
+		int count = 0;
 		if( e.type == SDL_MOUSEMOTION ) {
 			mx = e.motion.x;
 			my = e.motion.y;
-
+			count++;
 		//	Console::Print( "motion: %4d %4d", e.motion.x, e.motion.y );
 		}
+
+		Console::Print( "motion: %d", count );
 
 		if( e.type == SDL_MOUSEBUTTONDOWN ) {
 			Console::Print( "button: %4d %4d", e.button.x, e.button.y );
