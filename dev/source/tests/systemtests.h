@@ -16,7 +16,7 @@ class SystemTests : public ::testing::Test {
 	///////////////////////////////////////////////////////////////////////////
 protected:
 	static void SetUpTestCase() {
-		i_system = new System::Main(1);
+		i_system = new System::Main( 1, System::StartMode::PASS );
 		counter = 0;
 	}
 	
