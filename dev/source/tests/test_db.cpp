@@ -24,9 +24,9 @@ protected:
 
 	void SetUp() {
 
-		i_system = new System::Main( 1 );
+		i_system = new System::Main( 1, System::StartMode::PASS );
 		System::RegisterModule<DB::Manager>( 4 );
-		System::Start( false );
+		System::Start();
 	}
 	
 	void TearDown() {
