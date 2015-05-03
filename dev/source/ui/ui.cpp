@@ -13,6 +13,7 @@
 #include "graphics/fontmaterial.h"
 #include "ui.h"
 #include "region.h"
+#include "event.h"
 
 namespace Ui {
 	
@@ -160,8 +161,13 @@ bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 		m_mouse_position[0] = sdlevent.button.x;
 		m_mouse_position[1] = sdlevent.button.y;
 			 
-		if( m_held_widget ) {
-				
+		if( m_held_region ) {
+
+			Event::MouseClick e(
+				m_mouse_position - m_held_region->GetAbsRect().pos, 
+				m_mouse_position, 
+				ConvertSDLButton( sdlevent.button.button ) );
+
 			MouseEvent event;
 			event.abs_pos = m_mouse_position;
 			event.pos[0] = m_mouse_position[0] - m_held_widget->m_abs_rect[0];
