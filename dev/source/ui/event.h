@@ -44,13 +44,27 @@ enum class MouseButton {
 };
 
 //-----------------------------------------------------------------------------
-class MousePositionEvent : public Event {
+namespace {
+
+	//-------------------------------------------------------------------------
+	MouseButton ConvertSDLButton( int sdl_button ) {
+		// convert sdl event mouse button index into our button index
+
+		// (right now there is no change)
+		return (MouseButton)sdl_button; 
+
+	}
+
+}
+
+//-----------------------------------------------------------------------------
+class MousePositionData {
 	Eigen::Vector2i m_pos; 
 	Eigen::Vector2i m_abs_pos;
 
 public:
-	MousePositionEvent( const Eigen::Vector2i &pos, 
-		                const Eigen::Vector2i &abs_pos );
+	MousePositionData( const Eigen::Vector2i &pos, 
+		               const Eigen::Vector2i &abs_pos );
 	
 	/** -----------------------------------------------------------------------
 	 * Returns cursor position relative to object.
@@ -64,10 +78,26 @@ public:
 
 };
 
+//-----------------------------------------------------------------------------
+class MouseButtonData {
+
+	MouseButton m_button;
+
+public:
+
+	MouseButtonData( MouseButton button );
+	
+	/** -----------------------------------------------------------------------
+	 * Get the button that was clicked.
+	 */
+	MouseButton GetButton() { return m_button; }
+
+};
+
 /** ---------------------------------------------------------------------------
  * Mouse cursor has moved.
  */
-class MouseMotion : public MousePositionEvent {
+class MouseMotion : public MousePositionData, public Event {
 	
 public:
 	
@@ -102,15 +132,13 @@ public:
 /** ---------------------------------------------------------------------------
  * Mouse pressed down and released on the region.
  */
-class MouseClick : public MousePositionEvent {
-
-	MouseButton m_button;
+class MouseClick : public MousePositionData, 
+	               public MouseButtonData,
+				   public Event {
 
 public:
 	MouseClick( const Eigen::Vector2i &pos, const Eigen::Vector2i &abs_pos,
 		        MouseButton button );
-
-	MouseButton GetButton() { return m_button; }
 
 	UI_EVENT_TYPE( EventTypes::MOUSE_CLICK );
 };
@@ -118,7 +146,9 @@ public:
 /** ---------------------------------------------------------------------------
  * Mouse button pressed down.
  */
-class MouseDown : public MousePositionEvent {
+class MouseDown : public MousePositionData, 
+	              public MouseButtonData,
+				  public Event {
 
 public:
 	MouseDown( const Eigen::Vector2i &pos, const Eigen::Vector2i &abs_pos,
@@ -130,7 +160,9 @@ public:
 /** ---------------------------------------------------------------------------
  * Mouse button released.
  */
-class MouseUp : public MousePositionEvent {
+class MouseUp : public MousePositionData, 
+	            public MouseButtonData,
+				public Event {
 
 public:
 	MouseUp( const Eigen::Vector2i &pos, const Eigen::Vector2i &abs_pos,

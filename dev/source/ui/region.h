@@ -55,8 +55,8 @@ protected:
 	
 	bool m_pressed;		 // the mouse is pressed down on the region
 
-	// held was set when the user "drags" the region
-	// this should be implemented in a derived class that handles the drag events
+	// *** held was set when the user "drags" the region
+	// *** this should be implemented in a derived class that handles the drag events
 //	bool m_held;		 // the mouse is holding this object (???)
 
 	// region this is parented to, or "contained in". Parent regions will
@@ -83,20 +83,16 @@ public:
 	Region();
 
 	/** ----------------------------------------------------------------------
-	 * Read the location and size of this region, relative to its parent.
-	 *
-	 * The rect is defined as [x, y, width, height]
+	 * Read the location and size of this region, relative to its parent. 
 	 */
-	const Rect &GetRect()    { return m_rect;     }
+	const Rect &GetRect() { return m_rect; }
 
 	/** ----------------------------------------------------------------------
 	 * Read the location and size of this region in absolute coordinates.
 	 */
 	const Rect &GetAbsRect() { return m_abs_rect; }
 
-	void SetParent() {
-
-	}
+	void SetParent( Region *parent );
 
 	/** -----------------------------------------------------------------------
 	 * Check if a point lies within this region.

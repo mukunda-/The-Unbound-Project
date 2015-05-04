@@ -36,9 +36,9 @@ Instance::~Instance() {
 }
 	
 //-----------------------------------------------------------------------------
-void Instance::RenderText( Graphics::FontMaterial &font, int sort, int height, 
-	                       int stroke, int x, int y, const Stref &text, 
-						   float scale ) {
+void Instance::RenderText( const Graphics::FontMaterial &font, int sort, 
+						   int height, int stroke, int x, int y,
+						   const Stref &text, float scale ) {
 
 	const auto *font_charset = font.GetCharacterSet( height, stroke );
 	if( !font_charset ) return;
@@ -91,12 +91,25 @@ void Instance::EndRendering() {
 }
 
 //-----------------------------------------------------------------------------
+Region *Instance::PickRegion( const ivec2 &pos ) {
+
+}
+
+//-----------------------------------------------------------------------------
 void Instance::UpdateMousePosition( int x, int y ) {
 
 	Eigen::Vector2i pos( x, y );
 	m_mouse_position_new = pos - m_screen->GetAbsRect().pos;
 }
- 
+
+//-----------------------------------------------------------------------------
+void Instance::ApplyMousePosition() {
+	if( m_mouse_position != m_mouse_position_new ) {
+		m_mouse_position = m_mouse_position_new;
+	}
+
+
+}
 
 //-----------------------------------------------------------------------------
 void Instance::FinishInputEvents() {
@@ -122,21 +135,26 @@ bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 	  e.g. (motion)-(motion)-(event)-(click)-(event)-(more motion)-(event)
 
 	  not sure if the click events can change the position from the last
-	  motion event, but handle that as if it can happen, maybe also
+	  motion event, but handle that as if it can happen,
 	  ignoring motion events if there is a click event, making the above
 	  sequence something like
 
 	  (motion)-(motion)-(click)-(motionevent)-(clickevent)...
 	  -(more motion)-(motionevent)
 
+	  from testing it appears the motion events are condensed when you
+	  poll/pump the sdl events
 	*/
 
 	if( sdlevent.type == SDL_MOUSEBUTTONDOWN ) {
 		UpdateMousePosition( sdlevent.button.x, sdlevent.button.y ); 
+		ApplyMousePosition();
+
 
 		ReleaseFocus();
 		ResetHold();
-		Widget *e = PickWidget( m_mouse_position );
+		Region *e = PickRegion( m_mouse_position );
+
 		if( e ) {
 			if( e->m_focusable ) {
 				SetFocus(*e);
@@ -157,11 +175,13 @@ bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 			return true;
 		}
 		return false;
+
 	} else if( sdlevent.type == SDL_MOUSEBUTTONUP ) {
-		m_mouse_position[0] = sdlevent.button.x;
-		m_mouse_position[1] = sdlevent.button.y;
-			 
+		UpdateMousePosition( sdlevent.button.x, sdlevent.button.y ); 
+		ApplyMousePosition();
+
 		if( m_held_region ) {
+			 
 
 			Event::MouseClick e(
 				m_mouse_position - m_held_region->GetAbsRect().pos, 

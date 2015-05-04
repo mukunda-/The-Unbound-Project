@@ -54,12 +54,12 @@ class Instance final : public System::Module {
 	// button that is holding a region
 	int     m_held_button;
 
-	// list of ui objects
+	// list of ui objects 
 	Util::UniqueList<Object> m_objects;
 
 	// mouse position
-	Eigen::Vector2i m_mouse_position;
-	Eigen::Vector2i m_mouse_position_new;
+	ivec2 m_mouse_position;
+	ivec2 m_mouse_position_new;
 
 	// rendering buffer
 	Graphics::Builder m_gfx_builder; 
@@ -67,6 +67,7 @@ class Instance final : public System::Module {
 	std::vector<SDL_Event> m_input_events;
 
 	void UpdateMousePosition( int x, int y );
+	void ApplyMousePosition();
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -74,26 +75,18 @@ public:
 	Instance();
 	~Instance();
 
-	void RenderText( Graphics::FontMaterial &font, int sort, int height, 
+	void RenderText( const Graphics::FontMaterial &font, int sort, int height, 
 		             int stroke, int x, int y, const Stref &text, 
 					 float scale );
 
 	void EndRendering();
 
-	
+	Region *PickRegion( const ivec2 &pos );
 
 	bool HandleInputEvent( const SDL_Event &sdlevent );
 	void FinishInputEvents();
 };
 
-//-----------------------------------------------------------------------------
-static inline int ConvertSDLButton( int sdl_button ) {
-	// convert sdl event mouse button index into our button index
-
-	// (right now there is no change)
-	return sdl_button; 
-
-}
 
 //-----------------------------------------------------------------------------
 } // namespace Ui
