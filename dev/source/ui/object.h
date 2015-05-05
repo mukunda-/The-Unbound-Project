@@ -14,7 +14,7 @@ namespace Ui {
 /** ---------------------------------------------------------------------------
  * The base of all UI entities.
  */
-class Object : public Util::UniqueListItem<Object> {
+class Object {
 
 	std::string m_name;
 	
@@ -33,7 +33,7 @@ public:
 	 *
 	 * @param event The event data.
 	 */
-	virtual void OnEvent( const Event &e );
+	virtual void OnEvent( Event::Event &e );
 
 	/** -----------------------------------------------------------------------
 	 * Register for an event.

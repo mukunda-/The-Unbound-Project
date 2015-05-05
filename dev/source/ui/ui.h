@@ -55,7 +55,10 @@ class Instance final : public System::Module {
 	int     m_held_button;
 
 	// list of ui objects 
-	Util::UniqueList<Object> m_objects;
+	std::vector<Object*> m_objects;
+
+	// list of ui regions
+	std::vector<Region*> m_regions;
 
 	// mouse position
 	ivec2 m_mouse_position;

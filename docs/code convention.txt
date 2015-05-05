@@ -1,0 +1,12 @@
+NamespaceName
+ClassName
+FunctionName
+EnumName
+
+ENUM_VALUE
+
+primitivetype (ivec2,ivec3)
+
+local_variable
+m_member_variable
+g_global_variable

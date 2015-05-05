@@ -6,44 +6,67 @@
   
 namespace Util {
 
-template < typename T > class SharedList;
+template <typename, int> class SharedList;
 
 /** ---------------------------------------------------------------------------
  * Interface for objects to be contained in a SharedList.
- */
-template< typename T >
-class SharedListItem {
-	friend class SharedList<T>;
+ *
+ * @param T Link index to use.
+ */ 
+template< int L = 1 >
+class SharedItem {
+	template< typename, int > friend class SharedList;
 
 private:
-	std::shared_ptr<T> m_prev;
-	std::shared_ptr<T> m_next;
+	std::shared_ptr<SharedItem> m_prev;
+	std::shared_ptr<SharedItem> m_next;
+
+#ifdef _DEBUG
+	void *debug_parent = nullptr; // the list this item is in
+#endif
 
 public:
-	virtual ~SharedListItem() {}
-	std::shared_ptr<T> NextLink()     { return m_next; }
-	std::shared_ptr<T> PreviousLink() { return m_prev; }
+	virtual ~SharedItem() {}
+	std::shared_ptr<SharedItem> NextLink()     { return m_next; }
+	std::shared_ptr<SharedItem> PreviousLink() { return m_prev; }
 };
 
 /** ---------------------------------------------------------------------------
  * A linked list using shared_ptr.
+ *
+ * @param T The type that will be contained in the list.
+ * @param L The link index used.
  */
-template< typename T >
+template< typename T, int L = 1 >
 class SharedList {
 
-	using ptr = std::shared_ptr<T>;
+	using ptr  = std::shared_ptr<T>;
 
-	ptr m_first;
-	ptr m_last;
+	using Item = SharedItem<L>;
+	using Link = std::shared_ptr<Item>;
+
+	Link m_first;
+	Link m_last;
 
 public:
 	
-	virtual ~SharedList() {}
+	virtual ~SharedList() {
+		Clear();
+	}
 
 	/** -----------------------------------------------------------------------
 	 * Clear the list.
 	 */
 	void Clear() {
+
+		// destroy circular references
+		for( auto a = m_first; a; ) {
+			auto n = a->m_next;
+			a->m_prev.reset();
+			a->m_next.reset();
+			a = n;
+		}
+
 		m_first.reset();
 		m_last.reset();
 	}
@@ -55,18 +78,26 @@ public:
 	 */
 	void Push( const ptr &item ) {
 
-		item->m_next = nullptr;
+		assert( item );
+		auto i = std::static_pointer_cast<Item>( item );
+
+#       ifdef _DEBUG
+			assert( i->debug_parent == nullptr );
+			i->debug_parent = (void*)this;
+#       endif 
+
+		i->m_next = nullptr;
 		
 		if( !m_first ) {
 
-			m_first      = item;
-			m_last       = item;
-			item->m_prev = nullptr;
+			m_first = item;
+			m_last  = item; 
+			i->m_prev.reset();
 
 		} else {
 
 			m_last->m_next = item;
-			item->m_prev   = m_last;
+			i->m_prev      = m_last;
 			m_last         = item;
 		}
 	}
@@ -85,8 +116,8 @@ public:
 			other.m_first->m_prev = m_last;
 			m_last = other.m_last;
 		} else {
-			// we are empty
 
+			// we are empty
 			m_first = other.m_first;
 			m_last  = other.m_last;
 		}
@@ -101,17 +132,26 @@ public:
 	 * @param item Pointer to item to remove. 
 	 */
 	void Pull( const ptr &item ) {
+		assert( item );
 
-		if( item->m_next ) {
-			item->m_next->m_prev = item->m_prev;
+		auto i = std::static_pointer_cast<Item>( item );
+		
+#       ifdef _DEBUG
+			assert( i->debug_parent == (void*)this );
+			i->debug_parent = nullptr;
+#       endif 
+
+		if( i->m_next ) {
+			i->m_next->m_prev = i->m_prev;
 		} else {
-			m_last = item->m_prev;
+			m_last = i->m_prev;
 		}
 
-		if( item->m_prev ) {
-			item->m_prev->m_next = item->m_next;
+		if( i->m_prev ) {
+			i->m_prev->m_next = i->m_next;
 		} else {
-			m_first = item->m_next;
+			
+			m_first = i->m_next;
 		} 
 	}
 

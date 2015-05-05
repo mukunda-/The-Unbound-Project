@@ -8,5 +8,7 @@ namespace Graphics {
 
 class Material;
 using MaterialPtr = std::shared_ptr<Material>;
+class Element;
+using ElementPtr = std::shared_ptr<Element>;
 
 }

@@ -60,6 +60,7 @@
 
 // useful engine files that won't change:
 #include "util/countof.h"
+#include "util/vectortypes.h"
 
 #if PROJECT_CLIENT
 #   include "pch_client.h"

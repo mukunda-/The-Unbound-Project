@@ -21,7 +21,7 @@ namespace Game {
 	
 namespace {
 //-----------------------------------------------------------------------------
-template <class m> void PrintMatrix3( m mat ) {
+template< class m > void PrintMatrix3( m mat ) {
 	printf( "\n%8.2f | %8.2f | %8.2f\n",
 		mat(0,0),mat(1,0),mat(2,0) );
 

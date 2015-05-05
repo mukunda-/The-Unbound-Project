@@ -93,6 +93,20 @@ void Instance::EndRendering() {
 //-----------------------------------------------------------------------------
 Region *Instance::PickRegion( const ivec2 &pos ) {
 
+	int sortmax = -0x10000;
+	Region *highest = nullptr;
+
+	for( auto r : m_regions ) {
+		if( r->Inside( pos ) ) {
+			
+			if( r->GetSort() > sortmax ) {
+				sortmax = r->GetSort();
+				highest = r;
+			}
+		}
+	}
+
+	return highest;
 }
 
 //-----------------------------------------------------------------------------

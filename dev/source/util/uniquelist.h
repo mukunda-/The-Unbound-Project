@@ -10,10 +10,9 @@ namespace Util {
 
 template <class T> class UniqueList;
 
-/// ---------------------------------------------------------------------------
-/// Defines the links in an object. Objects added to a SLinkedList must
-/// inherit this.
-///
+/** ---------------------------------------------------------------------------
+ * Interface for objects to be contained in a UniqueList.
+ */
 template< class T >
 class UniqueListItem {
 	friend class UniqueList<T>;
@@ -27,11 +26,9 @@ public:
 	T* PreviousLink() { return m_prevlink;       }
 };
 
-/// ---------------------------------------------------------------------------
-/// "Smart" linked list template.
-///
-/// @author mukunda
-///
+/** ---------------------------------------------------------------------------
+ * A linked list using unique_ptr.
+ */
 template< class T >
 class UniqueList {
 

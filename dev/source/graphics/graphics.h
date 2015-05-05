@@ -30,6 +30,7 @@ namespace Graphics {
 //particles			PARTICLES	YES		YES		?
 //ui				-			YES		?		ui "on-screen" elements, 2d, sorted by m_sort
 	
+//-----------------------------------------------------------------------------
 enum class RenderLayer : uint8_t {
 	BACKDROP,
 	SKY,
@@ -47,7 +48,7 @@ enum class RenderLayer : uint8_t {
  */
 class Element : 
 		public Memory::FastAllocation, 
-		public Util::SharedListItem<Element>,
+		public Util::SharedItem<>,
 		public std::enable_shared_from_this<Element> {
 	
 public:
@@ -198,7 +199,7 @@ public:
 
 	using ptr = std::shared_ptr<Element>;
 
-	static Element::ptr Create() {
+	static ptr Create() {
 		// TODO allocate_shared and use pool allocator
 		return std::make_shared<Element>();
 	}

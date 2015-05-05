@@ -29,9 +29,10 @@ private:
 	Video::RenderMode          m_rendermode;
 	RenderLayer                m_layer;
 		
-	Graphics::Element::ptr     m_element;
+	ElementPtr                 m_element;
 
-	Graphics::VertexStream<Graphics::Vertex::Texcola2D> m_vertex_data;
+	VertexStream<Vertex::Texcola2D> m_vertex_data;
+
 	Video::VertexBuffer::ptr m_vbo;
 
 	/** -----------------------------------------------------------------------

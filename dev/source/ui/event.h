@@ -17,6 +17,9 @@ enum class EventTypes {
 	MOUSE_MOTION,
 	MOUSE_ENTER,
 	MOUSE_LEAVE, 
+
+	MOUSE_DRAG,
+	MOUSE_DROP
 };
 
 /** ---------------------------------------------------------------------------
@@ -169,6 +172,16 @@ public:
 		     MouseButton button );
 
 	UI_EVENT_TYPE( EventTypes::MOUSE_UP ); 
+};
+
+class MouseDrag : public Event {
+public:
+	UI_EVENT_TYPE( EventTypes::MOUSE_DRAG ); 
+};
+
+class MouseDrop : public Event {
+public:
+	UI_EVENT_TYPE( EventTypes::MOUSE_DROP ); 
 };
 
 }}
