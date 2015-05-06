@@ -54,10 +54,10 @@ class Instance final : public System::Module {
 	// button that is holding a region
 	int     m_held_button;
 
-	// list of ui objects 
+	// master list of objects 
 	std::vector<Object*> m_objects;
 
-	// list of ui regions
+	// list of regions
 	std::vector<Region*> m_regions;
 
 	// mouse position

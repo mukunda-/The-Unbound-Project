@@ -99,8 +99,8 @@ Region *Instance::PickRegion( const ivec2 &pos ) {
 	for( auto r : m_regions ) {
 		if( r->Inside( pos ) ) {
 			
-			if( r->GetSort() > sortmax ) {
-				sortmax = r->GetSort();
+			if( r->GetComputedStrata() > sortmax ) {
+				sortmax = r->GetComputedStrata();
 				highest = r;
 			}
 		}
@@ -113,7 +113,7 @@ Region *Instance::PickRegion( const ivec2 &pos ) {
 void Instance::UpdateMousePosition( int x, int y ) {
 
 	Eigen::Vector2i pos( x, y );
-	m_mouse_position_new = pos - m_screen->GetAbsRect().pos;
+	m_mouse_position_new = pos - m_screen->GetTopLeft();
 }
 
 //-----------------------------------------------------------------------------
@@ -121,6 +121,8 @@ void Instance::ApplyMousePosition() {
 	if( m_mouse_position != m_mouse_position_new ) {
 		m_mouse_position = m_mouse_position_new;
 	}
+
+	Region *r = PickRegion( m_mouse_position );
 
 
 }
