@@ -469,7 +469,7 @@ void Instance::RenderList( Util::SharedList<Element> &list ) {
 	Element::ptr e;
 
 	for( e = list.First(); e; e = next ) {
-		next = e->NextLink();
+		next = e->NextLink<Element>();
 
 		e->GetMaterial()->Bind();
 

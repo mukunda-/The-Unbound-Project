@@ -2,6 +2,10 @@
 //                                                                           //
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
+///////////////////////////////////////////////////////////////////////////////
+// SANDBOX FOR DEVELOPING SERVER STUFF
+///////////////////////////////////////////////////////////////////////////////
+
 #include "stdafx.h"
  
 #include "system/system.h"
@@ -14,8 +18,6 @@ public:
 Test::Test() : Module( "testapp", Levels::USER ) {
 
 };
-
-
 
 //-------------------------------------------------------------------------------------------------
 int main( int argc, char *argv[] ) {

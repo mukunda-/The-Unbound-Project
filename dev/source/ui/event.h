@@ -4,39 +4,11 @@
 
 #pragma once
 
+#include "forwards.h"
+
 //-----------------------------------------------------------------------------
-namespace Ui { namespace Event {
+namespace Ui { 
 	
-//-----------------------------------------------------------------------------
-enum class EventTypes {
-	UNKNOWN       = 0x000,
-
-	MOUSE_DOWN    = 0x100,
-	MOUSE_UP,
-	MOUSE_CLICK,
-	MOUSE_MOTION,
-	MOUSE_ENTER,
-	MOUSE_LEAVE, 
-
-	MOUSE_DRAG,
-	MOUSE_DROP
-};
-
-/** ---------------------------------------------------------------------------
- * UI Event.
- */
-class Event {
-
-public:
-	Event( int type );
-	virtual ~Event();
-
-	virtual EventTypes Type() { return EventTypes::UNKNOWN; }
-};
-
-#define UI_EVENT_TYPE( t ) virtual EventTypes Type() override { return t; }
-
-//-----------------------------------------------------------------------------
 enum class MouseButton {
 	NONE,
 	LEFT,
@@ -46,39 +18,57 @@ enum class MouseButton {
 	FIVE
 };
 
+namespace Event {
+	
 //-----------------------------------------------------------------------------
-namespace {
+enum class EventType {
+	UNKNOWN       = 0x000,
 
-	//-------------------------------------------------------------------------
-	MouseButton ConvertSDLButton( int sdl_button ) {
-		// convert sdl event mouse button index into our button index
+	MOUSE_DOWN    = 0x100,
+	MOUSE_UP,
+	MOUSE_MOTION,
+	MOUSE_ENTER,
+	MOUSE_LEAVE, 
+	CLICKED,
 
-		// (right now there is no change)
-		return (MouseButton)sdl_button; 
+	MOUSE_DRAG,
+	MOUSE_DROP,
 
-	}
+	FOCUSED       = 0x200,
+	LOSTFOCUS
+};
 
-}
+/** ---------------------------------------------------------------------------
+ * UI Event.
+ */
+class Event {
+
+	EventType m_type;
+
+public:
+	Event( EventType type );
+	virtual ~Event();
+
+	EventType Type() const { return m_type; }
+}; 
 
 //-----------------------------------------------------------------------------
 class MousePositionData {
-	Eigen::Vector2i m_pos; 
-	Eigen::Vector2i m_abs_pos;
+
+	ivec2 m_pos;
 
 public:
-	MousePositionData( const Eigen::Vector2i &pos, 
-		               const Eigen::Vector2i &abs_pos );
+	MousePositionData( const ivec2 &pos );
 	
 	/** -----------------------------------------------------------------------
-	 * Returns cursor position relative to object.
+	 * Returns cursor position.
 	 */
-	const Eigen::Vector2i &GetPosition() { return m_pos; }
-
+	const ivec2 &GetPosition() { return m_pos; }
+	
 	/** -----------------------------------------------------------------------
-	 * Returns cursor position relative to screen.
+	 * Returns cursor position relative to a region.
 	 */
-	const Eigen::Vector2i &GetAbsPosition() { return m_abs_pos; }
-
+	const ivec2 &GetPosition( Region &r );
 };
 
 //-----------------------------------------------------------------------------
@@ -104,8 +94,7 @@ class MouseMotion : public MousePositionData, public Event {
 	
 public:
 	
-	MouseMotion( const Eigen::Vector2i &pos, 
-		         const Eigen::Vector2i &abs_pos );
+	MouseMotion( const ivec2 &pos );
 
 	UI_EVENT_TYPE( EventTypes::MOUSE_MOTION );
 };
@@ -117,8 +106,6 @@ class MouseEnter : public Event {
 	
 public:
 	MouseEnter();
-
-	UI_EVENT_TYPE( EventTypes::MOUSE_ENTER );
 };
 
 /** ---------------------------------------------------------------------------
@@ -128,22 +115,19 @@ class MouseLeave : public Event {
 
 public:
 	MouseLeave();
-
-	UI_EVENT_TYPE( EventTypes::MOUSE_LEAVE );
 };
 
 /** ---------------------------------------------------------------------------
  * Mouse pressed down and released on the region.
  */
-class MouseClick : public MousePositionData, 
+class Clicked : public MousePositionData, 
 	               public MouseButtonData,
 				   public Event {
 
 public:
-	MouseClick( const Eigen::Vector2i &pos, const Eigen::Vector2i &abs_pos,
-		        MouseButton button );
+	Clicked( const ivec2 &pos, MouseButton button );
 
-	UI_EVENT_TYPE( EventTypes::MOUSE_CLICK );
+	UI_EVENT_TYPE( EventTypes::CLICKED );
 };
 
 /** ---------------------------------------------------------------------------
@@ -154,8 +138,7 @@ class MouseDown : public MousePositionData,
 				  public Event {
 
 public:
-	MouseDown( const Eigen::Vector2i &pos, const Eigen::Vector2i &abs_pos,
-		       MouseButton button );
+	MouseDown( const ivec2 &pos, MouseButton button );
 
 	UI_EVENT_TYPE( EventTypes::MOUSE_DOWN );
 };
@@ -168,20 +151,49 @@ class MouseUp : public MousePositionData,
 				public Event {
 
 public:
-	MouseUp( const Eigen::Vector2i &pos, const Eigen::Vector2i &abs_pos,
-		     MouseButton button );
+	MouseUp( const Eigen::Vector2i &pos, MouseButton button );
 
 	UI_EVENT_TYPE( EventTypes::MOUSE_UP ); 
 };
 
+/** ---------------------------------------------------------------------------
+ * Picked up.
+ */
 class MouseDrag : public Event {
 public:
+	MouseDrag();
+	
 	UI_EVENT_TYPE( EventTypes::MOUSE_DRAG ); 
 };
 
+/** ---------------------------------------------------------------------------
+ * Dropped.
+ */
 class MouseDrop : public Event {
 public:
+	MouseDrop();
+
 	UI_EVENT_TYPE( EventTypes::MOUSE_DROP ); 
+};
+
+/** ---------------------------------------------------------------------------
+ * Gained input focus.
+ */
+class Focused : public Event {
+public:
+	Focused();
+
+	UI_EVENT_TYPE( EventTypes::FOCUSED );
+};
+
+/** ---------------------------------------------------------------------------
+ * Lost input focus.
+ */
+class LostFocus : public Event {
+public:
+	LostFocus();
+
+	UI_EVENT_TYPE( EventTypes::LOSTFOCUS );
 };
 
 }}

@@ -1,130 +1,182 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
-// single-threaded double-linked-list template
+// doubly linked list template
 //
 
 #pragma once
 
+//-----------------------------------------------------------------------------
 namespace Util {
 	 
-template<class Object>
+//-----------------------------------------------------------------------------
+template< typename T >
 class LinkedItem {
 
 public:
-	Object *m_prev;
-	Object *m_next;
+	T *m_prev;
+	T *m_next;
 
-	LinkedItem() {
-		m_prev = m_next = nullptr;
-	}
-
-	virtual ~LinkedItem() {}
-};
-
-//-------------------------------------------------------------------------------------------------
-template<class Object>
-class LinkedList final {
-//-------------------------------------------------------------------------------------------------
+#ifdef _DEBUG
+	void *debug_parent = nullptr; // the list this item is in
+#endif
 
 protected:
-	Object *first;
-	Object *last;
+
+	// cannot delete linked item directly.
+	~LinkedItem() {}
+};
+
+//-----------------------------------------------------------------------------
+template< typename T >
+class LinkedList {
+//-----------------------------------------------------------------------------
+
+protected:
+	T *m_first = nullptr;
+	T *m_last  = nullptr;
 
 public:
-	//---------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 	LinkedList() {
 		Erase();
 	}
 
-	virtual ~LinkedList() {}
-	
-	//---------------------------------------------------------------------------------------------
-	// add new item
-	//
-	void Add( Object *obj ) {
-		obj->m_next = 0;
-		if( !first ) {
-			first=last=obj;
-			obj->m_prev=0;
-		} else {
-			last->m_next = obj;
-			obj->m_prev = last;
-			last = last->m_next;
-		}
+	//-------------------------------------------------------------------------
+	virtual ~LinkedList() {
 
+		// make sure list is empty.
+		assert( !first );
+		assert( !last );
 	}
 	
-	//---------------------------------------------------------------------------------------------
-	// append a linked list of the same type
-	//
-	void AppendList( Object *p_first, Object *p_last ) {
-		if( !p_first || !p_last ) return;
-		if( last ) {
-			last->m_next = p_first;
-			p_first->m_prev = last;
-			last = p_last;
-		} else {
-			first=p_first;
-			last=p_last;
-		}
-	}
+	/** -----------------------------------------------------------------------
+	 * Add an item to this list.
+	 *
+	 * @param item Item to add.
+	 */
+	void Push( T &item ) { 
 
-	//---------------------------------------------------------------------------------------------
-	void AppendList( LinkedList<Object> list ) {
-		AppendList( list.first, list.last );
-	}
+#       ifdef _DEBUG
+			assert( i.debug_parent == nullptr );
+			i.debug_parent = (void*)this;
+#       endif 
 
-	
-	//---------------------------------------------------------------------------------------------
-	// remove an item
-	void Remove( Object *obj ) {
+		item.m_next = nullptr;
 		
-		if( obj == first ) {
-			if( obj == last ) {
-				first = last = 0;
+		if( !m_first ) {
 
-			} else {
-				first = first->m_next;
-				first->m_prev = 0;
-			}
-		} else if( obj == last ) {
-			last = last->m_prev;
-			last->m_next = 0;
+			m_first = &item;
+			m_last  = &item; 
+			item->m_prev = nullptr;
+
 		} else {
-			obj->m_prev->m_next = obj->m_next;
-			obj->m_next->m_prev = obj->m_prev;
+
+			m_last->m_next = &item;
+			item.m_prev    = m_last;
+			m_last         = &item;
 		}
-		obj->m_prev = obj->m_next = 0;
-	}
 
-	//---------------------------------------------------------------------------------------------
-	// clear the list
-	//
-	void Erase() {
-		first = 0;
-		last  = 0;
-	}
-
-	//---------------------------------------------------------------------------------------------
-	// return first item
-	//
-	Object *GetFirst() {
-		return first;
-	}
-
-	//---------------------------------------------------------------------------------------------
-	const Object *GetFirstC() const {
-		return first;
 	}
 	
-	//---------------------------------------------------------------------------------------------
-	// return last item
-	//
-	Object *GetLast() {
-		return last;
+	/** -----------------------------------------------------------------------
+	 * Append another list to this one.
+	 *
+	 * @param first The first item in the other list.
+	 * @param last  The last item in the other list.
+	 */
+	void AppendList( T *first, T *last ) {
+		if( !first ) return; // other list is empty
+
+		assert( last );
+
+		if( m_last ) {
+			m_last->m_next = first;
+			first->m_prev  = m_last;
+			m_last = last;
+		} else {
+			m_first = first;
+			m_last  = last;
+		}
 	}
+
+	/** -----------------------------------------------------------------------
+	 * Append another list to this one.
+	 *
+	 * @param list Other list to append to this one, it will be empty after
+	 *             this operation.
+	 */
+	void AppendList( LinkedList &list ) {
+		AppendList( list.first, list.last );
+
+		list.m_first = nullptr;
+		list.m_last  = nullptr;
+	}
+	
+	/** -----------------------------------------------------------------------
+	 * Remove an item from this list.
+	 *
+	 * @param item Pointer to item to remove. 
+	 */
+	void Pull( T &item ) { 
+		
+#       ifdef _DEBUG
+			assert( item.debug_parent == (void*)this );
+			item.debug_parent = nullptr;
+#       endif 
+		
+		if( item.m_next ) {
+			item.m_next->m_prev = i.m_prev;
+		} else {
+			m_last = item.m_prev;
+		}
+
+		if( item.m_prev ) {
+			item.m_prev->m_next = i.m_next;
+		} else {
+			
+			m_first = item.m_next;
+		} 
+	}
+	
+	/** -----------------------------------------------------------------------
+	 * Clear the list.
+	 *
+	 * All items are assumed to be unlinked after.
+	 */
+	void Erase() {
+
+#       ifdef _DEBUG
+			// unlink items
+			for( T *i = m_first; i; i = i->m_next ) {
+				i->debug_parent = nullptr;
+			}
+#       endif 
+
+		m_first = nullptr;
+		m_last  = nullptr;
+	}
+	
+	void operator +=( T &a          ) { Push( a ); }
+	void operator +=( LinkedList &a ) { Push( a ); }
+	void operator -=( T &a          ) { Pull( a ); } 
+
+	LinkedList &operator +( T &a          ) { Push( a ); return *this; }
+	LinkedList &operator +( LinkedList &a ) { Push( a ); return *this; }
+	LinkedList &operator -( T &a          ) { Pull( a ); return *this; }
+	
+	/** -----------------------------------------------------------------------
+	 * Returns first item in the list, or nullptr if the list is empty.
+	 */
+	      T *First()       { return m_first; }
+	const T *First() const { return m_first; }
+	
+	/** -----------------------------------------------------------------------
+	 * Returns last item in list, or nullptr if the list is empty.
+	 */
+	      T *Last()       { return m_last; }
+	const T *Last() const { return m_last; }
 };
 
 }

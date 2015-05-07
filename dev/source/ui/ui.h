@@ -10,12 +10,12 @@
 #include "graphics/builder.h"
 #include "system/module.h"
 #include "forwards.h"
+#include "event.h"
 
 //-----------------------------------------------------------------------------
 namespace Ui {
 
 //using EventHandler = std::function< bool( const Event & ) >;
-
 
 /** ---------------------------------------------------------------------------
  * Handle an input event from SDL.
@@ -41,18 +41,25 @@ void RenderText( Graphics::FontMaterial &font, int sort, int height,
 
 //-----------------------------------------------------------------------------
 class Instance final : public System::Module {
+
+	friend class Object;
+	friend class Region;
 	
 	// screen region, has no parent, god region
-	Region *m_screen; 
+	std::unique_ptr<Region> m_screen;
+
+	// the currently picked region, updated in ApplyMousePosition
+	// this will never be null, and will default to the screen
+	Region *m_picked_region = nullptr;
 
 	// region that has input focus
-	Region *m_focused_region;
+	Region *m_focused_region = nullptr;
 
-	// region that is held by the mouse
-	Region *m_held_region; 
+	// region that is pressed by the mouse
+	Region *m_pressed_region = nullptr; 
 
-	// button that is holding a region
-	int     m_held_button;
+	// button that is pressed
+	MouseButton m_pressed_button = MouseButton::NONE;
 
 	// master list of objects 
 	std::vector<Object*> m_objects;
@@ -71,6 +78,18 @@ class Instance final : public System::Module {
 
 	void UpdateMousePosition( int x, int y );
 	void ApplyMousePosition();
+
+	void ReleaseFocus();
+	void SetFocus( Region &region );
+
+	void ResetPressed();
+	void SetPressed( Region &region, MouseButton button );
+
+	void OnObjectCreated( Object &object );
+	void OnObjectDeleted( Object &object );
+
+	void OnRegionCreated( Region &region );
+	void OnRegionDeleted( Region &region );
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW

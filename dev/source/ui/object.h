@@ -27,22 +27,19 @@ public:
 	 * Get the name for this object.
 	 */
 	std::string &GetName() { return m_name; }
+	
+	/** -----------------------------------------------------------------------
+	 * Handle a UI event.
+	 */
+	void SendEvent( Event::Event &e );
 
 	/** -----------------------------------------------------------------------
-	 * Called when an event was triggered that this object is registered for.
+	 * Called when an event is triggered.
 	 *
 	 * @param event The event data.
 	 */
 	virtual void OnEvent( Event::Event &e );
-
-	/** -----------------------------------------------------------------------
-	 * Register for an event.
-	 *
-	 * When a matching event fires, OnEvent will be called.
-	 *
-	 * @param name Name of event.
-	 */
-	void ListenForEvent( const Stref &name );
+	
 };
 
 

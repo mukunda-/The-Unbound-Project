@@ -16,6 +16,15 @@
 #include "event.h"
 
 namespace Ui {
+
+//-------------------------------------------------------------------------
+MouseButton ConvertSDLButton( int sdl_button ) {
+	// convert sdl event mouse button index into our button index
+
+	// (right now there is no change)
+	return (MouseButton)sdl_button; 
+
+}
 	
 Instance *g_ui;
 
@@ -24,10 +33,9 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 					   m_gfx_builder( Video::VertexBuffer::Usage::STREAM_DRAW, 
 					                  Video::RenderMode::TRIANGLES, 
 									  Graphics::RenderLayer::UI ) {
-	
-	m_focused_region = nullptr;
-	m_held_region    = nullptr;
-	m_held_button    = 0;
+	 
+	m_screen.reset( new Region( "Screen" ) );
+	m_picked_region = m_screen.get();
 }
 
 //-----------------------------------------------------------------------------
@@ -94,7 +102,7 @@ void Instance::EndRendering() {
 Region *Instance::PickRegion( const ivec2 &pos ) {
 
 	int sortmax = -0x10000;
-	Region *highest = nullptr;
+	Region *highest = m_screen.get();
 
 	for( auto r : m_regions ) {
 		if( r->Inside( pos ) ) {
@@ -122,14 +130,89 @@ void Instance::ApplyMousePosition() {
 		m_mouse_position = m_mouse_position_new;
 	}
 
-	Region *r = PickRegion( m_mouse_position );
+	for( auto r : m_regions ) {
+		r->m_mouseover_last = r->m_mouseover;
+		r->m_mouseover = false;
+	}
 
+	{
+		Region *r = PickRegion( m_mouse_position );
+		m_picked_region = r;
+
+		for( ; r != nullptr; r = r->m_parent ) {
+			if( r->m_clickable ) {
+				r->m_mouseover = true;
+			}
+		}
+	}
+
+	Event::MouseMotion motion_event( m_mouse_position );
+
+	for( auto r : m_regions ) {
+
+		if( r->m_mouseover != r->m_mouseover_last ) {
+			
+			if( r->m_mouseover ) {
+				r->SendEvent( Event::MouseEnter() );
+			} else {
+				r->SendEvent( Event::MouseLeave() );
+			}
+		}
+
+		if( r->m_mouseover && r->m_clickable ) {
+			
+			r->SendEvent( motion_event );
+		}
+	}
 
 }
 
 //-----------------------------------------------------------------------------
-void Instance::FinishInputEvents() {
-	// remove redundant mouse events
+void Instance::ResetPressed() {
+	if( m_pressed_region ) {
+		auto r = m_pressed_region;
+		m_pressed_region = nullptr;
+
+		r->m_pressed = false;
+		r->SendEvent( Event::MouseUp( m_mouse_position, m_pressed_button ));
+		 
+	}
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetPressed( Region &region, MouseButton button ) {
+	if( m_pressed_region ) {
+		ResetPressed();
+	}
+
+	m_pressed_region = &region;
+	m_pressed_button = button;
+	region.m_pressed = true;
+
+	region.SendEvent( Event::MouseDown( m_mouse_position, button ));
+}
+
+//-----------------------------------------------------------------------------
+void Instance::ReleaseFocus() {
+	if( m_focused_region ) {
+		auto r = m_focused_region;
+		m_focused_region = nullptr;
+
+		r->m_focused = false;
+		r->SendEvent( Event::LostFocus() );
+	} 
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetFocus( Region &r ) {
+	if( m_focused_region == &r ) return;
+
+	if( m_focused_region ) {
+		ReleaseFocus();
+	}
+
+	m_focused_region = &r;
+	r.SendEvent( Event::Focused() );
 
 }
  
@@ -165,167 +248,96 @@ bool Instance::HandleInputEvent( const SDL_Event &sdlevent ) {
 	if( sdlevent.type == SDL_MOUSEBUTTONDOWN ) {
 		UpdateMousePosition( sdlevent.button.x, sdlevent.button.y ); 
 		ApplyMousePosition();
-
-
-		ReleaseFocus();
-		ResetHold();
-		Region *e = PickRegion( m_mouse_position );
-
-		if( e ) {
-			if( e->m_focusable ) {
-				SetFocus(*e);
-			}
-				
-			HoldWidget(*e, ConvertSDLButton( sdlevent.button.button ) );
-			e->m_pressed = true;
-			e->m_held = true;
-
-			MouseEvent event;
-			event.abs_pos = m_mouse_position;
-			event.pos[0] = m_mouse_position[0] - e->m_abs_rect[0];
-			event.pos[1] = m_mouse_position[1] - e->m_abs_rect[1];
-			event.button = ConvertSDLButton( sdlevent.button.button );
-			event.type = Event::MOUSEDOWN;
-				
-			e->FireEvent( event );
-			return true;
+		 
+		if( m_picked_region->IsFocusable() ) {
+			SetFocus( *m_picked_region );
 		}
-		return false;
+		
+		SetPressed( *m_picked_region, ConvertSDLButton( sdlevent.button.button ));
+	
+		return true;
 
 	} else if( sdlevent.type == SDL_MOUSEBUTTONUP ) {
+
 		UpdateMousePosition( sdlevent.button.x, sdlevent.button.y ); 
 		ApplyMousePosition();
 
-		if( m_held_region ) {
-			 
+		if( m_pressed_region ) {
 
-			Event::MouseClick e(
-				m_mouse_position - m_held_region->GetAbsRect().pos, 
-				m_mouse_position, 
-				ConvertSDLButton( sdlevent.button.button ) );
-
-			MouseEvent event;
-			event.abs_pos = m_mouse_position;
-			event.pos[0] = m_mouse_position[0] - m_held_widget->m_abs_rect[0];
-			event.pos[1] = m_mouse_position[1] - m_held_widget->m_abs_rect[1];
-			event.button = ConvertSDLButton( sdlevent.button.button );
-	 
-			event.type = Event::MOUSEUP;
-
-			m_held_widget->FireEvent( event );
-
-			if( m_held_widget->Picked( m_mouse_position ) ) {
-					
-				event.type = Event::MOUSECLICK;
-				m_held_widget->FireEvent( event );
-				return true;
+			if( m_pressed_region->Inside( m_mouse_position )) {
+				m_pressed_region->SendEvent( 
+						Event::Clicked( m_mouse_position, m_pressed_button ));
 			}
+
+			ResetPressed();
 		}
-		return false;
+
+		return true;
+
 	} else if( sdlevent.type == SDL_MOUSEMOTION ) {
-		m_mouse_position[0] = sdlevent.motion.x;
-		m_mouse_position[1] = sdlevent.motion.y;
 
-		Widget *e = PickWidget( m_mouse_position );
-		if( e ) {
-			SetHot(*e);
-		} else {
-			ResetHot();
-		}
+		UpdateMousePosition( sdlevent.button.x, sdlevent.button.y ); 
 
-		if( m_held_widget ) {
-
-			MouseEvent event;
-			event.abs_pos = m_mouse_position;
-			event.button = m_held_button;
-			event.pos[0] = m_mouse_position[0] - m_held_widget->m_abs_rect[0];
-			event.pos[1] = m_mouse_position[1] - m_held_widget->m_abs_rect[1];
-			event.type = Event::MOUSEMOVE;
-			m_held_widget->FireEvent( event );
-			return true;
-		} else {
-			Widget *e = PickWidget( m_mouse_position );
-			if( e ) {
-
-				MouseEvent event;
-				event.abs_pos = m_mouse_position;
-				event.button = BUTTON_NONE;
-				event.pos[0] = m_mouse_position[0] - e->m_abs_rect[0];
-				event.pos[1] = m_mouse_position[1] - e->m_abs_rect[1];		
-				e->FireEvent( event );	
-				return false;
-			}
-			return false;
-		} 
-			
+		return true;
 	} 
 	
 	// filter out unhandled events
- 
 	return false;
 }
-#endif
+ 
+//-----------------------------------------------------------------------------
+void Instance::FinishInputEvents() {
+	ApplyMousePosition();
 
-#if 0
+}
+
+//-----------------------------------------------------------------------------
+void Instance::OnObjectCreated( Object &obj ) {
+	m_objects.push_back( &obj );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::OnObjectDeleted( Object &obj ) {
+
+	for( auto i = m_objects.begin(); i != m_objects.end(); i++ ) {
+		if( *i == &obj ) {
+			m_objects.erase(i);
+			return;
+		}
+	}
+
+	assert( !"OnObjectDeleted object not found." );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::OnRegionCreated( Region &r ) {
+	m_regions.push_back( &r );
+}
+
+//-----------------------------------------------------------------------------
+void Instance::OnRegionDeleted( Region &r ) {
+	if( m_picked_region == &r ) {
+		m_picked_region = m_screen.get();
+	}
+
+	if( m_pressed_region == &r ) {
+		m_pressed_region = nullptr;
+	}
+
+	if( m_focused_region == &r ) {
+		m_focused_region = nullptr;
+	}
 	
-	//-------------------------------------------------------------------------------------------------
-	void ResetHot() {
-		if( m_hot_widget ) {
-			m_hot_widget->m_hot = false;
-			m_hot_widget = 0;
+	for( auto i = m_regions.begin(); i != m_regions.end(); i++ ) {
+		if( *i == &r ) {
+			m_regions.erase( i );
+			return;
 		}
 	}
 	
-	//-------------------------------------------------------------------------------------------------
-	void SetHot( Widget &e ) {
-		ResetHot();
-		m_hot_widget = &e;
-		e.m_hot = true;
-	}
+	assert( !"OnRegionDeleted region not found." );
+}
 
-	//-------------------------------------------------------------------------------------------------
-	void ResetHold() {
-		if( m_held_widget ) {
-			m_held_widget->m_held = false;
-		}
-		m_held_widget = 0;
-	}
-
-	//-------------------------------------------------------------------------------------------------
-	void HoldWidget( Widget &e, int button ) {
-		ResetHold();
-		m_held_widget = &e;
-		e.m_held = true;
-		m_held_button = button;
-	}
-	
-	//-------------------------------------------------------------------------------------------------
-	void ReleaseFocus() {
-		if( m_focused_widget ) {
-			m_focused_widget->m_focused = false;
-		}
-		m_focused_widget = nullptr;
-	}
-
-	//-------------------------------------------------------------------------------------------------
-	void SetFocus( Widget &e ) {
-		ReleaseFocus();
-		m_focused_widget = &e;
-	}
-	
-	//-------------------------------------------------------------------------------------------------
-	Widget *PickWidget( const Eigen::Vector2i &position ) {
-		// find a widget that is touching this position
-		//
-		for( auto e = m_widgets.GetFirst(); e; e = e->m_next ) {
-			if( e->m_active && e->m_accept_events && e->Picked( position ) ) {
-				return e;
-			}
-		}
-		return nullptr;
-	}
-	
-#endif
 //-----------------------------------------------------------------------------
 void RenderText( Graphics::FontMaterial &f, int s, int h, int x, int y, const Stref &t ) 
                                        { g_ui->RenderText( f, s, h, 0, x, y, t, 1.0 ); }

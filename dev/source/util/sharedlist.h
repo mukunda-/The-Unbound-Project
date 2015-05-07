@@ -27,8 +27,16 @@ private:
 
 public:
 	virtual ~SharedItem() {}
-	std::shared_ptr<SharedItem> NextLink()     { return m_next; }
-	std::shared_ptr<SharedItem> PreviousLink() { return m_prev; }
+//	std::shared_ptr<SharedItem> NextLink()     { return m_next; }
+//	std::shared_ptr<SharedItem> PreviousLink() { return m_prev; }
+
+	template< typename T > std::shared_ptr<T> NextLink() { 
+		return std::static_pointer_cast<T>( m_next ); 
+	}
+
+	template< typename T > std::shared_ptr<T> PreviousLink() { 
+		return std::static_pointer_cast<T>( m_prev ); 
+	}
 };
 
 /** ---------------------------------------------------------------------------
@@ -167,14 +175,14 @@ public:
 	/** -----------------------------------------------------------------------
 	 * Returns first item in the list, or nullptr if the list is empty.
 	 */
-	ptr First() { return m_first; }
-	const ptr &First() const { return m_first; }
+	      ptr First() { return std::static_pointer_cast<T>(m_first); }
+	const ptr &First() const { return m_first; } // todo
 	
 	/** -----------------------------------------------------------------------
 	 * Returns last item in list, or nullptr if the list is empty.
 	 */
-	ptr Last() { return m_last; }
-	const ptr &Last() const { return m_last; }
+	      ptr Last() { return m_last; }// todo
+	const ptr &Last() const { return m_last; }// todo
 };
 
 }

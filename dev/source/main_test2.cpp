@@ -2,6 +2,10 @@
 //                                                                           //
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
+///////////////////////////////////////////////////////////////////////////////
+// SANDBOX FOR DEVELOPING CLIENT STUFF
+///////////////////////////////////////////////////////////////////////////////
+
 #include "stdafx.h"
  
 #include "system/system.h"
@@ -44,7 +48,7 @@ void Test::OnStart() {
 void Test::DoTick() {
 
 	static float r = 0.0;
-	r = fmod( r + 0.01, 1.0 );
+	r = (float)fmod( r + 0.01, 1.0 );
 	Video::SetBackgroundColor( r/2,r,1 ); 
 	Video::Clear();
 	Video::Swap();

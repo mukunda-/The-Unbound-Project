@@ -45,7 +45,7 @@ enum class Strata {
 	EFFECTS3,        // mega screen effects, should be potentially avoided.
 
 	// computed strata is determined as follows:
-	// `strata` * 65536 + `level` * 16 + `offset`
+	// `strata` * 65536 + `level` * 256 + `offset`
 
 	// strata may either be inherited from a parent or redefined
 	// when redefined, the `level` is reset to zero
@@ -101,10 +101,10 @@ private:
 	int    m_strata_offset  = 0;
 
 	//-------------------------------------------------------------------------
-	ivec4 m_computed_rect;	 // computed area in screen space 
-	ivec2 m_computed_size;	 // (screen, the topmost region)
+	ivec4 m_computed_rect;	     // computed area in screen space 
+	ivec2 m_computed_size;       // (screen, the topmost region)
 
-	int   m_computed_strata; // computed rendering order
+	int   m_computed_strata = 0; // computed rendering order
 
 	//------------------------------------------------------------------------- 
 	bool m_clickable  = false; // intercept mouse events
@@ -113,14 +113,13 @@ private:
 
 	bool m_focused    = false; // this object has input focus
 	
-	bool m_mouseover  = false; // mouse is hovering over the object
+	bool m_mouseover_last = false; // last mouseover state, used during
+	                               // movement processing
+
+	bool m_mouseover  = false; // mouse is over the region
 	
 	bool m_pressed    = false; // the mouse is pressed down on the region
-
-	// *** held was set when the user "drags" the region
-	// *** this should be implemented in a derived class that handles the drag events
-//	bool m_held;		 // the mouse is holding this object (???)
-
+	 
 	//-------------------------------------------------------------------------
 	// region this is parented to, or "contained in". Parent regions will
 	// share certain events with children.
@@ -142,7 +141,8 @@ private:
 	
 public:
 
-	Region();
+	Region( const Stref &name );
+	~Region();
 
 	/** ----------------------------------------------------------------------
 	 * Get the computed area of this region.
@@ -268,6 +268,10 @@ public:
 	void SetHeight( int height );
 	void SetHeightPercent( float height );
 
+	void UnsetSize();
+	void UnsetWidth();
+	void UnsetHeight();
+
 	/** -----------------------------------------------------------------------
 	 * Set the parent of this region. If the parent is not set, the screen
 	 * will be used as the parent.
@@ -283,6 +287,12 @@ public:
 	void ClearAnchor();
 
 	/** -----------------------------------------------------------------------
+	 * Set if this region may be focused for input.
+	 */
+	void SetFocusable( bool focusable );
+	bool IsFocusable() const { return m_focusable; }
+
+	/** -----------------------------------------------------------------------
 	 * Check if a point lies within this region.
 	 *
 	 * @param position Position to check.
@@ -294,8 +304,6 @@ public:
 			&& position[0]  < m_computed_rect[2]
 			&& position[1]  < m_computed_rect[3];
 	}
-	
-	virtual void OnDraw();
 };
 
 }
