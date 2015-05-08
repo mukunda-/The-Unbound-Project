@@ -4,13 +4,32 @@
 
 #include "stdafx.h"
 #include "event.h"
+#include "region.h"
 
 namespace Ui {
 
 namespace Event {
 
+//-----------------------------------------------------------------------------
 Event::Event( EventType type ) {
 	m_type = type;
+}
+
+//-----------------------------------------------------------------------------
+MousePositionData::MousePositionData( const ivec2 &pos ) : 
+		m_pos( pos ) {
+
+}
+
+//-----------------------------------------------------------------------------
+ivec2 MousePositionData::GetPosition( const Region &r ) const {
+	return m_pos - r.GetTopLeft();
+}
+
+//-----------------------------------------------------------------------------
+MouseButtonData::MouseButtonData( MouseButton button ) : 
+		m_button(button) {
+
 }
 
 //-----------------------------------------------------------------------------
@@ -31,7 +50,28 @@ Clicked::Clicked( const ivec2 &pos, MouseButton button ) :
 }
 
 //-----------------------------------------------------------------------------
+MouseDown::MouseDown( const ivec2 &pos, MouseButton button ) :
+		Event( EventType::MOUSE_DOWN ), MousePositionData( pos ),
+		MouseButtonData( button ) {
+}
 
+//-----------------------------------------------------------------------------
+MouseUp::MouseUp( const ivec2 &pos, MouseButton button ) :
+		Event( EventType::MOUSE_UP ), MousePositionData( pos ),
+		MouseButtonData( button ) {
+}
+
+//-----------------------------------------------------------------------------
+MouseDrag::MouseDrag() : Event( EventType::MOUSE_DRAG ) {}
+
+//-----------------------------------------------------------------------------
+MouseDrop::MouseDrop() : Event( EventType::MOUSE_DROP ) {}
+
+//-----------------------------------------------------------------------------
+Focused::Focused() : Event( EventType::FOCUSED ) {}
+
+//-----------------------------------------------------------------------------
+LostFocus::LostFocus() : Event( EventType::LOSTFOCUS ) {}
 
 
 }}

@@ -76,6 +76,10 @@ class Instance final : public System::Module {
 
 	std::vector<SDL_Event> m_input_events;
 
+	// the region that started a compute operation
+	// this is to guard against circular anchoring
+	Region *m_computing_region = nullptr;
+
 	void UpdateMousePosition( int x, int y );
 	void ApplyMousePosition();
 

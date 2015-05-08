@@ -11,7 +11,7 @@ namespace Ui {
 	
 //-----------------------------------------------------------------------------
 enum class Anchor { 
-	LEFT, MIDDLE, RIGHT, // left edge, center, right edge
+	LEFT = 0, MIDDLE = 1, RIGHT = 2, // left edge, center, right edge
 
 	TOP = LEFT, BOTTOM = RIGHT,
 
@@ -80,6 +80,20 @@ private:
 		int   offset  = 0;		// offset in pixels
 		float percent = 0.0f;	// offset in percent
 		bool  set     = false;	// is set
+
+		void Set( int o ) {
+			offset = o;
+			set = true;
+		}
+
+		void SetPercent( float p ) {
+			percent = p;
+			set = true;
+		}
+
+		void Unset() {
+			set = false;
+		}
 	};
 
 	// pixels are added with percents
@@ -138,6 +152,12 @@ private:
 
 	// regions this is the parent of
 	std::vector<Region*> m_children;
+
+	void SetPointsThing( Anchor from, Anchor to, int index, 
+		                 bool set_offset, int offset, 
+						 bool set_percent, float percent );
+
+	void ComputeRect();
 	
 public:
 
@@ -262,15 +282,27 @@ public:
 	 */
 	void SetSizePercent( float width, float height );
 
-	void SetWidth( int width );
-	void SetWidthPercent( float width );
-
-	void SetHeight( int height );
-	void SetHeightPercent( float height );
+	void SetWidth        ( int   pixels  );
+	void SetWidthPercent ( float percent );
+	void SetHeight       ( int   pixels  );
+	void SetHeightPercent( float percent );
 
 	void UnsetSize();
 	void UnsetWidth();
 	void UnsetHeight();
+
+	/** -----------------------------------------------------------------------
+	 * Set the strata for this region.
+	 *
+	 * @param strata See Strata enum.
+	 * @param offset The offset added to the computed strata.
+	 */
+	void SetStrata      ( Strata strata );
+	void SetStrataOffset( int offset    );
+
+	Strata GetStrata();
+	int    GetStrataOffset();
+	
 
 	/** -----------------------------------------------------------------------
 	 * Set the parent of this region. If the parent is not set, the screen

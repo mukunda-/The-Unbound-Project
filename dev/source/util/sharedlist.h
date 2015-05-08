@@ -175,13 +175,13 @@ public:
 	/** -----------------------------------------------------------------------
 	 * Returns first item in the list, or nullptr if the list is empty.
 	 */
-	      ptr First() { return std::static_pointer_cast<T>(m_first); }
+	      ptr  First() { return std::static_pointer_cast<T>(m_first); }
 	const ptr &First() const { return m_first; } // todo
 	
 	/** -----------------------------------------------------------------------
 	 * Returns last item in list, or nullptr if the list is empty.
 	 */
-	      ptr Last() { return m_last; }// todo
+	      ptr  Last() { return m_last; }// todo
 	const ptr &Last() const { return m_last; }// todo
 };
 

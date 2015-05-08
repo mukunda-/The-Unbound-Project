@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 // doubly linked list template
 //
@@ -39,8 +39,25 @@ protected:
 
 public:
 	//-------------------------------------------------------------------------
-	LinkedList() {
-		Erase();
+	LinkedList() {}
+
+	//-------------------------------------------------------------------------
+	// noncopyable
+	LinkedList( LinkedList & ) = delete;
+	LinkedList &operator=( LinkedList & ) = delete;
+
+	//-------------------------------------------------------------------------
+	// movable
+	LinkedList( LinkedList &&other ) {
+		Clear();
+		AppendList( other );
+	}
+
+	LinkedList &operator=( LinkedList &&other ) {
+		Clear();
+		AppendList( other );
+		
+		return *this;
 	}
 
 	//-------------------------------------------------------------------------
@@ -145,7 +162,7 @@ public:
 	 *
 	 * All items are assumed to be unlinked after.
 	 */
-	void Erase() {
+	void Clear() {
 
 #       ifdef _DEBUG
 			// unlink items

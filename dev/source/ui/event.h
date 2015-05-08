@@ -63,12 +63,12 @@ public:
 	/** -----------------------------------------------------------------------
 	 * Returns cursor position.
 	 */
-	const ivec2 &GetPosition() { return m_pos; }
+	const ivec2 &GetPosition() const { return m_pos; }
 	
 	/** -----------------------------------------------------------------------
 	 * Returns cursor position relative to a region.
 	 */
-	const ivec2 &GetPosition( Region &r );
+	ivec2 GetPosition( const Region &r ) const;
 };
 
 //-----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ public:
 	/** -----------------------------------------------------------------------
 	 * Get the button that was clicked.
 	 */
-	MouseButton GetButton() { return m_button; }
+	MouseButton GetButton() const { return m_button; }
 
 };
 
@@ -95,8 +95,6 @@ class MouseMotion : public MousePositionData, public Event {
 public:
 	
 	MouseMotion( const ivec2 &pos );
-
-	UI_EVENT_TYPE( EventTypes::MOUSE_MOTION );
 };
 
 /** ---------------------------------------------------------------------------
@@ -125,9 +123,7 @@ class Clicked : public MousePositionData,
 				   public Event {
 
 public:
-	Clicked( const ivec2 &pos, MouseButton button );
-
-	UI_EVENT_TYPE( EventTypes::CLICKED );
+	Clicked( const ivec2 &pos, MouseButton button ); 
 };
 
 /** ---------------------------------------------------------------------------
@@ -139,8 +135,6 @@ class MouseDown : public MousePositionData,
 
 public:
 	MouseDown( const ivec2 &pos, MouseButton button );
-
-	UI_EVENT_TYPE( EventTypes::MOUSE_DOWN );
 };
 
 /** ---------------------------------------------------------------------------
@@ -152,8 +146,6 @@ class MouseUp : public MousePositionData,
 
 public:
 	MouseUp( const Eigen::Vector2i &pos, MouseButton button );
-
-	UI_EVENT_TYPE( EventTypes::MOUSE_UP ); 
 };
 
 /** ---------------------------------------------------------------------------
@@ -162,8 +154,6 @@ public:
 class MouseDrag : public Event {
 public:
 	MouseDrag();
-	
-	UI_EVENT_TYPE( EventTypes::MOUSE_DRAG ); 
 };
 
 /** ---------------------------------------------------------------------------
@@ -172,8 +162,6 @@ public:
 class MouseDrop : public Event {
 public:
 	MouseDrop();
-
-	UI_EVENT_TYPE( EventTypes::MOUSE_DROP ); 
 };
 
 /** ---------------------------------------------------------------------------
@@ -182,8 +170,6 @@ public:
 class Focused : public Event {
 public:
 	Focused();
-
-	UI_EVENT_TYPE( EventTypes::FOCUSED );
 };
 
 /** ---------------------------------------------------------------------------
@@ -192,8 +178,6 @@ public:
 class LostFocus : public Event {
 public:
 	LostFocus();
-
-	UI_EVENT_TYPE( EventTypes::LOSTFOCUS );
 };
 
 }}
