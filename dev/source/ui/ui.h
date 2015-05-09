@@ -95,6 +95,8 @@ class Instance final : public System::Module {
 	void OnRegionCreated( Region &region );
 	void OnRegionDeleted( Region &region );
 
+	Region &GetScreen() { return *m_screen; }
+
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 

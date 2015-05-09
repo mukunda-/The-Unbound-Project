@@ -117,6 +117,7 @@ private:
 	//-------------------------------------------------------------------------
 	ivec4 m_computed_rect;	     // computed area in screen space 
 	ivec2 m_computed_size;       // (screen, the topmost region)
+	bool  m_computed_valid;      // if the computed area is valid.
 
 	int   m_computed_strata = 0; // computed rendering order
 
@@ -158,6 +159,7 @@ private:
 						 bool set_percent, float percent );
 
 	void ComputeRect();
+	void ComputeWith( Region &anchor );
 	
 public:
 

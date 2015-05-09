@@ -18,6 +18,7 @@ Region::Region( const Stref &name ) : Object( name ) {
 
 	// register with ui
 	g_ui->OnRegionCreated( *this );
+
 }
 
 //-----------------------------------------------------------------------------
@@ -28,6 +29,7 @@ Region::~Region() {
 	for( auto r : m_children ) {
 		r->ClearParent();
 	}
+
 	m_anchor_list.clear();
 	
 	ClearAnchor();
@@ -125,7 +127,26 @@ void Region::SetVerticalPointPercent( Anchor from, Anchor to,
 }
 
 //-----------------------------------------------------------------------------
+void Region::ComputeWith( Region &anchor ) {
+
+	if( !anchor.m_computed_valid ) {
+		// anchor isn't computed.
+		return;
+	}
+
+	if( m_points[0].set && m_points[2].set ) {
+		// left and right set
+
+		if( m_anchor_points[0] ) {
+
+		}
+		m_computed_rect[0] = anchor.m_computed_rect[0] + m_points[0].offset + 
+	}
+}
+
+//-----------------------------------------------------------------------------
 void Region::ComputeRect() {
+
 	if( g_ui->m_computing_region == this ) {
 
 		Console::PrintErr( 
@@ -140,8 +161,19 @@ void Region::ComputeRect() {
 	}
 
 
-	
+	m_computed_valid = false;
 
+	Region *anchor;
+	
+	if( m_anchor_to ) {
+		anchor = m_anchor_to;
+	} else if( m_parent ) {
+		anchor = m_parent;
+	} else {
+		anchor = &g_ui->GetScreen();
+	}
+
+	ComputeWith( *anchor );
 
 	// finished.
 	g_ui->m_computing_region = nullptr;
