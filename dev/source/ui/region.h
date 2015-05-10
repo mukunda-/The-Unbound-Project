@@ -78,7 +78,8 @@ private:
 	 
 	struct Point {
 		int   offset  = 0;		// offset in pixels
-		float percent = 0.0f;	// offset in percent
+		float percent = 0.0f;	// offset in percent, 
+		                        // actually stored as 100% = 1.0
 		bool  set     = false;	// is set
 
 		void Set( int o ) {
@@ -160,6 +161,11 @@ private:
 
 	void ComputeRect();
 	void ComputeWith( Region &anchor );
+	static int GetAnchorPos( Region &anchor, Anchor pos, int set );
+	static int ComputePoint( Region &anchor, Anchor pos, 
+		                     int set, Point point );
+	int ComputeSize( Region &anchor, int set );
+	int ComputeDimension( Region &anchor, int set );
 	
 public:
 

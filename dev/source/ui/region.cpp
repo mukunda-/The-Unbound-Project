@@ -127,6 +127,81 @@ void Region::SetVerticalPointPercent( Anchor from, Anchor to,
 }
 
 //-----------------------------------------------------------------------------
+int Region::GetAnchorPos( Region &anchor, Anchor pos, int set ) {
+	
+	if( pos == Anchor::LEFT ) { // left or top
+		return anchor.m_computed_rect[set];
+	} else if( pos == Anchor::RIGHT ) { // right or bottom
+		return anchor.m_computed_rect[set+2];
+	} else { // middle
+		return (anchor.m_computed_rect[set]+anchor.m_computed_rect[set+2])/2;
+	}
+}
+
+//-----------------------------------------------------------------------------
+int Region::ComputePoint( Region &anchor, Anchor pos, 
+	                      int set, Point point ) {
+
+	return GetAnchorPos( anchor, pos, set ) + point.offset 
+		   + point.percent * anchor.m_computed_size[set];
+}
+
+//-----------------------------------------------------------------------------
+int Region::ComputeSize( Region &anchor, int set ) {
+	
+	return m_size[set].offset 
+		   + m_size[set].percent * anchor.m_computed_size[set];
+}
+
+//-----------------------------------------------------------------------------
+int Region::ComputeDimension( Region &anchor, int set ) {
+
+	int ip = set * 3; // index base for points and anchor_points
+	int ir = set * 2; // index base for ?
+
+	if( m_points[ip].set && m_points[ip+2].set ) {
+		// left and right set, compute from points
+		 
+		m_computed_rect[0+set] = 
+				ComputePoint( anchor, m_anchor_points[ip], set, m_points[ip] );
+
+		m_computed_rect[2+set] = 
+				ComputePoint( anchor, m_anchor_points[ip+2], set, m_points[ip] );
+
+	} else if( m_points[ip+1].set && m_size[set].set ) {
+		// center set, compute from size
+
+		int pos = ComputePoint( anchor, m_anchor_points[ip+1], set, m_points[ip+1] );
+		int size = ComputeSize( anchor, set );
+
+		m_computed_rect[0+set] = pos - size / 2;
+		m_computed_rect[2+set] = m_computed_rect[0+set] + size;
+		
+	} else if( m_points[ip].set && m_size[set].set ) {
+
+		m_computed_rect[0+set] = 
+				ComputePoint( anchor, m_anchor_points[ip], set, m_points[ip] );
+
+		m_computed_rect[2+set] =
+				m_computed_rect[0+set] + ComputeSize( anchor, set );
+
+	} else if( m_points[ip+2].set && m_size[set].set ) {
+
+		m_computed_rect[2+set] =
+				ComputePoint( anchor, m_anchor_points[ip], set, m_points[ip] );
+
+		m_computed_rect[0+set] = 
+				m_computed_rect[2+set] - ComputeSize( anchor, set );
+
+	} else {
+		// not enough data to compute.
+		return;
+	}
+
+	m_computed_size[set] = m_computed_rect[2+set] - m_computed_rect[0+set];
+}
+
+//-----------------------------------------------------------------------------
 void Region::ComputeWith( Region &anchor ) {
 
 	if( !anchor.m_computed_valid ) {
@@ -134,14 +209,20 @@ void Region::ComputeWith( Region &anchor ) {
 		return;
 	}
 
-	if( m_points[0].set && m_points[2].set ) {
-		// left and right set
-
-		if( m_anchor_points[0] ) {
-
-		}
-		m_computed_rect[0] = anchor.m_computed_rect[0] + m_points[0].offset + 
+	ComputeDimension( anchor, 0 );
+	
+	// catch negative width
+	if( m_computed_size[0] < 0 ) {
+		return;
 	}
+
+	ComputeDimension( anchor, 1 );
+
+	if( m_computed_size[1] < 0 ) {
+		return;
+	}
+
+	m_computed_valid = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -174,10 +255,17 @@ void Region::ComputeRect() {
 	}
 
 	ComputeWith( *anchor );
+	
+	// recompute linked regions
+	for( auto r : m_anchor_list ) {
+		r->ComputeRect();
+	}
 
 	// finished.
 	g_ui->m_computing_region = nullptr;
 }
+
+//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 }
