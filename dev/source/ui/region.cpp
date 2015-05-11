@@ -261,6 +261,8 @@ void Region::ComputeRect() {
 		r->ComputeRect();
 	}
 
+	// compute strata
+
 	// finished.
 	g_ui->m_computing_region = nullptr;
 }
