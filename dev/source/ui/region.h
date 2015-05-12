@@ -45,7 +45,7 @@ enum class Strata {
 	EFFECTS3,        // mega screen effects, should be potentially avoided.
 
 	// computed strata is determined as follows:
-	// `strata` * 65536 + `level` * 256 + `offset`
+	// `strata` * 10000 + `level` * 100 + `offset`
 
 	// strata may either be inherited from a parent or redefined
 	// when redefined, the `level` is reset to zero
@@ -166,6 +166,8 @@ private:
 		                     int set, Point point );
 	int ComputeSize( Region &anchor, int set );
 	int ComputeDimension( Region &anchor, int set );
+
+	void SetupScreen( int width, int height );
 	
 public:
 

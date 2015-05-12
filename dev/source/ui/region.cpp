@@ -14,6 +14,18 @@ namespace Ui {
 extern Instance *g_ui;
 
 //-----------------------------------------------------------------------------
+namespace {
+	int StrataBase( Strata strata ) {
+		assert( strata != Strata::INHERIT );
+		return (int)strata * 10000;
+	}
+
+	enum {
+		STRATA_LEVEL_INCREMENT = 100
+	};
+}
+
+//-----------------------------------------------------------------------------
 Region::Region( const Stref &name ) : Object( name ) {
 
 	// register with ui
@@ -40,6 +52,14 @@ Region::~Region() {
 
 	// unregister
 	g_ui->OnRegionDeleted( *this );
+}
+
+//-----------------------------------------------------------------------------
+void Region::SetupScreen( int width, int height ) {
+	m_computed_rect   = ivec4( 0, 0, width, height );
+	m_computed_valid  = true;
+	m_computed_strata = StrataBase( Strata::BACKGROUND );
+	m_computed_size   = ivec2( width, height );
 }
 
 //-----------------------------------------------------------------------------
@@ -241,6 +261,7 @@ void Region::ComputeRect() {
 		g_ui->m_computing_region = this;
 	}
 
+	assert( GetName() != "Screen" ); // screen should never be computed.
 
 	m_computed_valid = false;
 
@@ -255,13 +276,22 @@ void Region::ComputeRect() {
 	}
 
 	ComputeWith( *anchor );
+
+	// compute strata
+	Region *parent = m_parent;
+	if( parent == nullptr ) parent = &g_ui->GetScreen();
+	
+	if( m_strata == Strata::INHERIT ) {
+		m_computed_strata = parent->m_computed_strata + STRATA_LEVEL_INCREMENT
+			                + m_strata_offset;
+	} else {
+		m_computed_strata = StrataBase( m_strata ) + m_strata_offset;
+	}
 	
 	// recompute linked regions
 	for( auto r : m_anchor_list ) {
 		r->ComputeRect();
 	}
-
-	// compute strata
 
 	// finished.
 	g_ui->m_computing_region = nullptr;

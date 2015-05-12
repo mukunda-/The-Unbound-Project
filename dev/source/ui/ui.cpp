@@ -35,6 +35,7 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 									  Graphics::RenderLayer::UI ) {
 	 
 	m_screen.reset( new Region( "Screen" ) );
+	m_screen->SetupScreen( Video::ScreenWidth(), Video::ScreenHeight() );
 	m_picked_region = m_screen.get();
 }
 
@@ -293,7 +294,15 @@ void Instance::FinishInputEvents() {
 
 //-----------------------------------------------------------------------------
 void Instance::OnObjectCreated( Object &obj ) {
+	
 	m_objects.push_back( &obj );
+
+	if( m_objects_map.at[obj].GetName() ) {
+		// duplicate name, skip mapping
+
+	} else {
+		m_objects_map[obj.GetName()] = &obj;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -304,6 +313,10 @@ void Instance::OnObjectDeleted( Object &obj ) {
 			m_objects.erase(i);
 			return;
 		}
+	}
+
+	if( obj.GetName() != "" ) {
+		m_objects_map.erase( obj.GetName() );
 	}
 
 	assert( !"OnObjectDeleted object not found." );
