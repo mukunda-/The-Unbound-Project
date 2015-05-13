@@ -39,6 +39,13 @@ bool HandleInputEvent( const SDL_Event &event );
 void RenderText( Graphics::FontMaterial &font, int sort, int height, 
 	             int x, int y, const Stref &text );
 
+/** ---------------------------------------------------------------------------
+ * Set the screen dimensions.
+ *
+ * Call after initializing the video/window.
+ */
+void SetupScreen( int width, int height );
+
 //-----------------------------------------------------------------------------
 class Instance final : public System::Module {
 
@@ -63,6 +70,7 @@ class Instance final : public System::Module {
 
 	// master list of objects 
 	std::vector<Object*> m_objects;
+	std::unordered_map< std::string, Object* > m_objects_map;
 
 	// list of regions
 	std::vector<Region*> m_regions;
@@ -113,6 +121,7 @@ public:
 
 	bool HandleInputEvent( const SDL_Event &sdlevent );
 	void FinishInputEvents();
+	void SetupScreen( int width, int height );
 };
 
 

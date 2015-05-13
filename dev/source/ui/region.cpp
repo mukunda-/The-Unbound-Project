@@ -31,18 +31,35 @@ Region::Region( const Stref &name ) : Object( name ) {
 	// register with ui
 	g_ui->OnRegionCreated( *this );
 
+	if( GetName() == "Screen" ) {
+
+		// screen is special.
+		m_parent = nullptr;
+
+	} else {
+
+		auto &screen = g_ui->GetScreen();
+
+		m_parent           = &screen;
+		m_anchor_to        = &screen;
+		m_anchor_to_parent = true;
+		
+		screen.AddChild( *this );
+		screen.AddAnchored( *this );
+	}
 }
 
 //-----------------------------------------------------------------------------
 Region::~Region() {
 
-	// remove all references.
-	ClearParent();
-	for( auto r : m_children ) {
-		r->ClearParent();
+	// remove all references. 
+	if( m_parent ) {
+		m_parent->RemoveChild( *this );
+		for( auto r : m_children ) {
+			r->SetParent( nullptr );
+		}
+		m_children.clear();
 	}
-
-	m_anchor_list.clear();
 	
 	ClearAnchor();
 	for( auto r : m_anchor_list ) {
@@ -60,6 +77,10 @@ void Region::SetupScreen( int width, int height ) {
 	m_computed_valid  = true;
 	m_computed_strata = StrataBase( Strata::BACKGROUND );
 	m_computed_size   = ivec2( width, height );
+
+	for( auto r : m_anchor_list ) {
+		r->Compute();
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -100,7 +121,7 @@ void Region::SetPointsThing( Anchor from, Anchor to, int index,
 		m_anchor_points[index+2] = to;
 	}
 
-	ComputeRect();
+	Compute();
 }
 
 //-----------------------------------------------------------------------------
@@ -147,6 +168,118 @@ void Region::SetVerticalPointPercent( Anchor from, Anchor to,
 }
 
 //-----------------------------------------------------------------------------
+void Region::SetParent( Region *parent, bool compute ) {
+
+	if( parent == nullptr ) parent = &g_ui->GetScreen();
+
+	if( m_parent == parent ) {
+		return; // already set
+	}
+	 
+	// unregister from old parent
+	m_parent->RemoveChild( *this ); 
+	m_parent = parent;
+	m_parent->AddChild( *this );
+
+	if( m_anchor_to_parent ) {
+		ClearAnchor( false );
+		//SetAnchor( parent, false );
+	}
+	 
+	if( compute ) {
+		Compute();
+	}
+}
+
+//-----------------------------------------------------------------------------
+void Region::AddChild( Region &child ) {
+
+#ifdef _DEBUG
+
+	for( auto &i : m_children ) {
+		if( i == &child ) {
+			assert( !"AddChild found duplicate" );
+		}
+	}
+
+#endif
+
+	m_children.push_back( &child );
+}
+
+//-----------------------------------------------------------------------------
+void Region::RemoveChild( Region &child ) {
+	
+	for( auto i = m_children.begin(); i != m_children.end(); i++ ) {
+		if( *i == &child ) {
+			m_children.erase(i);
+			return;
+		}
+	}
+
+	assert( !"RemoveChild not found." );
+}
+
+//-----------------------------------------------------------------------------
+void Region::SetAnchor( Region *anchor, bool compute ) {
+	if( anchor == nullptr ) anchor = &g_ui->GetScreen();
+
+	m_anchor_to_parent = false;
+	if( m_anchor_to == anchor ) return;
+
+	if( m_anchor_to ) {
+		m_anchor_to->RemoveAnchored( *this );
+	}
+
+	m_anchor_to = anchor;
+	m_anchor_to->AddAnchored( *this );
+
+	if( compute ) Compute();
+}
+
+//-----------------------------------------------------------------------------
+void Region::ClearAnchor( bool compute ) {
+
+	m_anchor_to_parent = true;
+	if( m_anchor_to == m_parent ) return;
+
+	m_anchor_to->RemoveAnchored( *this );
+	m_anchor_to = m_parent;
+	m_anchor_to->AddAnchored( *this );
+	
+	if( compute ) Compute();
+}
+
+//-----------------------------------------------------------------------------
+void Region::AddAnchored( Region &region ) {
+	
+#ifdef _DEBUG
+
+	for( auto &i : m_anchor_list ) {
+		if( i == &region ) {
+			assert( !"AddAnchored found duplicate" );
+		}
+	}
+
+#endif
+
+	m_children.push_back( &region );
+}
+
+//-----------------------------------------------------------------------------
+void Region::RemoveAnchored( Region &region ) {
+	
+	for( auto i = m_anchor_list.begin(); i != m_anchor_list.end(); i++ ) {
+		if( *i == &region ) {
+			m_anchor_list.erase(i);
+			return;
+		}
+	}
+
+	assert( !"RemoveAnchored not found." );
+}
+
+//-----------------------------------------------------------------------------
 int Region::GetAnchorPos( Region &anchor, Anchor pos, int set ) {
 	
 	if( pos == Anchor::LEFT ) { // left or top
@@ -163,18 +296,18 @@ int Region::ComputePoint( Region &anchor, Anchor pos,
 	                      int set, Point point ) {
 
 	return GetAnchorPos( anchor, pos, set ) + point.offset 
-		   + point.percent * anchor.m_computed_size[set];
+		   + (int)floor(point.percent * anchor.m_computed_size[set] + 0.5);
 }
 
 //-----------------------------------------------------------------------------
 int Region::ComputeSize( Region &anchor, int set ) {
 	
 	return m_size[set].offset 
-		   + m_size[set].percent * anchor.m_computed_size[set];
+		   + (int)floor(m_size[set].percent*anchor.m_computed_size[set] + 0.5);
 }
 
 //-----------------------------------------------------------------------------
-int Region::ComputeDimension( Region &anchor, int set ) {
+void Region::ComputeDimension( Region &anchor, int set ) {
 
 	int ip = set * 3; // index base for points and anchor_points
 	int ir = set * 2; // index base for ?
@@ -246,7 +379,7 @@ void Region::ComputeWith( Region &anchor ) {
 }
 
 //-----------------------------------------------------------------------------
-void Region::ComputeRect() {
+void Region::Compute() {
 
 	if( g_ui->m_computing_region == this ) {
 
@@ -261,7 +394,7 @@ void Region::ComputeRect() {
 		g_ui->m_computing_region = this;
 	}
 
-	assert( GetName() != "Screen" ); // screen should never be computed.
+	assert( GetName() != "Screen" ); // screen must never be computed.
 
 	m_computed_valid = false;
 
@@ -269,20 +402,17 @@ void Region::ComputeRect() {
 	
 	if( m_anchor_to ) {
 		anchor = m_anchor_to;
-	} else if( m_parent ) {
-		anchor = m_parent;
 	} else {
-		anchor = &g_ui->GetScreen();
+		anchor = m_parent; 
 	}
 
 	ComputeWith( *anchor );
 
-	// compute strata
-	Region *parent = m_parent;
-	if( parent == nullptr ) parent = &g_ui->GetScreen();
+	// compute strata 
 	
 	if( m_strata == Strata::INHERIT ) {
-		m_computed_strata = parent->m_computed_strata + STRATA_LEVEL_INCREMENT
+		m_computed_strata = m_parent->m_computed_strata 
+			                + STRATA_LEVEL_INCREMENT
 			                + m_strata_offset;
 	} else {
 		m_computed_strata = StrataBase( m_strata ) + m_strata_offset;
@@ -290,7 +420,7 @@ void Region::ComputeRect() {
 	
 	// recompute linked regions
 	for( auto r : m_anchor_list ) {
-		r->ComputeRect();
+		r->Compute();
 	}
 
 	// finished.

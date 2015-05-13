@@ -13,6 +13,7 @@
 #include "system/module.h"
 #include "system/pulse.h"
 #include "video/video.h"
+#include "ui/ui.h"
 
 //-----------------------------------------------------------------------------
 class Test : public System::Module {
@@ -39,6 +40,7 @@ Test::Test() :
 void Test::OnStart() {
 	SetBusy( true );
 	Video::Open( 1000, 800 );
+	//Ui::SetupScreen( 1000, 800 );
 
 	m_pulse.Reset();
 	DoTick();
@@ -58,8 +60,8 @@ void Test::DoTick() {
 
 	static int mx, my;
 
-	while (SDL_PollEvent(&e)){
-		if (e.type == SDL_QUIT) {
+	while( SDL_PollEvent(&e) ){
+		if( e.type == SDL_QUIT ) {
 			quit = true;
 		}
 
@@ -113,7 +115,9 @@ INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
 	auto system = std::unique_ptr<System::Main>( new System::Main( 4 ));
 	//System::RegisterModule<Net::Instance>();
 	System::RegisterModule<Video::Instance>();
+	System::RegisterModule<Ui::Instance>();
 	System::RegisterModule<Test>();
+	
 	System::Start();
 	
 	SDL_Quit();

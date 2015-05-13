@@ -14,6 +14,7 @@
 #include "ui.h"
 #include "region.h"
 #include "event.h"
+#include "console/console.h"
 
 namespace Ui {
 
@@ -35,13 +36,18 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 									  Graphics::RenderLayer::UI ) {
 	 
 	m_screen.reset( new Region( "Screen" ) );
-	m_screen->SetupScreen( Video::ScreenWidth(), Video::ScreenHeight() );
+	m_screen->SetupScreen( 0, 0 );
 	m_picked_region = m_screen.get();
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 
+}
+
+//-----------------------------------------------------------------------------
+void Instance::SetupScreen( int width, int height ) {
+	m_screen->SetupScreen( width, height );
 }
 	
 //-----------------------------------------------------------------------------
@@ -297,9 +303,9 @@ void Instance::OnObjectCreated( Object &obj ) {
 	
 	m_objects.push_back( &obj );
 
-	if( m_objects_map.at[obj].GetName() ) {
+	if( m_objects_map.count(obj.GetName()) != 0 ) {
 		// duplicate name, skip mapping
-
+		Console::Print( "Duplicate object name: \"%s\"", obj.GetName() );
 	} else {
 		m_objects_map[obj.GetName()] = &obj;
 	}
@@ -355,6 +361,7 @@ void Instance::OnRegionDeleted( Region &r ) {
 void RenderText( Graphics::FontMaterial &f, int s, int h, int x, int y, const Stref &t ) 
                                        { g_ui->RenderText( f, s, h, 0, x, y, t, 1.0 ); }
 void EndRendering()                    { g_ui->EndRendering();                         }
+void SetupScreen( int w, int h )       { g_ui->SetupScreen( w, h );                    }
 //bool HandleEvent( const SDL_Event &e ) { return g_ui->HandleInputEvent( e );           }
 
 

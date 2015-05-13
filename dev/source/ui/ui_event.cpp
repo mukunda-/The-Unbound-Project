@@ -15,6 +15,8 @@ Event::Event( EventType type ) {
 	m_type = type;
 }
 
+Event::~Event() {}
+
 //-----------------------------------------------------------------------------
 MousePositionData::MousePositionData( const ivec2 &pos ) : 
 		m_pos( pos ) {

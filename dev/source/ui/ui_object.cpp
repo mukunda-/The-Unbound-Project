@@ -5,16 +5,22 @@
 #include "stdafx.h"
 #include "object.h"
 #include "event.h"
+#include "ui.h"
 
 //-----------------------------------------------------------------------------
 namespace Ui {
 
+extern Instance *g_ui;
+
 //-----------------------------------------------------------------------------
 Object::Object( const Stref &name ) : m_name( name ) {
+	g_ui->OnObjectCreated( *this );
 }
 
 //-----------------------------------------------------------------------------
-Object::~Object() {}
+Object::~Object() {
+	g_ui->OnObjectDeleted( *this );
+}
 
 //-----------------------------------------------------------------------------
 void Object::SendEvent( Event::Event &e ) {

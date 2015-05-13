@@ -16,17 +16,20 @@ namespace Ui {
  */
 class Object {
 
+	// name of the object, used to quickly find it if needed
+	// later.
 	std::string m_name;
 	
+	//-------------------------------------------------------------------------
 public:
-
+	
 	Object( const Stref &name );
 	virtual ~Object();
 
 	/** -----------------------------------------------------------------------
 	 * Get the name for this object.
 	 */
-	std::string &GetName() { return m_name; }
+	const std::string &GetName() const { return m_name; }
 	
 	/** -----------------------------------------------------------------------
 	 * Handle a UI event.

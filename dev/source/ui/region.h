@@ -141,12 +141,16 @@ private:
 	// share certain events with children.
 	Region *m_parent = nullptr;
 
-	// region this is anchored to, if null, then the parent is used
+	// region this is anchored to, will never be null
 	//
 	// this is separate from parent in the case that you want to mount 
 	// a region to the outside of another, where you probably 
 	// want the parent to match the anchor's parent.
-	Region *m_anchor_to = nullptr;
+	//
+	// anchor_to_parent means the anchor will be updated if the parent
+	// is changed.
+	Region *m_anchor_to        = nullptr;
+	bool    m_anchor_to_parent = false;
 
 	// list of regions that are anchored to this one and need to be
 	// refreshed when this one is adjusted.
@@ -159,15 +163,20 @@ private:
 		                 bool set_offset, int offset, 
 						 bool set_percent, float percent );
 
-	void ComputeRect();
 	void ComputeWith( Region &anchor );
 	static int GetAnchorPos( Region &anchor, Anchor pos, int set );
 	static int ComputePoint( Region &anchor, Anchor pos, 
 		                     int set, Point point );
 	int ComputeSize( Region &anchor, int set );
-	int ComputeDimension( Region &anchor, int set );
+	void ComputeDimension( Region &anchor, int set );
 
 	void SetupScreen( int width, int height );
+
+	void AddChild( Region &child );
+	void RemoveChild( Region &child );
+
+	void AddAnchored( Region &region );
+	void RemoveAnchored( Region &region );
 	
 public:
 
@@ -315,18 +324,29 @@ public:
 	
 
 	/** -----------------------------------------------------------------------
-	 * Set the parent of this region. If the parent is not set, the screen
-	 * will be used as the parent.
+	 * Set the parent of this region. 
+	 *
+	 * @param parent  Pointer to parent, or nullptr to use the screen.
+	 * @param compute Recompute the region area.
 	 */
-	void SetParent( Region &parent );
-	void ClearParent();
+	void SetParent( Region *parent, bool compute = true ); 
 	
 	/** -----------------------------------------------------------------------
-	 * Set the anchor region. If the anchor region is not set, the parent will
-	 * be used for anchor operations.
+	 * Set the anchor region.
+	 *
+	 * @param anchor Anchor region. may be nullptr to reference the screen.
+	 * @param compute Recompute the region area.
 	 */
-	void SetAnchor( Region &anchor );
-	void ClearAnchor();
+	void SetAnchor( Region *anchor, bool compute = true );
+
+	/** -----------------------------------------------------------------------
+	 * Clear the anchor region.
+	 *
+	 * This makes the region use the parent as the anchor.
+	 * 
+	 * @param compute Recompute the region area.
+	 */
+	void ClearAnchor( bool compute = true );
 
 	/** -----------------------------------------------------------------------
 	 * Set if this region may be focused for input.
@@ -346,6 +366,13 @@ public:
 			&& position[0]  < m_computed_rect[2]
 			&& position[1]  < m_computed_rect[3];
 	}
+
+	/** -----------------------------------------------------------------------
+	 * Recompute the region area.
+	 *
+	 * Normally not needed to be called directly.
+	 */
+	void Compute();
 };
 
 }
