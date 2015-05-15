@@ -167,6 +167,16 @@ void ExecuteCommand( const Stref &command_string,
  * @returns false if the file is not found.
  */
 bool ExecuteScript( const Stref &file );
+
+/** ---------------------------------------------------------------------------
+ * Register an event type.
+ *
+ * Event types must be registered before being dispatched in the system.
+ */
+template< typename T > void RegisterEvent() {
+	RegisterEvent( T::Name(), 
+}
+void RegisterEvent( const Stref &name, int &result );
   
 /** ---------------------------------------------------------------------------
  * Main system class.
@@ -263,6 +273,8 @@ public:
 	Service &GetService() { return m_service; }
 	void Log( const Stref &message );
 	void LogError( const Stref &message );
+
+	void RegisterEvent( const Stref &name, int &result );
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );

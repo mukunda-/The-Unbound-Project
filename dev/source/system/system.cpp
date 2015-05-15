@@ -326,6 +326,11 @@ void Main::LogError( const Stref &message ) {
 }
 
 //-----------------------------------------------------------------------------
+void Main::RegisterEvent( const Stref &name, int &result ) {
+
+}
+
+//-----------------------------------------------------------------------------
 Service &GetService()                    { return g_main->GetService();   }
 void     Finish()                        { GetService().Finish( true );   }
 void     RegisterModule( Module *m )     { g_main->RegisterModule( m );   }
