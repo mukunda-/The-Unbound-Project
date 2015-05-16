@@ -10,26 +10,31 @@ namespace System {
 //-----------------------------------------------------------------------------
 class Event {
 
-	int m_type;
+	const std::string &m_name;
+	int                m_id;
 
 protected:
 	/** -----------------------------------------------------------------------
 	 * Construct event.
 	 *
-	 * @param type The type id returned from the event registration.
+	 * @param name The name (type) of this event.
 	 */
-	Event( int type ) : m_type( type ) {}
+	Event( const std::string &name );
 
 public:
 
-	// typically this isn't needed, but just in case.
-	virtual ~Event() {}
+	// typically this isn't needed, but just in case?
+	//virtual ~Event() {}
 
 	/** -----------------------------------------------------------------------
 	 * Get the name of this event.
 	 */
-	const std::string &Name();
+	const std::string &Name() const { return m_name; }
 
+	/** -----------------------------------------------------------------------
+	 * Get the event ID.
+	 */
+	int ID() const { return m_id; }
 };
 
 //-----------------------------------------------------------------------------

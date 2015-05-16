@@ -11,8 +11,9 @@ namespace System {
 extern Main *g_main;
 
 //-----------------------------------------------------------------------------
-const std::string &Event::Name() {
-	return g_main->GetEventName( m_type );
+Event::Event( const std::string &name ) : m_name(name) {
+	m_id = GetEventID( name );
+
 }
 
 }

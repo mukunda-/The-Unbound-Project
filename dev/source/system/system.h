@@ -169,14 +169,14 @@ void ExecuteCommand( const Stref &command_string,
 bool ExecuteScript( const Stref &file );
 
 /** ---------------------------------------------------------------------------
- * Register an event type.
+ * Get an event ID by its name.
  *
- * Event types must be registered before being dispatched in the system.
+ * This will generate an event ID if it's not found.
+ *
+ * @param name Name of event.
+ * @returns Event ID.
  */
-template< typename T > void RegisterEvent() {
-	RegisterEvent( T::Name(), 
-}
-void RegisterEvent( const Stref &name, int &result );
+void GetEventID( const Stref &name );
   
 /** ---------------------------------------------------------------------------
  * Main system class.
@@ -248,6 +248,10 @@ private:
 	// before terminating the program.
 	int m_busy_modules = 0;
 
+	//-------------------------------------------------------------------------
+	std::unorderd_map< std::string, int > m_event_id_map;
+	std::vector< EventHandlerList > m_event_handlers;
+
 public: 
 	// internal use by the global functions:
 	Variable &CreateVariable( const Stref &name, 
@@ -274,7 +278,7 @@ public:
 	void Log( const Stref &message );
 	void LogError( const Stref &message );
 
-	void RegisterEvent( const Stref &name, int &result );
+	void GetEventID( const Stref &name );
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );
