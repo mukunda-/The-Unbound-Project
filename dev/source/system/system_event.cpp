@@ -11,9 +11,9 @@ namespace System {
 extern Main *g_main;
 
 //-----------------------------------------------------------------------------
-Event::Event( const std::string &name ) : m_name(name) {
-	m_id = GetEventID( name );
-
+Event::Event( const std::string &name, int code ) 
+		: m_name(name), m_code( code ) {
+	 
 }
 
 }

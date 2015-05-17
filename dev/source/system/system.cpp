@@ -326,8 +326,21 @@ void Main::LogError( const Stref &message ) {
 }
 
 //-----------------------------------------------------------------------------
-void Main::RegisterEvent( const Stref &name, int &result ) {
+void Main::RegisterEvent( int code, const Stref &name ) {
+	if( m_event_code_to_name.count(code) != 0 ) {
+		throw std::runtime_error( 3
+			Util::Format( "Event code collision: %s (%d)", name, code ));
+	}
 
+	if( m_event_name_to_code.count(name) != 0 ) {
+		throw std::runtime_error( 
+			Util::Format( "Event name collision: %s (%d)", name, code ));
+	}
+
+	m_event_code_to_name[code] = name;
+	m_event_name_to_code[name] = code;
+
+	::Console::Print( "Registered event: %s (%d)" );
 }
 
 //-----------------------------------------------------------------------------

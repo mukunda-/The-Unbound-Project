@@ -177,6 +177,16 @@ bool ExecuteScript( const Stref &file );
  * @returns Event ID.
  */
 void GetEventID( const Stref &name );
+
+/** ---------------------------------------------------------------------------
+ * Register an event.
+ *
+ * Events should be registered when modules are loaded.
+ *
+ * @param T Class that implements the event.
+ */
+template< typename T >
+void RegisterEvent();
   
 /** ---------------------------------------------------------------------------
  * Main system class.
@@ -249,7 +259,8 @@ private:
 	int m_busy_modules = 0;
 
 	//-------------------------------------------------------------------------
-	std::unorderd_map< std::string, int > m_event_id_map;
+	std::unordered_map< int, std::string > m_event_code_to_name;
+	std::unordered_map< std::string, int > m_event_name_to_code;
 	std::vector< EventHandlerList > m_event_handlers;
 
 public: 
@@ -279,6 +290,7 @@ public:
 	void LogError( const Stref &message );
 
 	void GetEventID( const Stref &name );
+	void RegisterEvent( int code, const Stref &name );
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );
