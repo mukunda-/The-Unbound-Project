@@ -15,11 +15,10 @@ class MyEvent1 : public System::Event {
 	int m_value;
 
 public:
-	SYSTEM_DEFINE_EVENT( 0xFF0000, "TEST_EVENT_1" )
+	SYSTEM_DEFINE_EVENT( 0xFF0000, "TEST_EVENT_1", 0 )
 	
 	MyEvent1( int value ) : SYSTEM_EVENT_INIT, m_value(value) {
 	}
-
 
 };
 

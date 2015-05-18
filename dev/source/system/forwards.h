@@ -18,6 +18,12 @@ namespace System {
 	class Module;
 	class Main;
 
+	class Event;
+	class EventInfo;
+	class EventData;
+	class EventInterface;
+	
+
 	using ModulePtr = std::unique_ptr< Module >;
 	using CommandPtr = std::unique_ptr< Command >;
 	using VariablePtr = std::unique_ptr< Variable >;

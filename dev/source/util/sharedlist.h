@@ -37,7 +37,7 @@ public:
 	template< typename T > std::shared_ptr<T> PreviousLink() { 
 		return std::static_pointer_cast<T>( m_prev ); 
 	}
-};
+};	
 
 /** ---------------------------------------------------------------------------
  * A linked list using shared_ptr.

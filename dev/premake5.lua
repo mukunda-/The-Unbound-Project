@@ -308,6 +308,7 @@ project_path = CreateProject( "unit", "UNIT", "ConsoleApp", true )
 		"source/asev/*.cpp",
 		"source/system/*.cpp",
 		"source/system/server/*.cpp",
+		"source/system/events/*.cpp",
 		"source/util/*.cpp",
 		"source/mem/*.cpp",
 		"source/mem/arena/*.cpp",

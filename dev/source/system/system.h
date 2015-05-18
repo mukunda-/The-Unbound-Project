@@ -181,12 +181,15 @@ void GetEventID( const Stref &name );
 /** ---------------------------------------------------------------------------
  * Register an event.
  *
- * Events should be registered when modules are loaded.
+ * Events need to be registered before they can be dispatched or hooked.
  *
  * @param T Class that implements the event.
  */
 template< typename T >
-void RegisterEvent();
+void RegisterEvent() {
+	RegisterEvent( T::CODE, T::NAME(), T::FLAGS );
+}
+void RegisterEvent( int code, const Stref &name, int flags );
   
 /** ---------------------------------------------------------------------------
  * Main system class.
@@ -258,10 +261,9 @@ private:
 	// before terminating the program.
 	int m_busy_modules = 0;
 
+	std::unique_ptr<EventInterface> m_events;
+
 	//-------------------------------------------------------------------------
-	std::unordered_map< int, std::string > m_event_code_to_name;
-	std::unordered_map< std::string, int > m_event_name_to_code;
-	std::vector< EventHandlerList > m_event_handlers;
 
 public: 
 	// internal use by the global functions:
@@ -290,7 +292,7 @@ public:
 	void LogError( const Stref &message );
 
 	void GetEventID( const Stref &name );
-	void RegisterEvent( int code, const Stref &name );
+	void RegisterEvent( int code, const Stref &name, int flags );
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );
