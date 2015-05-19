@@ -9,26 +9,35 @@ namespace System {
 
 //-----------------------------------------------------------------------------
 struct EventInfo final {
-	uint32_t    code;
-	std::string name;
-	uint32_t    flags;
-
-	EventInfo( uint32_t p_code, const Stref &p_name, uint32_t p_flags ) 
-		: code( p_code ), name( p_name ), flags( p_flags )
-	{
+	uint32_t    code;  // unique event code
+	std::string name;  // name of event
+	uint32_t    flags; // event flags (bitmask) 
+	
+	EventInfo( uint32_t c, const Stref &n, uint32_t f ) 
+		: code(c), name(n), flags(f)
+	{ 
 	}
 };
 
-/** ---------------------------------------------------------------------------
- * Macro for defining system events inside their class definitions.
+// ---------------------------------------------------------------------------
+// Macros for defining event info.
+/** --------------------------------------------------------------------------
+ * This is placed inside the class definition.
+ *
+ * @param code  Unique code for event.
+ * @param name  Name of event
+ * @param flags Event flags (EF_* bitmask)
  */
-#define SYSTEM_DEFINE_EVENT( code, name, flags ) \
-	enum { CODE = code, FLAGS = flags }; \
-	const EventInfo &INFO() { \
-		static const EventInfo info( code, name, flags ); \
-		return info; \
+#define SYSTEM_DEFINE_EVENT( code, name, flags )    \ 
+	static const uint32_t CODE  = code;             \
+	static const uint32_t FLAGS = flags;            \ 
+	static EventInfo &INFO() {                      \
+		static EventInfo info( code, name, flags ); \
+		return info;                                \
 	}
-#define SYSTEM_EVENT_INIT Event( CODE )
+	
+// Event class initializer
+#define SYSTEM_EVENT_INIT Event( INFO() )
 
 //-----------------------------------------------------------------------------
 class Event {
@@ -48,6 +57,8 @@ protected:
 	Event( const EventInfo &info );
 
 public:
+	
+	using Handler = std::function< void( Event &e ) >;
 
 	// typically this isn't needed, but just in case?
 	//virtual ~Event() {}
@@ -72,14 +83,18 @@ public:
 	/** -----------------------------------------------------------------------
 	 * Get the name of this event.
 	 */
-	const std::string &Name() const { return m_info.name ); }
+	const std::string &Name() const { return m_info.name; }
+
+	/** -----------------------------------------------------------------------
+	 * Get the event ID.
+	 */
+	//uint32_t ID() const { return m_info.id; }
 
 	/** -----------------------------------------------------------------------
 	 * Get the event code.
 	 */
 	uint32_t Code() const { return m_info.code; }
 };
-
 
 //-----------------------------------------------------------------------------
 }

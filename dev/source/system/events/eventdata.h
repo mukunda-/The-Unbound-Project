@@ -4,17 +4,27 @@
 
 #pragma once
 
+#include "system/forwards.h"
+#include "event.h"
+
+//-----------------------------------------------------------------------------
 namespace System {
 
 /** ---------------------------------------------------------------------------
  * Holds event info and a handler list for registered events.
  */
-class EventData {
+class EventData final {
+
+	friend class EventInterface;
 
 public:
-	using Handler = std::function< void( Event &e ) >;
-
-	EventData( const EventInfo &info );
+	/** -----------------------------------------------------------------------
+	 * Create an event data instance.
+	 *
+	 * @param id   ID from event interface.
+	 * @param info Pointer to event info.
+	 */
+	EventData( EventInfo &info );
 
 	/** -----------------------------------------------------------------------
 	 * Add an event handler for this event.
@@ -22,7 +32,7 @@ public:
 	 * @param Handler Event handler function.
 	 * @returns Handler ID.
 	 */
-	int AddHandler( Handler handler );
+	int AddHandler( Event::Handler handler );
 
 	/** -----------------------------------------------------------------------
 	 * Unhook an event handler.
@@ -40,8 +50,8 @@ public:
 
 	//-------------------------------------------------------------------------
 private:
-	const EventInfo      &m_info;
-	std::vector<Handler>  m_handlers; 
+	EventInfo                   &m_info;
+	std::vector<Event::Handler>  m_handlers; 
 };
 
 }

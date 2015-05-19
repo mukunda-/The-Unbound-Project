@@ -4,18 +4,26 @@
 
 #pragma once
 
+#include "system/forwards.h"
+
+//-----------------------------------------------------------------------------
 namespace System {
 
+//-----------------------------------------------------------------------------
 class EventInterface final {
-	
-	std::unordered_map< int,         EventData& > m_code_map;
-	std::unordered_map< std::string, EventData& > m_name_map;
-	std::vector< std::unique_ptr<EventData> >     m_event_data;
 
+	using EventDataPtr = std::shared_ptr<EventData>;
+	
+	std::unordered_map< int,         EventDataPtr > m_code_map;
+	std::unordered_map< std::string, EventDataPtr > m_name_map;
+
+	EventData* GetEventData( const Event &e );
+	
 public:
 	EventInterface();
+	~EventInterface();
 
-	void RegisterEvent( const EventInfo &info );	
+	void Send( Event &e );
 };
 
 }
