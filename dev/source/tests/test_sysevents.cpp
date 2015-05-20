@@ -4,7 +4,7 @@
 
 #include <stdafx.h>
 #include "system/system.h"
-#include "system/event.h"
+#include "system/events/event.h"
 #include "systemtests.h"
 
 ///////////////////////////////////////////////////////////////////////////////

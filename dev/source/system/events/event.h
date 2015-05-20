@@ -28,9 +28,9 @@ struct EventInfo final {
  * @param name  Name of event
  * @param flags Event flags (EF_* bitmask)
  */
-#define SYSTEM_DEFINE_EVENT( code, name, flags )    \ 
+#define SYSTEM_DEFINE_EVENT( code, name, flags )    \
 	static const uint32_t CODE  = code;             \
-	static const uint32_t FLAGS = flags;            \ 
+	static const uint32_t FLAGS = flags;            \
 	static EventInfo &INFO() {                      \
 		static EventInfo info( code, name, flags ); \
 		return info;                                \
@@ -67,12 +67,12 @@ public:
 	/** -----------------------------------------------------------------------
 	 * Upcast a base event to it's derived type.
 	 *
-	 * This checks the event code for invalid casts in debug mode.
+	 * This checks for invalid casts in debug mode.
 	 */
 	template< typename T > T &Cast() {
 
 #       ifdef _DEBUG
-			if( T::CODE != m_info.code ) {
+			if( T::INFO().name != m_info.name ) {
 				throw std::runtime_error( "Invalid event cast." );
 			}
 #       endif

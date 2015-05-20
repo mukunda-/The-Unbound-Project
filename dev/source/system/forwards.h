@@ -22,9 +22,12 @@ namespace System {
 	class EventInfo;
 	class EventData;
 	class EventInterface;
-	
+	class EventHook;
 
 	using ModulePtr = std::unique_ptr< Module >;
 	using CommandPtr = std::unique_ptr< Command >;
 	using VariablePtr = std::unique_ptr< Variable >;
+	
+	using EventHandler = std::function< void( Event &e ) >;
+	using EventHookPtr = std::shared_ptr<EventHook>;
 }

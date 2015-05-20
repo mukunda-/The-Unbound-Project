@@ -190,6 +190,21 @@ void RegisterEvent() {
 	RegisterEvent( T::CODE, T::NAME(), T::FLAGS );
 }
 void RegisterEvent( int code, const Stref &name, int flags );
+
+/** ---------------------------------------------------------------------------
+ * Hook an event.
+ *
+ * @param E       Event definition.
+ * @param handler Event handler.
+ *
+ * @returns Event hook object. 
+ *          When it's destroyed, the event will be unhooked.
+ */
+template< typename E >
+EventHookPtr HookEvent( EventHandler &handler ) {
+	return HookEvent( E::INFO(), handler );
+}
+EventHookPtr HookEvent( const EventInfo &info, EventHandler &handler );
   
 /** ---------------------------------------------------------------------------
  * Main system class.

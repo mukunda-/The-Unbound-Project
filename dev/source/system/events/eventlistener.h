@@ -15,7 +15,7 @@ namespace System {
  */
 class EventListener final {
 
-	std::vector<int> m_hook_ids;
+	std::vector<EventHookPtr> m_hooks;
 
 public:
 	EventListener();
@@ -27,6 +27,7 @@ public:
 	}
 
 	int Hook( uint32_t code, Event::Handler handler );
+	void Unhook( int hookid );
 };
 
 }

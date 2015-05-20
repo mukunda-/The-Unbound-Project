@@ -5,6 +5,7 @@
 #pragma once
 
 #include "system/forwards.h"
+#include "event.h"
 
 //-----------------------------------------------------------------------------
 namespace System {
@@ -12,18 +13,19 @@ namespace System {
 //-----------------------------------------------------------------------------
 class EventInterface final {
 
-	using EventDataPtr = std::shared_ptr<EventData>;
-	
-	std::unordered_map< int,         EventDataPtr > m_code_map;
-	std::unordered_map< std::string, EventDataPtr > m_name_map;
+	using EventDataPtr = std::unique_ptr<EventData>;
+	std::unordered_map< std::string, EventDataPtr > m_map;
 
-	EventData* GetEventData( const Event &e );
 	
 public:
 	EventInterface();
 	~EventInterface();
 
+	void Register( const EventInfo &info );
+
 	void Send( Event &e );
+	EventHookPtr Hook( const EventInfo &info, Event::Handler handler );
+	
 };
 
 }

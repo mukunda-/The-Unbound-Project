@@ -24,23 +24,16 @@ public:
 	 * @param id   ID from event interface.
 	 * @param info Pointer to event info.
 	 */
-	EventData( EventInfo &info );
+	EventData( const EventInfo &info );
 
 	/** -----------------------------------------------------------------------
-	 * Add an event handler for this event.
+	 * Add an event hook to this event.
 	 *
 	 * @param Handler Event handler function.
 	 * @returns Handler ID.
 	 */
-	int AddHandler( Event::Handler handler );
+	void AddHook( EventHookPtr &hook );
 
-	/** -----------------------------------------------------------------------
-	 * Unhook an event handler.
-	 *
-	 * @param id ID from AddHandler.
-	 */
-	void RemoveHandler( int id );
-	
 	/** -----------------------------------------------------------------------
 	 * Send an event to all registered handlers.
 	 *
@@ -50,8 +43,11 @@ public:
 
 	//-------------------------------------------------------------------------
 private:
-	EventInfo                   &m_info;
-	std::vector<Event::Handler>  m_handlers; 
+	using WeakHook = std::weak_ptr<EventHook>;
+
+	const EventInfo      &m_info;
+
+	std::vector<WeakHook> m_hooks; 
 };
 
 }

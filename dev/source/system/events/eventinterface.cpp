@@ -18,36 +18,24 @@ EventInterface::EventInterface() {
 EventInterface::~EventInterface() {
 	
 }
-
+ 
 //-----------------------------------------------------------------------------
-EventData* EventInterface::GetEventData( const Event &e ) {
-
-	try {
-		if( e.Code() != 0 ) {
-			return m_code_map.at( e.Code() ).get();
-		} else {
-			return m_name_map.at( e.Code() ).get();
-		}
-
-	} catch( std::out_of_range & ) {
-
-		ptr = std::make_shared<EventData>( e.INFO() );
-
-		if( code != 0 ) {
-			m_code_map[code] = 
+void EventInterface::Register( const EventInfo &info ) {
+	if( m_map.count( info.name ) != 0 ) {
+		throw std::runtime_error( "Duplicate event registration." );
 	}
+
+	m_map[ info.name ] = EventDataPtr( new EventData( info ));
 }
 
 //-----------------------------------------------------------------------------
 void EventInterface::Send( Event &e ) {
+	
+	assert( m_map.count( e.Name() ) != 0 );
+	
+	auto data = m_map.at( e.Name() ).get();
 
-	EventDataPtr ed = GetEventData( ;
-
-	if( e.code != 0 ) {
-		ed = GetEventData( e.Code() );
-	} else {
-		ed = GetEventData( e.Name() );
-	}
+	data->Accept( e );
 }
 
 }

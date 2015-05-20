@@ -2,8 +2,9 @@
 //                                                                           //
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
+#include "stdafx.h"
 #include "event.h"
-#include "system.h"
+#include "system/system.h"
 
 //-----------------------------------------------------------------------------
 namespace System {
