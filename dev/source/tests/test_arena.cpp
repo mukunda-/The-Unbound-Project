@@ -15,7 +15,8 @@ namespace Tests {
 ///////////////////////////////////////////////////////////////////////////////
 TEST( ArenaTests, ArenaTestBasic ) {
 
-	System::Main system(32);
+	System::Main system( 32, System::StartMode::PASS );
+	System::Start();
 
 	char *data = (char*)Mem::Arena::Alloc( 256 );
 	for( int i = 0; i < 256; i++ ) data[i] = 'a';
@@ -86,7 +87,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 TEST( ArenaTests, ArenaTestUse ) {
-	System::Main system(32);
+	System::Main system( 32, System::StartMode::PASS );
+	System::Start();
 	
 	int seed = 52320;
 
@@ -115,7 +117,8 @@ TEST( ArenaTests, ArenaTestUse ) {
 ///////////////////////////////////////////////////////////////////////////////
 TEST( ArenaTests, ArenaTestAllocator ) {
 	// stl allocator test
-	System::Main system(32);
+	System::Main system( 32, System::StartMode::PASS );
+	System::Start();
 
 	// im not sure what im doing..
 	std::vector< std::string, Mem::Arena::Allocator<std::string> > my_vector;

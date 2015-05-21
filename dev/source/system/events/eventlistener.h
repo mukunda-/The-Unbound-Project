@@ -2,6 +2,7 @@
 //                                                                           //
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
+#if 0
 #pragma once
 
 #include "event.h"
@@ -31,3 +32,5 @@ public:
 };
 
 }
+
+#endif

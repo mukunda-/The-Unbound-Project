@@ -3,6 +3,8 @@
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
+
+#if 0
 #include "eventlistener.h"
 
 //-----------------------------------------------------------------------------
@@ -37,3 +39,4 @@ void EventListener::Unhook( int hookid ) {
 
 //-----------------------------------------------------------------------------
 }
+#endif

@@ -15,6 +15,7 @@
 #include "region.h"
 #include "event.h"
 #include "console/console.h"
+#include "video/events.h"
 
 namespace Ui {
 
@@ -43,6 +44,11 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 
+}
+
+//-----------------------------------------------------------------------------
+void Instance::OnPrepare() {
+	HookEvent( Video::Events::VIDEO_OPENED );
 }
 
 //-----------------------------------------------------------------------------

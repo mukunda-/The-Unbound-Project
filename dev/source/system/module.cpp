@@ -38,6 +38,7 @@ void Module::SetBusy( bool busy ) {
 
 //-----------------------------------------------------------------------------
 void Module::OnLoad() {}
+void Module::OnPrepare() {}
 void Module::OnStart() {}
 void Module::OnShutdown() {}
 void Module::OnUnload() {}

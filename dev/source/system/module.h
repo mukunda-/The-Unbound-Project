@@ -49,6 +49,11 @@ protected:
 	 * Called when this module is registered with the system.
 	 */
 	virtual void OnLoad();
+
+	/** -----------------------------------------------------------------------
+	 * Called when the system starts up, before OnStart is called.
+	 */
+	virtual void OnPrepare();
 	
 	/** -----------------------------------------------------------------------
 	 * Called when the system starts up. 

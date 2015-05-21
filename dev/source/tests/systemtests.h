@@ -18,6 +18,7 @@ protected:
 	static void SetUpTestCase() {
 		i_system = new System::Main( 1, System::StartMode::PASS );
 		counter = 0;
+		event_test = 0;
 	}
 	
 	static void TearDownTestCase() {
@@ -28,6 +29,7 @@ protected:
 public:
 	
 	static int counter;
+	static int event_test;
 
 	static void ExpectHooksSize( System::Variable &v, size_t size ) {
 		EXPECT_EQ( size, v.m_change_handlers.size() );

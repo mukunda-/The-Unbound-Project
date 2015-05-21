@@ -25,6 +25,7 @@ public:
 	 * @param info Pointer to event info.
 	 */
 	EventData( const EventInfo &info );
+	~EventData();
 
 	/** -----------------------------------------------------------------------
 	 * Add an event hook to this event.

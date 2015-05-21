@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "event.h"
 #include "eventdata.h"
+#include "eventhook.h"
 
 //-----------------------------------------------------------------------------
 namespace System {
@@ -16,10 +17,29 @@ EventData::EventData( const EventInfo &info ) : m_info( info ) {}
 EventData::~EventData() {}
 
 //-----------------------------------------------------------------------------
-int EventData::AddHandler( EventHandler &handler ) {
+void EventData::AddHook( EventHookPtr &hook ) {
 
-	m_handlers.push_back( handler );
-	return m_next_id++;
+	m_hooks.push_back( hook );
+}
+
+//-----------------------------------------------------------------------------
+void EventData::Accept( Event &e ) {
+
+	// send to all hooks and erase ones that were deleted
+
+	for( auto &hook : m_hooks ) {
+		auto locked = hook.lock();
+		if( locked ) {
+			(*locked)( e );
+		}
+	}
+
+	// remove deleted hooks
+	m_hooks.erase( std::remove_if( m_hooks.begin(), m_hooks.end(), 
+		[]( const WeakHook& hook ) {
+			return hook.expired();
+		}),
+		m_hooks.end());
 }
 
 //-----------------------------------------------------------------------------

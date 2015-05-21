@@ -9,6 +9,7 @@
 #include "graphics/fontmaterial.h"
 #include "graphics/builder.h"
 #include "system/module.h"
+#include "system/forwards.h"
 #include "forwards.h"
 #include "event.h"
 
@@ -84,6 +85,8 @@ class Instance final : public System::Module {
 
 	std::vector<SDL_Event> m_input_events;
 
+	std::vector<System::EventHookPtr> m_syshooks;
+
 	// the region that started a compute operation
 	// this is to guard against circular anchoring
 	Region *m_computing_region = nullptr;
@@ -105,6 +108,8 @@ class Instance final : public System::Module {
 
 	Region &GetScreen() { return *m_screen; }
 
+	void OnPrepare() override;
+
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -122,6 +127,7 @@ public:
 	bool HandleInputEvent( const SDL_Event &sdlevent );
 	void FinishInputEvents();
 	void SetupScreen( int width, int height );
+
 };
 
 

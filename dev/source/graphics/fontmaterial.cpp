@@ -9,13 +9,15 @@
 namespace Graphics {
 
 //-----------------------------------------------------------------------------
-FontMaterial::FontMaterial() : m_material( "ui" ) {
+FontMaterial::FontMaterial()
+		: m_material( Graphics::CreateMaterial( "", "ui" )) {
+
 	m_material->SetTexture( 0, Video::Texture::New() );
 }
 
 //-----------------------------------------------------------------------------
 void FontMaterial::LoadMaterial() {
-	LoadTexture( *m_material.GetTexture(0) );
+	LoadTexture( (*m_material).GetTexture(0) );
 }
 
 }

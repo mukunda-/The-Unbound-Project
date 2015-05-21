@@ -17,9 +17,9 @@ namespace System {
 	class Program;
 	class Module;
 	class Main;
-
+	 
 	class Event;
-	class EventInfo;
+	struct EventInfo;
 	class EventData;
 	class EventInterface;
 	class EventHook;

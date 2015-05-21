@@ -3,13 +3,17 @@
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
-#include "system/system.h"
-#include "system/module.h"
-#include "system/console.h"
-#include "system/commands.h"
+#include "system.h"
+#include "module.h"
+#include "console.h"
+#include "commands.h"
 #include "console/console.h"
+
 #include "util/fopen2.h"
 #include "util/codetimer.h"
+
+#include "events/eventinterface.h"
+#include "events/event.h"
 
 #pragma warning( disable : 4996 )
 
@@ -29,7 +33,9 @@ namespace {
 }
 
 //-----------------------------------------------------------------------------
-Main::Main( int threads, StartMode start_mode ) : m_strand( m_service() ) {
+Main::Main( int threads, StartMode start_mode ) 
+		: m_strand( m_service() ), m_events( new EventInterface() ) {
+
 	assert( g_main == nullptr );
 
 	g_main = this;
@@ -145,6 +151,12 @@ void Main::Start() {
 //-----------------------------------------------------------------------------
 void Main::StartI() {
 	
+	// prepare modules
+	for( auto &i : m_modules ) {
+		i->OnPrepare();
+	}
+
+	// start modules
 	for( auto &i : m_modules ) {
 		i->OnStart();
 	}
@@ -326,34 +338,20 @@ void Main::LogError( const Stref &message ) {
 }
 
 //-----------------------------------------------------------------------------
-void Main::RegisterEvent( int code, const Stref &name ) {
-	if( m_event_code_to_name.count(code) != 0 ) {
-		throw std::runtime_error( 3
-			Util::Format( "Event code collision: %s (%d)", name, code ));
-	}
+Service     &GetService()                                      { return g_main->GetService();          }
+void         Finish()                                          { GetService().Finish( true );          }
+void         RegisterModule( Module *m )                       { g_main->RegisterModule( m );          }
+void         RegisterModule( ModulePtr &&m )                   { RegisterModule( m.release() );        }
+void         Start()                                           { g_main->Start();                      }
+void         Shutdown( const Stref &r )                        { g_main->Shutdown( r );                }
+void         Log( const Stref &m )                             { g_main->Log( m );                     }
+void         LogError( const Stref &m )                        { g_main->LogError( m );                } 
+bool         Live()                                            { return g_main->Live();                }
+void         Post( std::function<void()> h, bool m, int d )    { g_main->Post( h, m, d );              }
 
-	if( m_event_name_to_code.count(name) != 0 ) {
-		throw std::runtime_error( 
-			Util::Format( "Event name collision: %s (%d)", name, code ));
-	}
-
-	m_event_code_to_name[code] = name;
-	m_event_name_to_code[name] = code;
-
-	::Console::Print( "Registered event: %s (%d)" );
-}
-
-//-----------------------------------------------------------------------------
-Service &GetService()                    { return g_main->GetService();   }
-void     Finish()                        { GetService().Finish( true );   }
-void     RegisterModule( Module *m )     { g_main->RegisterModule( m );   }
-void     RegisterModule( ModulePtr &&m ) { RegisterModule( m.release() ); }
-void     Start()                         { g_main->Start();               }
-void     Shutdown( const Stref &r )      { g_main->Shutdown( r );         }
-void     Log( const Stref &m )           { g_main->Log( m );              }
-void     LogError( const Stref &m )      { g_main->LogError( m );         } 
-bool     Live()                          { return g_main->Live();         }
-void     Post( std::function<void()> h, bool m, int d ) { g_main->Post( h, m, d ); }
+void         RegisterEvent( const Event::Info &i )             { g_main->Events().Register( i );       }
+EventHookPtr HookEvent( const Event::Info &i, EventHandler h ) { return g_main->Events().Hook( i, h ); }
+void         SendEvent( Event &e )                             { g_main->Events().Send( e );           }
 
 /*void Join() {g_main->GetService().Join();}*/
  

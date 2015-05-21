@@ -7,6 +7,8 @@
 #include "console/console.h"
 #include "shader.h"
 #include "texture.h"
+#include "events.h"
+#include "system/system.h"
  
 //-----------------------------------------------------------------------------
 namespace Video {
@@ -19,11 +21,18 @@ Instance *g_instance = nullptr;
 Instance::Instance() : Module( "video", Levels::SUBSYSTEM ) {
 	assert( g_instance == nullptr );
 	g_instance = this;
+
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 	g_instance = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+void Instance::OnLoad() {
+	System::RegisterEvent<Events::VIDEO_OPENED>();
+	System::RegisterEvent<Events::VIDEO_CLOSED>();
 }
 
 //-----------------------------------------------------------------------------
@@ -61,6 +70,8 @@ void Instance::Open( int width, int height ) {
 
 	m_fov = 50.0;
 	UpdateViewport();
+
+	System::SendEvent( Events::VIDEO_OPENED( width, height ));
 }
 
 //-----------------------------------------------------------------------------

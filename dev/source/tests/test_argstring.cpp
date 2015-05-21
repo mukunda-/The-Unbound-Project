@@ -13,14 +13,14 @@ TEST( UtilTests, ArgStringTest ) {
 	AS as( " test1 \"test 2\" 5  " );
 
 	//////////////////////////////////////////////////////////////////////
-	EXPECT_TRUE( as.Check( { AS::STRING, AS::STRING, AS::INT }, 0 ));
+	EXPECT_TRUE ( as.Check( { AS::STRING, AS::STRING, AS::INT }, 0 ));
 	EXPECT_FALSE( as.Check( { AS::STRING, AS::STRING, AS::INT, AS::INT }, 0 ));
-	EXPECT_TRUE( as.Check( { AS::STRING, AS::STRING }, 0 ));
-	EXPECT_TRUE( as.Check( { AS::STRING, AS::INT }, 1, false ));
-	EXPECT_TRUE( as.Check( { AS::INT }, 2, false ));
+	EXPECT_TRUE ( as.Check( { AS::STRING, AS::STRING }, 0 ));
+	EXPECT_TRUE ( as.Check( { AS::STRING, AS::INT }, 1, false ));
+	EXPECT_TRUE ( as.Check( { AS::INT }, 2, false ));
 	EXPECT_FALSE( as.Check( { AS::INT } ));
 	EXPECT_FALSE( as.Check( { AS::FLOAT } ));
-	EXPECT_TRUE( as.Check( { AS::STRING } ));
+	EXPECT_TRUE ( as.Check( { AS::STRING } ));
 	EXPECT_FALSE( as.Check( { AS::STRING }, 0, false ));
 
 	EXPECT_EQ( "test1 \"test 2\" 5", as.GetFull( 0 ) );

@@ -3,11 +3,11 @@
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
- 
 
 #ifdef _WIN32
 #   define TARGET_WINDOWS
 #   define WIN32_LEAN_AND_MEAN 
+#   define _WIN32_WINNT 0x0501
 #else
 #   define TARGET_LINUX
 #endif
@@ -24,6 +24,9 @@
 #include <boost/asio/posix/stream_descriptor.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/algorithm/string.hpp>
+
+#include <boost/asio/high_resolution_timer.hpp>
+#include <boost/asio/steady_timer.hpp>
 
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
@@ -61,6 +64,7 @@
 // useful engine files that won't change:
 #include "util/countof.h"
 #include "util/vectortypes.h"
+#include "util/stref.h"
 
 #if PROJECT_CLIENT
 #   include "pch_client.h"

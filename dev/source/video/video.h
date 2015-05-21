@@ -494,6 +494,8 @@ public:
 	Instance();
 	~Instance();
 
+	void OnLoad() override;
+
 	void Open( int width, int height );
 	void Close();
 

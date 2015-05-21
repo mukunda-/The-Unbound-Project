@@ -186,26 +186,39 @@ void GetEventID( const Stref &name );
  * @param T Class that implements the event.
  */
 template< typename T >
-void RegisterEvent() {
-	RegisterEvent( T::CODE, T::NAME(), T::FLAGS );
-}
-void RegisterEvent( int code, const Stref &name, int flags );
+void RegisterEvent() { RegisterEvent( T::INFO() ); }
+void RegisterEvent( const EventInfo &info );
 
 /** ---------------------------------------------------------------------------
  * Hook an event.
  *
  * @param E       Event definition.
  * @param handler Event handler.
+ * @param thisptr `this` pointer when hooking member functions.
  *
  * @returns Event hook object. 
  *          When it's destroyed, the event will be unhooked.
  */
 template< typename E >
-EventHookPtr HookEvent( EventHandler &handler ) {
+EventHookPtr HookEvent( EventHandler handler ) {
 	return HookEvent( E::INFO(), handler );
 }
-EventHookPtr HookEvent( const EventInfo &info, EventHandler &handler );
-  
+
+template< typename E, typename H, typename T >
+EventHookPtr HookEvent( H handler, T thisptr ) {
+	return HookEvent<E>( 
+		std::bind( handler, thisptr, std::placeholders::_1 ));
+}
+
+EventHookPtr HookEvent( const EventInfo &info, EventHandler handler );
+
+/** ---------------------------------------------------------------------------
+ * Send an event.
+ *
+ * @param e Event to send.
+ */
+void SendEvent( Event &e );
+
 /** ---------------------------------------------------------------------------
  * Main system class.
  */
@@ -305,9 +318,8 @@ public:
 	Service &GetService() { return m_service; }
 	void Log( const Stref &message );
 	void LogError( const Stref &message );
-
-	void GetEventID( const Stref &name );
-	void RegisterEvent( int code, const Stref &name, int flags );
+	
+	EventInterface &Events() { return *m_events; }
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );

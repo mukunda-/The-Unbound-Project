@@ -1,0 +1,6 @@
+
+code		name
+
+010001		VIDEO_OPENED
+010002		VIDEO_CLOSED
+
