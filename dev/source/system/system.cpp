@@ -109,7 +109,7 @@ void Main::Post( std::function<void()> handler, bool main_thread, int delay ) {
 //-----------------------------------------------------------------------------
 void Main::RegisterModule( Module *module_ptr ) {
 
-	std::unique_ptr<Module> module(module_ptr);
+	std::unique_ptr<Module> module( module_ptr );
 	// must be called in the system strand
 	
 	if( m_module_map.count( module->GetName() ) ) {
@@ -131,6 +131,8 @@ void Main::RegisterModule( Module *module_ptr ) {
 	}
 	
 	m_modules.insert( iterator, std::move( module ));
+
+	module_ptr->OnLoad();
 }
 
 //-----------------------------------------------------------------------------

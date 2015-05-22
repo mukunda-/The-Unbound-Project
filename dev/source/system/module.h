@@ -21,6 +21,8 @@ public:
 	 */
 	enum class Levels {
 		SUPERVISOR = 10, // top level for special needs
+		GL         = 15, // graphics layer, needs to be deleted after normal
+		                 // modules to keep the context alive.
 		SUBSYSTEM  = 20, // interface modules (network,console etc)
 		USER       = 30  // program level
 	};
@@ -51,7 +53,7 @@ protected:
 	virtual void OnLoad();
 
 	/** -----------------------------------------------------------------------
-	 * Called when the system starts up, before OnStart is called.
+	 * Called just before the system starts up.
 	 */
 	virtual void OnPrepare();
 	

@@ -466,8 +466,9 @@ private:
 	SDL_Window     *m_window     = nullptr; 
 	SDL_GLContext   m_gl_context = nullptr; 
 	
-	int             m_screen_width  = 0;
-	int             m_screen_height = 0;
+	int             m_screen_width  = 300;
+	int             m_screen_height = 200;
+	bool            m_open = false;
 
 	Eigen::Matrix4f m_mat_view; 
 	Eigen::Matrix4f m_mat_projection;
@@ -491,7 +492,7 @@ private:
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	
-	Instance();
+	Instance( const Stref &window_name );
 	~Instance();
 
 	void OnLoad() override;

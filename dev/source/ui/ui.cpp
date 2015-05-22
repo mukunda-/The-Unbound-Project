@@ -36,6 +36,8 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 					                  Video::RenderMode::TRIANGLES, 
 									  Graphics::RenderLayer::UI ) {
 	 
+	g_ui = this;
+
 	m_screen.reset( new Region( "Screen" ) );
 	m_screen->SetupScreen( 0, 0 );
 	m_picked_region = m_screen.get();
@@ -43,12 +45,12 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
-
+	g_ui = nullptr;
 }
 
 //-----------------------------------------------------------------------------
 void Instance::OnPrepare() {
-	HookEvent( Video::Events::VIDEO_OPENED );
+	
 }
 
 //-----------------------------------------------------------------------------

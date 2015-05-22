@@ -18,15 +18,50 @@ using Eigen::Matrix4f;
 Instance *g_instance = nullptr;
 
 //-----------------------------------------------------------------------------
-Instance::Instance() : Module( "video", Levels::SUBSYSTEM ) {
+Instance::Instance( const Stref &window_name ) 
+		: Module( "video", Levels::GL ) {
+
 	assert( g_instance == nullptr );
 	g_instance = this;
 
+	// we need to initialize the opengl context before anything else
+	// loads (which may rely on the opengl context)
+	
+	// initialize gl context, we start as hidden until the game module
+	// calls Open()
+	m_window = SDL_CreateWindow( "CLIENT", 
+			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+			m_screen_width, m_screen_height, 
+			SDL_WINDOW_OPENGL|SDL_WINDOW_HIDDEN );
+	
+	if( !m_window ) {
+		throw std::runtime_error( "Window creation error." );
+	}
+	
+	// create our gl context
+	m_gl_context = SDL_GL_CreateContext( m_window );
+	Console::Print( "OpenGL Version: %s\n", glGetString(GL_VERSION) );
+	
+	GLenum err = glewInit(); 
+	if( err != GLEW_OK ) {
+		throw new std::exception( "Couldn't start GLEW." );
+	}
+	 
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
 	g_instance = nullptr;
+
+	if( m_gl_context ) {
+		SDL_GL_DeleteContext( m_gl_context );
+		m_gl_context = nullptr;
+	}
+
+	if( m_window ) {
+		SDL_DestroyWindow( m_window );
+		m_window = nullptr;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -42,23 +77,8 @@ void Instance::Open( int width, int height ) {
 	m_screen_width  = width;
 	m_screen_height = height;
 
-	m_window = SDL_CreateWindow( "CLIENT", 
-			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-			width, height, SDL_WINDOW_OPENGL );
+	SDL_SetWindowSize( m_window, width, height );
 
-	if( !m_window ) {
-		throw std::exception( "Window creation error." );
-	}
-
-	m_gl_context = SDL_GL_CreateContext( m_window );
-	
-	Console::Print( "OpenGL Version: %s\n", glGetString(GL_VERSION) );
-	
-	GLenum err = glewInit(); 
-	if( err != GLEW_OK ) {
-		throw new std::exception( "Couldn't start GLEW." );
-	}
-	 
 	glClearDepth( 1.0f );
 	glEnable( GL_DEPTH_TEST );
 	SetDepthBufferMode( DepthBufferMode::NORMAL ); 
@@ -71,20 +91,19 @@ void Instance::Open( int width, int height ) {
 	m_fov = 50.0;
 	UpdateViewport();
 
+	SDL_ShowWindow( m_window );
+
 	System::SendEvent( Events::VIDEO_OPENED( width, height ));
 }
 
 //-----------------------------------------------------------------------------
 void Instance::Close() {
-	if( m_gl_context ) {
-		SDL_GL_DeleteContext( m_gl_context );
-		m_gl_context = nullptr;
-	}
+	//if( m_open ) {
+	//	m_open = false;
 
-	if( m_window ) {
-		SDL_DestroyWindow( m_window );
-		m_window = nullptr;
-	}
+		SDL_HideWindow( m_window );
+		System::SendEvent( Events::VIDEO_CLOSED() );
+	//}
 }
 
 //-----------------------------------------------------------------------------
