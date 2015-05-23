@@ -78,6 +78,8 @@ void Instance::Open( int width, int height ) {
 	m_screen_height = height;
 
 	SDL_SetWindowSize( m_window, width, height );
+	SDL_SetWindowPosition( m_window, 
+			SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED );
 
 	glClearDepth( 1.0f );
 	glEnable( GL_DEPTH_TEST );
@@ -98,12 +100,12 @@ void Instance::Open( int width, int height ) {
 
 //-----------------------------------------------------------------------------
 void Instance::Close() {
-	//if( m_open ) {
-	//	m_open = false;
+	if( m_open ) {
+		m_open = false;
 
 		SDL_HideWindow( m_window );
 		System::SendEvent( Events::VIDEO_CLOSED() );
-	//}
+	}
 }
 
 //-----------------------------------------------------------------------------

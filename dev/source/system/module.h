@@ -90,6 +90,9 @@ protected:
 	 */
 	void SetBusy( bool busy );
 
+	void AddWork();
+	void RemoveWork();
+
 	//-------------------------------------------------------------------------
 private:
 
