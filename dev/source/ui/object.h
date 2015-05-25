@@ -19,6 +19,8 @@ class Object {
 	// name of the object, used to quickly find it if needed
 	// later.
 	std::string m_name;
+
+	uint8_t m_workless = 0;
 	
 	//-------------------------------------------------------------------------
 public:

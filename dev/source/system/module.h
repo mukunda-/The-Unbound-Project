@@ -88,8 +88,9 @@ protected:
 	 *
 	 * Modules can only be woken up by other active modules, or by the system.
 	 */
-	void SetBusy( bool busy );
+	//void SetBusy( bool busy );
 
+	// the busy flag has been replaced with a work counter.
 	void AddWork();
 	void RemoveWork();
 
@@ -102,13 +103,15 @@ private:
 	// name of module, ie "net", "db", etc.
 	std::string m_name;
 
-	bool m_busy = false;
+	std::mutex m_mutex;
+
+	int m_work = 0;
 
 public:
 
-	Levels             GetLevel()      { return m_level; }
-	const std::string &GetName() const { return m_name; }
-	bool               Busy()          { return m_busy; }
+	Levels             GetLevel()      { return m_level;     }
+	const std::string &GetName() const { return m_name;      }
+	bool               Busy()          { return m_work == 0; }
 };
 
 }

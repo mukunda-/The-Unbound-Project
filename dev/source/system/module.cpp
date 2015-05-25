@@ -25,6 +25,31 @@ Module::~Module() {
 }
 
 //-----------------------------------------------------------------------------
+void Module::AddWork() {
+	std::lock_guard< std::mutex > lock( m_mutex );
+
+	m_work++;
+
+	if( m_work == 1 ) {
+		g_main->OnModuleBusy( *this );
+	}
+}
+
+//-----------------------------------------------------------------------------
+void Module::RemoveWork() {
+	
+	std::lock_guard< std::mutex > lock( m_mutex );
+
+	assert( m_work > 0 );
+
+	m_work--;
+
+	if( m_work == 0 ) {
+		g_main->OnModuleIdle( *this );
+	}
+}
+/*
+//-----------------------------------------------------------------------------
 void Module::SetBusy( bool busy ) {
 	if( m_busy == busy ) return;
 
@@ -34,7 +59,7 @@ void Module::SetBusy( bool busy ) {
 	} else {
 		g_main->OnModuleBusy( *this );
 	}
-}
+}*/
 
 //-----------------------------------------------------------------------------
 void Module::OnLoad() {}
