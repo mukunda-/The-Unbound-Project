@@ -38,7 +38,8 @@ Test::Test() :
 
 //-----------------------------------------------------------------------------
 void Test::OnStart() {
-	SetBusy( true );
+	AddWork();
+
 	Video::Open( 1000, 800 );
 	//Ui::SetupScreen( 1000, 800 );
 
@@ -91,7 +92,7 @@ void Test::DoTick() {
 
 	if( quit ) {
 		System::Shutdown( "User exited." );
-		SetBusy( false );
+		
 	} else {
 		m_pulse.Wait( std::bind( &Test::DoTick, this ));
 	}
@@ -99,7 +100,7 @@ void Test::DoTick() {
 
 //-----------------------------------------------------------------------------
 void Test::OnShutdown() {
-	
+	RemoveWork();
 }
  
 //-----------------------------------------------------------------------------

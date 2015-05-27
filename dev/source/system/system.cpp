@@ -190,7 +190,7 @@ void Main::ShutdownI( const Stref &reason ) {
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleIdle( Module &module ) {
-	std::lock_guard<std::mutex> lock(m_mutex);
+	std::lock_guard<std::mutex> lock( m_mutex );
 
 	m_busy_modules--;
 
@@ -202,7 +202,7 @@ void Main::OnModuleIdle( Module &module ) {
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleBusy( Module &module ) {
-	std::lock_guard<std::mutex> lock(m_mutex); 
+	std::lock_guard<std::mutex> lock( m_mutex ); 
 	m_busy_modules++;
 }
 

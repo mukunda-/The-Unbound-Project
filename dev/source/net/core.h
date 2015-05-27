@@ -61,11 +61,7 @@ namespace Net {
 
 		// locks for CRYPTO locking callback
 		std::unique_ptr<std::mutex[]> m_crypto_locks;
-
-		int m_work_counter = 0; 
-
-		void AddWork();
-		void RemoveWork(); 
+		
 
 		boost::asio::strand m_ssl_strand;
 		

@@ -12,11 +12,11 @@ namespace DB {
 
 	//-------------------------------------------------------------------------
 	Work::Work() {
-		g_manager->WorkAdded();
+		g_manager->AddWork();
 	}
 
 	//-------------------------------------------------------------------------
 	Work::~Work() {
-		g_manager->WorkCompleted();
+		g_manager->RemoveWork();
 	}
 }

@@ -128,8 +128,27 @@ public:
 	void FinishInputEvents();
 	void SetupScreen( int width, int height );
 
+	Object &CreateObject( const Stref &name, std::function<Object*> factory );
+
+	// get ui instance
+	static Instance &Get();
 };
 
+/** ---------------------------------------------------------------------------
+ * Create a UI object.
+ *
+ * @param T    Subclass of object to create.
+ * @param name Name of object, must be unique.
+ * @param args Arguments to pass to object constructor.
+ */
+template< typename T, typename ... A >
+T &Create( const Stref &name, A ... args ) {
+	return static_cast<T&>Instance::Get().CreateObject( 
+		name,
+		[]() {
+			return new T( name, args... );
+		});
+}
 
 //-----------------------------------------------------------------------------
 } // namespace Ui

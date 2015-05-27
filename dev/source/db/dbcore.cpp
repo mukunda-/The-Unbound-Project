@@ -222,22 +222,4 @@ sql::SQLString Manager::SqlString( const std::string &str ) {
 }
 
 //-----------------------------------------------------------------------------
-void Manager::WorkAdded() {
-	lock_guard<mutex> lock( m_mutex );
-	m_work_counter++;
-
-	SetBusy( true );
-}
-
-//-----------------------------------------------------------------------------
-void Manager::WorkCompleted() {
-	lock_guard<mutex> lock( m_mutex );
-	m_work_counter--;
-
-	if( m_work_counter == 0 ) {
-		SetBusy( false );
-	}
-}
-
-//-----------------------------------------------------------------------------
 }

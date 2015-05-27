@@ -53,7 +53,7 @@ Instance::Instance() : m_ssl_strand( System::GetService()() ),
 Instance::~Instance() {
 	//m_service.Finish( true );
 	std::lock_guard<std::mutex> lock(m_lock);
-	assert( m_work_counter == 0 ); // should not be destructed otherwise.
+	//assert( m_work_counter == 0 ); // should not be destructed otherwise.
 
 	//WaitUntilWorkIsFinished();
 
@@ -75,27 +75,7 @@ void Instance::LockingFunction( int mode, int n, const char *, int ) {
 		g_instance->m_crypto_locks[n].unlock();
 	}
 }
-
-//-----------------------------------------------------------------------------
-void Instance::AddWork() {
-	std::lock_guard<std::mutex> lock(m_lock);
-
-	m_work_counter++; 
-
-	SetBusy( true );
-}
-
-//-----------------------------------------------------------------------------
-void Instance::RemoveWork() {
-	std::lock_guard<std::mutex> lock(m_lock);
-
-	m_work_counter--; 
-
-	if( m_work_counter == 0 ) {
-		SetBusy(false);
-	}
-}
-
+ 
 //-----------------------------------------------------------------------------
 System::Service &Instance::GetService() {
 	// we just use the main system service now.

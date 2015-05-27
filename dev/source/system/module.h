@@ -102,8 +102,7 @@ private:
 
 	// name of module, ie "net", "db", etc.
 	std::string m_name;
-
-	std::mutex m_mutex;
+	std::mutex  m_mutex;
 
 	int m_work = 0;
 
