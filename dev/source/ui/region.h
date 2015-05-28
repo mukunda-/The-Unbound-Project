@@ -178,9 +178,11 @@ private:
 	void AddAnchored( Region &region );
 	void RemoveAnchored( Region &region );
 	
-public:
+protected:
 
 	Region( const Stref &name );
+
+public:
 	~Region();
 
 	/** ----------------------------------------------------------------------

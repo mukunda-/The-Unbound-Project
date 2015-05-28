@@ -108,9 +108,22 @@ private:
 
 public:
 
-	Levels             GetLevel()      { return m_level;     }
-	const std::string &GetName() const { return m_name;      }
-	bool               Busy()          { return m_work == 0; }
+	/** -----------------------------------------------------------------------
+	 * Get the system level of this module.
+	 */
+	Levels GetLevel() { return m_level; }
+
+	/** -----------------------------------------------------------------------
+	 * Get the name of this module.
+	 */
+	const std::string &GetName() const { return m_name; }
+
+	/** -----------------------------------------------------------------------
+	 * Check if the module is busy (work counter is not zero)
+	 *
+	 * Note that this value may change in the background.
+	 */
+	bool Busy();
 };
 
 }

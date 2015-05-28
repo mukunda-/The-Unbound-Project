@@ -278,11 +278,12 @@ private:
 	// mapping of command names to command instances
 	std::unordered_map< std::string, Commands::Instance* > m_command_map;
 	
-	std::mutex m_mutex;
+	std::recursive_mutex m_mutex;
 
 	// cvar and variable for blocking the destructor until shutdown completes.
-	std::condition_variable m_cvar_shutdown;
+	std::condition_variable_any  m_cvar_shutdown;
 	bool m_shutdown_complete = false;
+	bool m_system_end_posted = false;
 
 	// number of modules that are busy, updated with Module::SetBusy
 	// when shutdown is active, the system waits for this to become zero

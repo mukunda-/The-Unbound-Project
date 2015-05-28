@@ -76,7 +76,7 @@ Main::~Main() {
 		// be complete already, but in some cases (eg unit testing) the
 		// system goes out of scope before the program is finished.
 
-		std::unique_lock<std::mutex> lock( m_mutex );
+		std::unique_lock<std::recursive_mutex> lock( m_mutex );
 		m_cvar_shutdown.wait( lock, 
 			[&]() { return m_shutdown_complete; } 
 		);
@@ -175,34 +175,38 @@ void Main::ShutdownI( const Stref &reason ) {
 	
 	::Console::Print( "Shutting down. (%s)", reason );
 
-	std::lock_guard<std::mutex> lock(m_mutex);
+	std::lock_guard<std::recursive_mutex> lock(m_mutex);
 	m_live = false;
 
 	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
 		(*i)->OnShutdown();
 	} 
 
-	if( m_busy_modules == 0 ) {
+	if( m_busy_modules == 0 && !m_system_end_posted ) {
 		// all modules are idle.
+		m_system_end_posted = true;
+
 		Post( std::bind( &Main::SystemEnd, this ), true, 0 );
 	}
 }
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleIdle( Module &module ) {
-	std::lock_guard<std::mutex> lock( m_mutex );
+	std::lock_guard<std::recursive_mutex> lock( m_mutex );
 
 	m_busy_modules--;
 
-	if( !m_live && m_busy_modules == 0 ) {
+	if( !m_live && m_busy_modules == 0 && !m_system_end_posted ) {
 		// shutdown is in progress, and all modules are idle 
+		m_system_end_posted = true;
+		
 		Post( std::bind( &Main::SystemEnd, this ), true, 0 );
 	}
 }
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleBusy( Module &module ) {
-	std::lock_guard<std::mutex> lock( m_mutex ); 
+	std::lock_guard<std::recursive_mutex> lock( m_mutex ); 
 	m_busy_modules++;
 }
 
@@ -236,7 +240,7 @@ void Main::SystemEnd() {
 	}
 
 	{
-		std::lock_guard<std::mutex> lock( m_mutex );
+		std::lock_guard<std::recursive_mutex> lock( m_mutex );
 		m_shutdown_complete = true;
 	}
 

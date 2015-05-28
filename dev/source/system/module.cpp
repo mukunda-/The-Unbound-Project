@@ -15,8 +15,7 @@ extern Main *g_main;
 Module::Module( const Stref &name, Levels level ) {
 	// todo, set busy when registered.
 	m_name = name;
-	m_level = level;
-
+	m_level = level; 
 }
 
 //-----------------------------------------------------------------------------
@@ -48,6 +47,13 @@ void Module::RemoveWork() {
 		g_main->OnModuleIdle( *this );
 	}
 }
+
+//-----------------------------------------------------------------------------
+bool Module::Busy() {
+	std::lock_guard< std::mutex > lock( m_mutex );
+	return m_work != 0;
+}
+
 /*
 //-----------------------------------------------------------------------------
 void Module::SetBusy( bool busy ) {

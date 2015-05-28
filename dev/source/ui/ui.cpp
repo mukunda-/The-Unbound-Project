@@ -38,13 +38,21 @@ Instance::Instance() : System::Module( "ui", Levels::USER ),
 	 
 	g_ui = this;
 
-	m_screen.reset( new Region( "Screen" ) );
+	m_screen = new Region( "Screen" );
 	m_screen->SetupScreen( 0, 0 );
-	m_picked_region = m_screen.get();
+
+	m_picked_region = m_screen;
 }
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
+
+	m_cleaning_up = true;
+
+	for( auto i : m_objects ) {
+		delete i.second;
+	} 
+
 	g_ui = nullptr;
 }
 
@@ -117,7 +125,7 @@ void Instance::EndRendering() {
 Region *Instance::PickRegion( const ivec2 &pos ) {
 
 	int sortmax = -0x10000;
-	Region *highest = m_screen.get();
+	Region *highest = m_screen;
 
 	for( auto r : m_regions ) {
 		if( r->Inside( pos ) ) {
@@ -307,30 +315,44 @@ void Instance::FinishInputEvents() {
 }
 
 //-----------------------------------------------------------------------------
+Object &Instance::CreateObject( const Stref &name, ObjectFactory &factory ) {
+	if( m_objects.count( name ) > 0 ) {
+		throw Error::NameCollision();
+	}
+
+	if( name.Empty() ) {
+		throw Error::BadName();
+	}
+
+	// todo: additional name checks?
+
+	auto obj = factory();
+
+	return *obj;
+}
+
+//-----------------------------------------------------------------------------
 void Instance::OnObjectCreated( Object &obj ) {
 	
-	m_objects.push_back( &obj );
-
-	if( m_objects_map.count(obj.GetName()) != 0 ) {
-		// duplicate name, skip mapping
-		Console::Print( "Duplicate object name: \"%s\"", obj.GetName() );
-	} else {
-		m_objects_map[obj.GetName()] = &obj;
-	}
+	assert( m_objects.count(obj.GetName()) == 0 );
+	m_objects[obj.GetName()] = &obj;
 }
 
 //-----------------------------------------------------------------------------
 void Instance::OnObjectDeleted( Object &obj ) {
 
+	if( m_cleaning_up ) return;
+
+	/*
 	for( auto i = m_objects.begin(); i != m_objects.end(); i++ ) {
 		if( *i == &obj ) {
 			m_objects.erase(i);
 			return;
 		}
-	}
+	}*/
 
 	if( obj.GetName() != "" ) {
-		m_objects_map.erase( obj.GetName() );
+		m_objects.erase( obj.GetName() );
 	}
 
 	assert( !"OnObjectDeleted object not found." );
@@ -343,8 +365,11 @@ void Instance::OnRegionCreated( Region &r ) {
 
 //-----------------------------------------------------------------------------
 void Instance::OnRegionDeleted( Region &r ) {
+
+	if( m_cleaning_up ) return;
+
 	if( m_picked_region == &r ) {
-		m_picked_region = m_screen.get();
+		m_picked_region = m_screen;
 	}
 
 	if( m_pressed_region == &r ) {
@@ -370,6 +395,8 @@ void RenderText( Graphics::FontMaterial &f, int s, int h, int x, int y, const St
                                        { g_ui->RenderText( f, s, h, 0, x, y, t, 1.0 ); }
 void EndRendering()                    { g_ui->EndRendering();                         }
 void SetupScreen( int w, int h )       { g_ui->SetupScreen( w, h );                    }
+Instance &GetInstance()                { return *g_ui;                                 }
+
 //bool HandleEvent( const SDL_Event &e ) { return g_ui->HandleInputEvent( e );           }
 
 

@@ -12,6 +12,7 @@
 #include "system/forwards.h"
 #include "forwards.h"
 #include "event.h"
+#include "error.h"
 
 //-----------------------------------------------------------------------------
 namespace Ui {
@@ -54,7 +55,7 @@ class Instance final : public System::Module {
 	friend class Region;
 	
 	// screen region, has no parent, god region
-	std::unique_ptr<Region> m_screen;
+	Region *m_screen;
 
 	// the currently picked region, updated in ApplyMousePosition
 	// this will never be null, and will default to the screen
@@ -69,9 +70,8 @@ class Instance final : public System::Module {
 	// button that is pressed
 	MouseButton m_pressed_button = MouseButton::NONE;
 
-	// master list of objects 
-	std::vector<Object*> m_objects;
-	std::unordered_map< std::string, Object* > m_objects_map;
+	// object registry 
+	std::unordered_map< std::string, Object* > m_objects;
 
 	// list of regions
 	std::vector<Region*> m_regions;
@@ -90,6 +90,8 @@ class Instance final : public System::Module {
 	// the region that started a compute operation
 	// this is to guard against circular anchoring
 	Region *m_computing_region = nullptr;
+
+	bool m_cleaning_up = false;
 
 	void UpdateMousePosition( int x, int y );
 	void ApplyMousePosition();
@@ -112,6 +114,10 @@ class Instance final : public System::Module {
 
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	// get ui instance
+	static Instance &Get();
+
+	using ObjectFactory = std::function<Object*()>;
 
 	Instance();
 	~Instance();
@@ -128,12 +134,18 @@ public:
 	void FinishInputEvents();
 	void SetupScreen( int width, int height );
 
-	Object &CreateObject( const Stref &name, std::function<Object*> factory );
+	Object &CreateObject( const Stref &name, ObjectFactory &factory );
 
-	// get ui instance
-	static Instance &Get();
+	template< typename T, typename ... A >
+	T &CreateObjectT( const Stref &name, A ... args ) {
+		return static_cast<T&>CreateObject( 
+			name,
+			[]() {
+				return new T( name, args... );
+			});
+	}
 };
-
+ 
 /** ---------------------------------------------------------------------------
  * Create a UI object.
  *
@@ -143,11 +155,7 @@ public:
  */
 template< typename T, typename ... A >
 T &Create( const Stref &name, A ... args ) {
-	return static_cast<T&>Instance::Get().CreateObject( 
-		name,
-		[]() {
-			return new T( name, args... );
-		});
+	return Instance::Get().CreateObjectT( name, args... );
 }
 
 //-----------------------------------------------------------------------------
