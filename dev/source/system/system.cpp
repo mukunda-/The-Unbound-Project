@@ -70,8 +70,6 @@ Main::~Main() {
 	Shutdown( "System Destructed." );
 
 	{
-		
-
 		// block until shutdown completes; normally the shutdown would
 		// be complete already, but in some cases (eg unit testing) the
 		// system goes out of scope before the program is finished.
