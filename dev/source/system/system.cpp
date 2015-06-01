@@ -241,7 +241,7 @@ void Main::SystemEnd() {
 		std::lock_guard<std::recursive_mutex> lock( m_mutex );
 		m_shutdown_complete = true;
 	}
-
+	
 	m_cvar_shutdown.notify_all();
 
 	m_service.Finish( false );
