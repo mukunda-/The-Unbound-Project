@@ -54,6 +54,10 @@ void Test::DoTick() {
 	r = (float)fmod( r + 0.01, 1.0 );
 	Video::SetBackgroundColor( r/2,r,1 ); 
 	Video::Clear();
+
+
+	Ui::Draw();
+
 	Video::Swap();
 	
 	SDL_Event e;
@@ -61,7 +65,7 @@ void Test::DoTick() {
 
 	static int mx, my;
 
-	while( SDL_PollEvent(&e) ){
+	while( SDL_PollEvent(&e) ) {
 		if( e.type == SDL_QUIT ) {
 			quit = true;
 		}

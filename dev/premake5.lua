@@ -46,17 +46,18 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 	
 	if( p_64bit ) then
 		libdirs { 
-			"$(BOOST_ROOT)/lib/x64/lib", 
-			"$(DEVPATH)/glew/lib/Release/x64",
-			"$(DEVPATH)/SDL203/lib/x64",
-			"$(DEVPATH)/freetype-2.5.5/objs/vc2010/x64"
+			"$(BOOST_ROOT)/lib/x64/lib";
+			"$(DEVPATH)/glew/lib/Release/x64";
+			"$(DEVPATH)/SDL203/lib/x64";
+			"$(DEVPATH)/freetype-2.5.5/objs/vc2010/x64";
+			"../lua/build/release";
 		}
 	else
 		libdirs { 
-			"$(BOOST_ROOT)/stage/lib",
-			"$(DEVPATH)/glew/lib/Release/Win32",
-			"$(DEVPATH)/SDL203/lib/x86"
-			--"$(DEVPATH)/freetype/objs/win32/vc2010" need to update this if needed.
+			"$(BOOST_ROOT)/stage/lib";
+			"$(DEVPATH)/glew/lib/Release/Win32";
+			"$(DEVPATH)/SDL203/lib/x86";
+			--"$(DEVPATH)/freetype/objs/win32/vc2010"; need to update this if needed.
 		}
 		
 	end
@@ -64,12 +65,12 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 	
 	-- include directories --------------------------------
 	includedirs {
-		"source/",
-		"libsource/",
-		"$(BOOST_ROOT)",
-		"source/pch",
-		"$(DEVPATH)/libs/include",
-		"protocol/compiled"
+		"source/";
+		"libsource/";
+		"$(BOOST_ROOT)";
+		"source/pch";
+		"$(DEVPATH)/libs/include";
+		"protocol/compiled";
 	}
 	
 	if p_kind == "WindowedApp" then
@@ -180,7 +181,7 @@ project_path = CreateProject( "test2", "TEST2", "WindowedApp", true )
 		"source/video/shaders/*.cpp",
 		"source/pch/*.cpp",
 		"source/debug/*.cpp",
-		"source/ui/*.cpp",
+		"source/ui/**.cpp",
 		"source/main_test2.cpp",
 		
 		"libsource/stb_image.c",

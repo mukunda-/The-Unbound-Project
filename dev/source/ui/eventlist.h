@@ -9,6 +9,8 @@ namespace Ui {
 /** ---------------------------------------------------------------------------
  * A buffer and preprocessor for SDL input events.
  */
+
+	/*
 class EventList final {
 
 	std::vector<SDL_Event> m_list;
@@ -16,7 +18,7 @@ class EventList final {
 public:
 
 	void Push( const SDL_Event &sdlevent );
-};
+};*/
 
 }
 

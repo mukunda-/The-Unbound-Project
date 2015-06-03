@@ -1,35 +1,44 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
 namespace Graphics {
 	 
-// a simple dynamic buffer that can
-// transfer its contents into a VertexBuffer
-//---------------------------------------------------------------------------------------
-template <typename TVertexFormat>
+/** ---------------------------------------------------------------------------
+ * A simple dynamic buffer that can
+ * transfer its contents into a VertexBuffer
+ * 
+ * @param T Vertex format.
+ */
+template <typename T>
 class VertexStream {
 
-	std::vector<TVertexFormat> data;
+	std::vector<T> data;
 public:
 
 	virtual ~VertexStream() {}
 
-	// RESET
+	/** -----------------------------------------------------------------------
+	 * Reset the buffer.
+	 */
 	void Clear() {
 		data.clear();
 	}
-
-	// PUSH VERTEX
-	void Push( const TVertexFormat &vert ) {
+	
+	/** -----------------------------------------------------------------------
+	 * Add a vertex.
+	 */
+	void Push( const T &vert ) {
 		data.push_back(vert);
 	}
-
-	// LOAD INTO VERTEX BUFFER
+	
+	/** -----------------------------------------------------------------------
+	 * Copy result into a vertex buffer.
+	 */
 	void Load( Video::VertexBuffer &buffer ) {
-		buffer.Load( (void*)data.data(), (int)data.size() * sizeof( TVertexFormat ) );
+		buffer.Load( (void*)data.data(), (int)data.size() * sizeof( T ) );
 	}
 };
 

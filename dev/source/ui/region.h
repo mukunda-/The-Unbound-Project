@@ -182,6 +182,11 @@ protected:
 
 	Region( const Stref &name );
 
+	/** ----------------------------------------------------------------------
+	 * Render this region.
+	 */
+	virtual void Draw();
+
 public:
 	~Region();
 
@@ -375,6 +380,11 @@ public:
 	 * Normally not needed to be called directly.
 	 */
 	void Compute();
+
+	/** -----------------------------------------------------------------------
+	 * Returns true if the computed area is valid.
+	 */
+	bool Valid() { return m_computed_valid; }
 };
 
 }

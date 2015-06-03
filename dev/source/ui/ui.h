@@ -20,6 +20,11 @@ namespace Ui {
 //using EventHandler = std::function< bool( const Event & ) >;
 
 /** ---------------------------------------------------------------------------
+ * Draw the UI.
+ */
+void Draw();
+
+/** ---------------------------------------------------------------------------
  * Handle an input event from SDL.
  *
  * @param event SDL event to handle.
@@ -144,6 +149,8 @@ public:
 				return new T( name, args... );
 			});
 	}
+
+	void Draw();
 };
  
 /** ---------------------------------------------------------------------------

@@ -36,16 +36,16 @@ private:
 	Video::VertexBuffer::ptr m_vbo;
 
 	/** -----------------------------------------------------------------------
-	* Output the current graphics element being built and start a new one.
-	*
-	* @param mat Material to use for the new element.
-	* @param sort sorting order for the new element.
-	*/
+	 * Output the current graphics element being built and start a new one.
+	 *
+	 * @param mat Material to use for the new element.
+	 * @param sort sorting order for the new element.
+	 */
 	void Split( const Graphics::MaterialPtr &mat, int sort );
 		
 	/** -----------------------------------------------------------------------
-	* Output the current element being built and reset the pointer.
-	*/
+	 * Output the current element being built and reset the pointer.
+	 */
 	void OutputElement();
 
 public:
@@ -55,22 +55,22 @@ public:
 	virtual ~Builder();
 
 	/** -----------------------------------------------------------------------
-	* Start a new sub-element in this stream.
-	*
-	* @param mat Material to use for rendering the upcoming vertice.s
-	* @param sort sorting order when rendering this object
-	*/
+ 	 * Start a new sub-element in this stream.
+	 *
+	 * @param mat Material to use for rendering the upcoming vertice.s
+	 * @param sort sorting order when rendering this object
+	 */
 	void New( const Graphics::MaterialPtr &mat, int sort = 0 );
 
 	/** -----------------------------------------------------------------------
-	* Finish is called after all elements are done being loaded, to 
-	* output the final element being worked on and load the vertex buffer.
-	*/
+	 * Finish is called after all elements are done being loaded, to 
+	 * output the final element being worked on and load the vertex buffer.
+	 */
 	void Finish();
 
 	/** -----------------------------------------------------------------------
-	* Add a vertex to the current element.
-	*/
+	 * Add a vertex to the current element.
+	 */
 	void AddVertex( float x, float y, float u, float v, 
 		            uint8_t r, uint8_t g, uint8_t b, uint8_t a ) {
 
@@ -81,8 +81,8 @@ public:
 	}
 		
 	/** -----------------------------------------------------------------------
-		* Add a white vertex to the current element.
-		*/
+	 * Add a white vertex to the current element.
+	 */
 	void AddVertex( float x, float y, float u, float v  ) {
 
 		m_vertex_data.Push( 

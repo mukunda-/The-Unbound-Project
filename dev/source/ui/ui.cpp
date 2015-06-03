@@ -17,9 +17,10 @@
 #include "console/console.h"
 #include "video/events.h"
 
+//-----------------------------------------------------------------------------
 namespace Ui {
 
-//-------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 MouseButton ConvertSDLButton( int sdl_button ) {
 	// convert sdl event mouse button index into our button index
 
@@ -391,14 +392,21 @@ void Instance::OnRegionDeleted( Region &r ) {
 }
 
 //-----------------------------------------------------------------------------
+void Instance::Draw() {
+
+	for( auto &r : m_regions ) {
+		r->Draw();
+	}
+}
+
+//-----------------------------------------------------------------------------
 void RenderText( Graphics::FontMaterial &f, int s, int h, int x, int y, const Stref &t ) 
                                        { g_ui->RenderText( f, s, h, 0, x, y, t, 1.0 ); }
 void EndRendering()                    { g_ui->EndRendering();                         }
 void SetupScreen( int w, int h )       { g_ui->SetupScreen( w, h );                    }
 Instance &GetInstance()                { return *g_ui;                                 }
-
-//bool HandleEvent( const SDL_Event &e ) { return g_ui->HandleInputEvent( e );           }
-
+void Draw()                            { g_ui->Draw();                                 }
+bool HandleInputEvent( const SDL_Event &e ) { return g_ui->HandleInputEvent( e );      }
 
 //-----------------------------------------------------------------------------
 }
