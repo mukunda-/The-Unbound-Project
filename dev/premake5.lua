@@ -192,7 +192,9 @@ project_path = CreateProject( "test2", "TEST2", "WindowedApp", true )
 		"libsource/hash/*.c",
 		"libsource/hash/*.cpp",
 		
-		"protocol/compiled/**.cc"
+		"protocol/compiled/**.cc",
+		
+		"glsl/**.glsl"
 	}
 
 project_path = CreateProject( "master", "MASTER", "ConsoleApp", true )

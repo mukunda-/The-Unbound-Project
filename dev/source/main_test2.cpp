@@ -69,29 +69,8 @@ void Test::DoTick() {
 		if( e.type == SDL_QUIT ) {
 			quit = true;
 		}
-
-		int count = 0;
-		if( e.type == SDL_MOUSEMOTION ) {
-			mx = e.motion.x;
-			my = e.motion.y;
-			count++;
-		//	Console::Print( "motion: %4d %4d", e.motion.x, e.motion.y );
-		}
-
-		Console::Print( "motion: %d", count );
-
-		if( e.type == SDL_MOUSEBUTTONDOWN ) {
-			Console::Print( "button: %4d %4d", e.button.x, e.button.y );
-			if( e.button.x != mx || e.button.y != my ) {
-				Console::Print( "Button/Motion mismatch" );
-			}
-		}
-		if( e.type == SDL_MOUSEBUTTONUP ) {
-			Console::Print( "button: %4d %4d", e.button.x, e.button.y );
-			if( e.button.x != mx || e.button.y != my ) {
-				Console::Print( "Button/Motion mismatch" );
-			}
-		}
+		 
+		Ui::HandleInputEvent( e );
 	}
 
 	if( quit ) {

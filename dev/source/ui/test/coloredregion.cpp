@@ -2,20 +2,17 @@
 //                                                                           //
 //========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
-#include "ui/region.h"
+#include "stdafx.h"
+#include "coloredregion.h"
+
 
 //-----------------------------------------------------------------------------
 namespace Ui {
 
-class ColoredRegion : public Region {
-	friend class Instance;
+ColoredRegion::ColoredRegion( const Stref &name ) : Region( name ) {}
 
-protected:
-	void Draw() override;
-
-public:
-	
-	ColoredRegion( const Stref &name );
-};
+void ColoredRegion::Draw() {
+	Ui::DrawBox( 
+}
 
 }

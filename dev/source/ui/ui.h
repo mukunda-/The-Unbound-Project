@@ -34,19 +34,6 @@ void Draw();
 bool HandleInputEvent( const SDL_Event &event );
 
 /** ---------------------------------------------------------------------------
- * Render text onto the screen.
- *
- * @param font   Font to use.
- * @param sort   Z order.
- * @param height Height of font to use.
- * @param x      X pixel offset.
- * @param y      Y pixel offset.
- * @param text   Text to render.
- */
-void RenderText( Graphics::FontMaterial &font, int sort, int height, 
-	             int x, int y, const Stref &text );
-
-/** ---------------------------------------------------------------------------
  * Set the screen dimensions.
  *
  * Call after initializing the video/window.

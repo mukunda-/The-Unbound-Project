@@ -16,9 +16,9 @@ namespace Mem { namespace Arena {
 	
 	//-------------------------------------------------------------------------
 	Chunk::~Chunk() {
-		if( m_references ) {
-			throw std::runtime_error( "Tried to delete arena chunk in use." );
-		}
+		assert( m_references == 0 ); // make sure we aren't accidentally 
+		                            //  deleting chunks in use.
+		
 	}
 	
 	//-------------------------------------------------------------------------
