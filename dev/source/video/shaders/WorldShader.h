@@ -22,29 +22,29 @@ class WorldShader : public Shader {
 
 
 	// uniforms
-	GLint u_pattern_sampler;
-	GLint u_noise_sampler;
-	GLint u_global_translation;
-	GLint u_camera;
-	GLint u_skylight_color;
-	GLint u_skylight_intensity;
-	GLint u_fog_distance;
-	GLint u_fog_length;
+	Svar u_pattern_sampler;
+	Svar u_noise_sampler;
+	Svar u_global_translation;
+	Svar u_camera;
+	Svar u_skylight_color;
+	Svar u_skylight_intensity;
+	Svar u_fog_distance;
+	Svar u_fog_length;
 
-	GLint u_texture_sampler;
-	GLint u_texture_translation;
-	GLint u_opacity;
-	GLint u_fog_color;
+	Svar u_texture_sampler;
+	Svar u_texture_translation;
+	Svar u_opacity;
+	Svar u_fog_color;
 
-	GLint u_light_brightness;
-	GLint u_light_colors;
-	GLint u_light_positions;
+	Svar u_light_brightness;
+	Svar u_light_colors;
+	Svar u_light_positions;
 
 	// vertex attributes
-	GLint a_instance_translation;
-	GLint a_instance_form;
-	GLint a_instance_texture;
-	GLint a_instance_color;
+	Svar a_instance_translation;
+	Svar a_instance_form;
+	Svar a_instance_texture;
+	Svar a_instance_color;
 	
 public:
 	WorldShader( const char *name );

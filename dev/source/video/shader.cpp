@@ -124,11 +124,11 @@ void Shader::Link() {
 	for( auto sv : m_variables ) { 
 			
 		if( sv.type == Variable::UNIFORM ) {
-			*(sv.target) = glGetUniformLocation( ProgramID(), sv.name );
+			sv.target = glGetUniformLocation( ProgramID(), sv.name );
 			//uniforms.push_back( uniform_id ); not used.
 		} else if( sv.type == Variable::ATTRIBUTE ) {
 			GLint attribute_id = glGetAttribLocation( ProgramID(), sv.name );
-			*(sv.target) = attribute_id;
+			sv.target = attribute_id;
 			for( int i = 0; i < sv.matrix; i++ ) {
 			
 				m_attributes.push_back( attribute_id+i );
@@ -144,7 +144,7 @@ void Shader::Link() {
 }
 
 //-----------------------------------------------------------------------------
-void Shader::AddAttribute( GLint &target, const Stref &name, 
+void Shader::AddAttribute( int &target, const Stref &name, 
 	                       int divisor, int matrix ) {
 
 	m_variables.push_back(

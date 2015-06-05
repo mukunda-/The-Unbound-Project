@@ -22,12 +22,12 @@ class SurfaceMixer : public Shader {
 
 private:
 	
-	GLint a_position;
+	Svar a_position;
 
-	GLint u_sampler1;
-	GLint u_sampler2;
+	Svar u_sampler1;
+	Svar u_sampler2;
 	
-	GLint u_alpha;
+	Svar u_alpha;
 
 public:
 	SurfaceMixer( const char *name );

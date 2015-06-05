@@ -32,12 +32,12 @@ void Ui::SetVertexAttributePointers( int offset, int set ) {
 }
 
 //-----------------------------------------------------------------------------
-void LoadKernel( Video::Shader::Kernel &pkernel ) {
+void Ui::LoadKernel( Video::Shader::Kernel &pkernel ) {
 	Kernel &kernel = dynamic_cast<Kernel&>( pkernel ); 
 }
 
 //-----------------------------------------------------------------------------
-std::shared_ptr<Shader::Kernel> CreateKernel() { 
+auto Ui::CreateKernel() -> std::shared_ptr<Shader::Kernel> { 
 	return std::make_shared<Kernel>( 
 		std::static_pointer_cast<const KernelMap>( m_kernelmap ));
 }

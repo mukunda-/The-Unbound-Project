@@ -23,7 +23,8 @@ public:
 		
 		void ResetToDefault() override {}
 		
-		Kernel( std::shared_ptr<const KernelMap> &map ) : Shader::Kernel( map ) {
+		Kernel( std::shared_ptr<const KernelMap> &map ) 
+			: Shader::Kernel( map ) {
 			
 		}
 	};
@@ -31,10 +32,10 @@ public:
 	//-------------------------------------------------------------------------
 private:
 	
-	GLint u_sampler;
-	GLint a_position;
-	GLint a_texcoord;
-	GLint a_color;
+	Svar u_sampler;
+	Svar a_position;
+	Svar a_texcoord;
+	Svar a_color;
 
 	std::shared_ptr<KernelMap> m_kernelmap;
 

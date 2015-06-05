@@ -118,6 +118,9 @@ public:
 		             int stroke, int x, int y, const Stref &text, 
 					 float scale );
 
+	void RenderBox( const Graphics::MaterialPtr &mat, int sort,
+	                int x, int y, int width, int height );
+
 	void EndRendering();
 
 	Region *PickRegion( const ivec2 &pos );

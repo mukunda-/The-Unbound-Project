@@ -8,6 +8,8 @@
 //-----------------------------------------------------------------------------
 namespace Ui {
 
+extern Instance *g_ui;
+
 //-----------------------------------------------------------------------------
 void Instance::RenderText( const Graphics::FontMaterial &font, int sort, 
 						   int height, int stroke, int x, int y,

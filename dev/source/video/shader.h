@@ -22,10 +22,12 @@ class Shader {
 
 public:
 	class Kernel;
+
+	// shader variable index
+	using Svar = GLint;
 	
 protected:
-
-
+	 
 	/** -----------------------------------------------------------------------
 	 * A KernelMap maps names to parameter handling functions.
 	 */
@@ -115,16 +117,15 @@ private:
 		char  name[64];
 		short divisor; // attribute only
 		short matrix;  // attribute only
-		GLint *target;
+		Svar &target;
 		 
-		Variable( Type ptype, GLint &ptarget, const Stref &pname, 
-			      short pdivisor=0, short pmatrix=1 ) {
+		Variable( Type ptype, Svar &ptarget, const Stref &pname, 
+			      short pdivisor=0, short pmatrix=1 ) : target(ptarget) {
 
 			type = ptype;
 			Util::CopyString( name, *pname );
 			divisor = pdivisor;
 			matrix = pmatrix;
-			target = &ptarget;
 		} 
 	}; 
 
@@ -167,7 +168,7 @@ private:
 
 	// list of attributes, we keep this as a separate list for
 	// easy access when enabling/disabling the arrays
-	std::vector<GLint> m_attributes;
+	std::vector<Svar> m_attributes;
 	
 	// program ID of shader
 	GLuint m_program;
@@ -220,7 +221,7 @@ protected:
 	 * @param divisor Divisor used for instanced rendering.
 	 * @param matrix  Number of rows the variable has (if it is a matrix)
 	 */
-	void AddAttribute( GLint &target, const Stref &name, 
+	void AddAttribute( Svar &target, const Stref &name, 
 					   int divisor = 0, int matrix = 1 );
 	
 	/** -----------------------------------------------------------------------
@@ -231,7 +232,7 @@ protected:
 	 * @param target  Member variable to store the index for later access.
 	 * @param name    Name of the variable in the shader.
 	 */
-	void AddUniform( GLint &target, const Stref &name );
+	void AddUniform( Svar &target, const Stref &name );
 
 	/** -----------------------------------------------------------------------
 	 * Enable or disable the vertex attributes for this shader.
