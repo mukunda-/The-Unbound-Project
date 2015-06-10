@@ -20,7 +20,7 @@ namespace Video { namespace Shaders {
 //-------------------------------------------------------------------------------------------------
 class WorldShader : public Shader {
 
-
+	
 	// uniforms
 	Svar u_pattern_sampler;
 	Svar u_noise_sampler;
