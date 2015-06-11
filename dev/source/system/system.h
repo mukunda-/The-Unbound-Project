@@ -319,7 +319,7 @@ public:
 	Service &GetService() { return m_service; }
 	void Log( const Stref &message );
 	void LogError( const Stref &message );
-	
+
 	EventInterface &Events() { return *m_events; }
 
 private:

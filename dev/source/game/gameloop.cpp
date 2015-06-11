@@ -9,7 +9,9 @@
 namespace Game {
 
 //-------------------------------------------------------------------------------
-GameLoop::GameLoop( double refresh_rate ) : m_rate( refresh_rate ) {
+GameLoop::GameLoop( double refresh_rate ) : m_rate( refresh_rate ), m_timer(  {
+
+	
 
 }
 
