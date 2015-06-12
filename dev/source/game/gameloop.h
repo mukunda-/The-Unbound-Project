@@ -31,18 +31,24 @@ public:
 	GameLoop( double refresh_rate );
 	virtual ~GameLoop();
 
-	void Reset( float refresh_rate );
+	/** -----------------------------------------------------------------------
+	 * Start the game loop. The handlers will be called periodically.
+	 */
+	void Start();
 
 	//-------------------------------------------------------------------------
 private:
 	
-	double m_freq;
+	double m_rate;
 	double m_period;
 	int    m_period_us;
 	bool   m_main;
 	Timer  m_timer;
 
 	Clock::time_point m_next_tick;
+
+	// to stop the game loop, return false in the tick handler
+	void Stop();
 
 };
 
