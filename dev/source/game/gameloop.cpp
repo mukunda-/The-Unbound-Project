@@ -28,13 +28,14 @@ void GameLoop::Start() {
 
 	bool main_thread = m_main;
 
-	m_timer.async_wait( [&]
+	m_timer.async_wait( [&]( const boost::system::error_code &err ) {
+
+	});
 }
 
 //-----------------------------------------------------------------------------
 void GameLoop::Stop() {
-
-
+	
 }
 
 }
