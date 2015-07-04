@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "commands.h"
@@ -16,11 +16,12 @@ extern Main *g_main;
 
 namespace Commands {
 
-	/** ---------------------------------------------------------------------------
+	/** -----------------------------------------------------------------------
 	 * An Instance is created per each unique command name.
 	 *
-	 * An Instance contains one or more command handlers. When a command is issued
-	 * the instance passes the command string to all of the handlers in a sequence.
+	 * An Instance contains one or more command handlers. When a command is 
+	 * issued the instance passes the command string to all of the handlers 
+	 * in a sequence.
 	 *
 	 * The handlers have a choice to break the execution sequence.
 	 */
@@ -40,7 +41,7 @@ namespace Commands {
 		using ptr = std::shared_ptr<Instance>;
 	
 
-		/** -----------------------------------------------------------------------
+		/** -------------------------------------------------------------------
 		 * Add a new handler.
 		 *
 		 * Handlers are execute in a sequence when a command fires.
@@ -63,7 +64,7 @@ namespace Commands {
 	public:
 		~Instance();
 
-		/** -----------------------------------------------------------------------
+		/** -------------------------------------------------------------------
 		 * Construct a new instance.
 		 *
 		 * @param name Name of command, the command trigger.
@@ -171,7 +172,7 @@ namespace Commands {
 	}
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Command::Command( const Stref &name, const Stref &desc, 
 				  Handler handler, bool high_priority ) {
 
@@ -180,22 +181,22 @@ Command::Command( const Stref &name, const Stref &desc,
 	m_inst = Commands::Instance::Create( name, *this, desc, high_priority );
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Command::~Command() {
 	m_inst->RemoveHandler( *this );
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Command::Execute( Util::ArgString &args ) {
 	m_handler( args );
 }
 	
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool ExecuteCommand( const Stref &command_string ) {
 	return g_main->TryExecuteCommand( command_string );
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool Main::TryExecuteCommand( const Stref &command_string ) {
 
 	char name[64];
@@ -208,14 +209,15 @@ bool Main::TryExecuteCommand( const Stref &command_string ) {
 	return true;
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void AddGlobalCommand( const Stref &name, const Stref &desc, 
 					   Command::Handler handler, bool high_priority ) {
 	
-	g_main->SaveCommand( Command::Create( name, desc, handler, high_priority ));
+	g_main->SaveCommand( 
+		Command::Create( name, desc, handler, high_priority ));
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Commands::InstancePtr Main::FindCommandInstance( const Stref &name ) {
 	try {
 		return m_command_map.at( name )->shared_from_this();
@@ -223,9 +225,10 @@ Commands::InstancePtr Main::FindCommandInstance( const Stref &name ) {
 	return nullptr;
 }
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Main::SaveCommand( CommandPtr &&cmd ) {
 	m_global_commands.push_back( std::move( cmd ));
 }
 
+//-----------------------------------------------------------------------------
 }
