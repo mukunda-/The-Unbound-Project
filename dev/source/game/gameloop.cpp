@@ -19,11 +19,17 @@ GameLoop::GameLoop( double refresh_rate ) :
 
 //-----------------------------------------------------------------------------
 GameLoop::~GameLoop() {
+
+	assert( !m_active );
 }
 
 //-----------------------------------------------------------------------------
 void GameLoop::Start() {
 	using namespace std::chrono;
+
+	assert( !m_active );
+
+	m_active = true;
 
 	m_next_tick = Clock::now() + microseconds( m_period_us );
 
@@ -32,14 +38,22 @@ void GameLoop::Start() {
 
 	bool main_thread = m_main;
 
-	m_timer.async_wait( [&]( const boost::system::error_code &err ) {
+	m_timer.async_wait( std::bind( &GameLoop::OnTick, this ));
+}
 
-	});
+//-----------------------------------------------------------------------------
+void GameLoop::OnTick( const boost::system::error_code &err ) {
+	assert( !err );
+
+
+	if( 
 }
 
 //-----------------------------------------------------------------------------
 void GameLoop::Stop() {
-	
+	assert( m_active );
+
+
 }
 
 }

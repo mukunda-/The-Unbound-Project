@@ -39,6 +39,7 @@ public:
 	//-------------------------------------------------------------------------
 private:
 	
+	bool   m_active;
 	double m_rate;
 	double m_period;
 	int    m_period_us;
@@ -50,6 +51,7 @@ private:
 	// to stop the game loop, return false in the tick handler
 	void Stop();
 
+	void OnTick( const boost::system::error_code &err );
 };
 
 //-------------------------------------------------------------------------------
