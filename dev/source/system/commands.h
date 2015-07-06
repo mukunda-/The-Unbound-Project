@@ -17,7 +17,7 @@ enum {
 	COMMAND_STOP
 };
 
-/// -----------------------------------------------------------------------
+/// ---------------------------------------------------------------------------
 /// A Command is created for each Command handler existing in the command
 /// execution system.
 ///
@@ -59,7 +59,7 @@ public:
 	Command& operator=( Command& )  = delete;
 	Command& operator=( Command&& ) = delete;
 	
-	/// -------------------------------------------------------------------
+	/// -----------------------------------------------------------------------
 	/// Construct a new Command.
 	///
 	/// @param name    Name of command/the command trigger.
