@@ -45,8 +45,7 @@ void GameLoop::Start() {
 void GameLoop::OnTick( const boost::system::error_code &err ) {
 	assert( !err );
 
-
-	if( 
+	if( err == 
 }
 
 //-----------------------------------------------------------------------------
