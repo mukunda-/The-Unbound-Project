@@ -1,3 +1,4 @@
+
 -------------------------------------------------------------------------------
 --- Project creation helper
 ---   p_name: Actual name of project, eg master
@@ -128,6 +129,9 @@ end
 
 local project_path;
 
+-------------------------------------------------------------------------------
+-- CLIENT - the actual game
+-------------------------------------------------------------------------------
 project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 	defines { "UB_CLIENT" }
 	
@@ -162,6 +166,9 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 	}
 	
 
+-------------------------------------------------------------------------------
+-- TEST2 - client testing environment
+-------------------------------------------------------------------------------
 project_path = CreateProject( "test2", "TEST2", "WindowedApp", true )
 	defines { "UB_CLIENT" }
 	
@@ -197,6 +204,9 @@ project_path = CreateProject( "test2", "TEST2", "WindowedApp", true )
 		"glsl/**.glsl"
 	}
 
+-------------------------------------------------------------------------------
+-- MASTER - server master program
+-------------------------------------------------------------------------------
 project_path = CreateProject( "master", "MASTER", "ConsoleApp", true )
 	defines { "UB_SERVER" }
 	
@@ -213,6 +223,9 @@ project_path = CreateProject( "master", "MASTER", "ConsoleApp", true )
 		"protocol/compiled/**.cc"
 	}
 
+-------------------------------------------------------------------------------
+-- NODE - server node program
+-------------------------------------------------------------------------------
 project_path = CreateProject( "node", "NODE", "ConsoleApp", true )
 	defines { "UB_SERVER" }
 	
@@ -229,6 +242,9 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp", true )
 		"protocol/compiled/**.cc"
 	}
 
+-------------------------------------------------------------------------------
+-- AUTH - authentication server
+-------------------------------------------------------------------------------
 project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 	defines {"UB_SERVER"}
 	
@@ -256,6 +272,9 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 		"libsource/hash/*.cpp"
 	}
 
+-------------------------------------------------------------------------------
+-- TEST - server testing environment
+-------------------------------------------------------------------------------
 project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
 	defines {"UB_TESTING"}
 	
@@ -277,7 +296,10 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
 		"protocol/compiled/**.cc",
 		"source/**.h"
 	}
-	
+
+-------------------------------------------------------------------------------
+-- rxgserv - misc project
+-------------------------------------------------------------------------------
 project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 	defines {"UB_SERVER"}
 	
@@ -300,6 +322,9 @@ project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 		"source/**.h"
 	}
 	 
+-------------------------------------------------------------------------------
+-- UNIT - unit testing suite
+-------------------------------------------------------------------------------
 project_path = CreateProject( "unit", "UNIT", "ConsoleApp", true )
 	defines {"UB_TESTING"}
 	
