@@ -211,8 +211,8 @@ void Game::Run() {
 
 		std::string build_string = "Unbound Development Build - ";
 		build_string += BUILD_DATE;
-		Gui::RenderText( testfont, 0, 20, 7, 16, build_string.c_str() );
-		Gui::EndRendering();
+		Ui::RenderText( testfont, 0, 20, 7, 16, build_string.c_str() );
+		Ui::EndRendering();
 		  
 		Video::Clear();
 		Graphics::RenderScene(); 
