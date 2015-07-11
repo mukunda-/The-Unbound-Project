@@ -12,6 +12,7 @@
 #include "system/variables.h"
 #include "game/defs.h"
 #include "graphics/material.h"
+#include "ui/ui.h"
 
 #include "game/gamecamera.h"
 

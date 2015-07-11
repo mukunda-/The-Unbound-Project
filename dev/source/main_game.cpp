@@ -25,7 +25,7 @@ INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
 	
 	auto system = std::unique_ptr<System::Main>( new System::Main(4) );
 	System::RegisterModule<Net::Instance>();
-	System::RegisterModule<Video::Instance>( 640,480);
+	System::RegisterModule<Video::Instance>( "testes" );
 	System::RegisterModule<Game::Game>();
 	System::Start();
 	
