@@ -11,9 +11,7 @@ namespace Shaders {
 	 
 //-------------------------------------------------------------------------------------------------
 BackdropShader::BackdropShader() : Shader("backdrop") {
-
-	//AddAttribute( a_position, "position" );
-	//AddUniform( u_sampler, "texture_sampler" );
+	 
 	AddUniform( u_noise_sampler, "noise_sampler" );
 	AddUniform( u_uyrot, "yrot" );
 	AddUniform( u_uxrot, "xrot" );
@@ -39,12 +37,7 @@ void BackdropShader::SetVertexAttributePointers( int offset, int set ) {
 	AttributePosition::VAP( offset, 8 );
 	//glVertexAttribPointer( a_position, 2, GL_FLOAT, GL_FALSE, 8, (void*)offset );
 }
-
-//-------------------------------------------------------------------------------------------------
-//void BackdropShader::SetSampler( int sampler ) {
-//	glUniform1i( u_sampler, sampler );
-//}
-
+ 
 //-------------------------------------------------------------------------------------------------
 void BackdropShader::SetRotation( float angle, float pitch ) {
 	glUniform1f( u_uyrot, angle );
