@@ -43,20 +43,20 @@ public:
 	Value m_value; // current value
 	Value m_prev;  // previous value
 	
-	/// --------------------------------------------------------------------------
-	/// Read the value of this variable.
-	/// 
+	/** -----------------------------------------------------------------------
+	 * Read the value of this variable.
+	 */ 
 	int                GetInt() const     { return m_value.m_int;            }
 	double             GetFloat() const   { return m_value.m_float;          }
 	const std::string &GetString() const  { return m_value.m_string;         }
 	const char        *GetCString() const { return m_value.m_string.c_str(); }
 
-	/// --------------------------------------------------------------------------
-	/// Get the previously set value for this variable.
-	///
-	/// Ideally used when handling a value change and comparing with the
-	/// new value.
-	///
+	/** -----------------------------------------------------------------------
+	 * Get the previously set value for this variable.
+	 *
+	 * Ideally used when handling a value change and comparing with the
+	 * new value.
+	 */
 	int                PreviousInt() const    { return m_prev.m_int;    }
 	double             PreviousFloat() const  { return m_prev.m_float;  }
 	const std::string &PreviousString() const { return m_prev.m_string; }
