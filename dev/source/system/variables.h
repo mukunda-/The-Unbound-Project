@@ -83,13 +83,13 @@ public:
 	 */
 	int HookChange( ChangeHandler callback );
 
-	/// -----------------------------------------------------------------------
-	/// Remove an "on-change" handler.
-	///
-	/// This cannot be used during an on-changed callback.
-	///
-	/// @param callback ID that was returned from HookChange.
-	///
+	/** -----------------------------------------------------------------------
+	 * Remove an "on-change" handler.
+	 *
+	 * This cannot be used during an on-changed callback.
+	 *
+	 * @param callback ID that was returned from HookChange.
+	 */
 	void UnhookChange( int id );
 	
 	/// -----------------------------------------------------------------------
