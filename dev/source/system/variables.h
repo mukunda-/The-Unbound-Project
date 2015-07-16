@@ -61,26 +61,26 @@ public:
 	double             PreviousFloat() const  { return m_prev.m_float;  }
 	const std::string &PreviousString() const { return m_prev.m_string; }
 
-	/// --------------------------------------------------------------------------
-	/// Set the value of this variable.
-	///
-	/// @param value Value to set.
-	///
-	/// @returns true if the value of the variable was changed.
-	///
+	/** -----------------------------------------------------------------------
+	 * Set the value of this variable.
+	 *
+	 * @param value Value to set.
+	 *
+	 * @returns true if the value of the variable was changed.
+	 */
 	bool SetInt( int value );
 	bool SetFloat( double value );
 	bool SetString( const Util::StringRef &value );
 	
-	/// -----------------------------------------------------------------------
-	/// Add an "on-change" handler.
-	///
-	/// When this variable is changed, your callback will be triggered.
-	///
-	/// @param callback Callback function to add to the on-changed 
-	///                 handler list.
-	/// @returns Handle for unhooking later.
-	///
+	/* -----------------------------------------------------------------------
+	 * Add an "on-change" handler.
+	 *
+	 * When this variable is changed, your callback will be triggered.
+	 *
+	 * @param callback Callback function to add to the on-changed 
+	 *                 handler list.
+	 * @returns Handle for unhooking later.
+	 */
 	int HookChange( ChangeHandler callback );
 
 	/// -----------------------------------------------------------------------
