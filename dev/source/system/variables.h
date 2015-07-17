@@ -144,26 +144,26 @@ private:
   
 namespace Variables {
 
-	/// -----------------------------------------------------------------------
-	/// Create a new system variable.
-	/// 
-	/// This checks for an existing variable first and simply returns it if so.
-	/// If it doesnt exist, a new variable is created and initialized with the 
-	/// arguments given.
-	///
-	/// @param name Name of variable to create. The name is used to reference
-	///             the variable later on. 
-	///
-	/// @param default_value Value to initialize the variable with. Only used
-	///                      when a new variable is created.
-	///
-	/// @param description Description to assign to the variable. Only used
-	///                    when a new variable is created.
-	///
-	/// @param flags Creation flags (reserved for later use)
-	///
-	/// @return Existing Variable or newly created Variable.
-	///
+	/** -----------------------------------------------------------------------
+	 * Create a new system variable.
+	 * 
+	 * This checks for an existing variable first and simply returns it if so.
+	 * If it doesnt exist, a new variable is created and initialized with the 
+	 *  arguments given.
+	 * 
+	 *  @param name Name of variable to create. The name is used to reference
+	 *              the variable later on. 
+	 * 
+	 *  @param default_value Value to initialize the variable with. Only used
+	 *                       when a new variable is created.
+	 * 
+	 *  @param description Description to assign to the variable. Only used
+	 *                     when a new variable is created.
+	 * 
+	 *  @param flags Creation flags (reserved for later use)
+	 * 
+	 *  @return Existing Variable or newly created Variable.
+	 */
 	Variable &Create( const Util::StringRef &name, 
 					  const Util::StringRef &default_value = "",
 					  const Util::StringRef &description = "",
