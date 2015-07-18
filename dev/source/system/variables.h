@@ -169,13 +169,13 @@ namespace Variables {
 					  const Util::StringRef &description = "",
 					  int flags = 0 );
 
-	/// -----------------------------------------------------------------------
-	/// Delete a variable.
-	///
-	/// @param name Name of variable to delete
-	/// @returns true if a variable was deleted. false if the name was not
-	///          registered.
-	///
+	/** -----------------------------------------------------------------------
+	 * Delete a variable.
+	 *
+	 * @param name Name of variable to delete
+	 * @returns true if a variable was deleted. false if the name was not
+	 *          registered.
+	 */
 	bool Delete( const Util::StringRef &name );
 
 	/// -----------------------------------------------------------------------
