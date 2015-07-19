@@ -1,6 +1,6 @@
 //============================  The Unbound Project  ==========================//
 //                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//========== Copyright © 2015, Mukunda Johnson, All rights reserved. ==========//
 
 #pragma once
 
@@ -12,9 +12,9 @@ namespace Tests { class SystemTests; }
 
 namespace System {  
 
-/// ---------------------------------------------------------------------------
-/// Base for a class that holds a system variable.
-///
+/** ---------------------------------------------------------------------------
+ * Base for a class that holds a system variable.
+ */
 class Variable {
 
 public:
@@ -92,15 +92,15 @@ public:
 	 */
 	void UnhookChange( int id );
 	
-	/// -----------------------------------------------------------------------
-	/// Return the name of this variable.
-	///
+	/** -----------------------------------------------------------------------
+	 * Return the name of this variable.
+	 */
 	std::string Name() { return m_name; }
 	std::string Description() { return m_description; }
 	
-	/// -----------------------------------------------------------------------
-	/// Print the name and description of this variable to the console.
-	///
+	/** -----------------------------------------------------------------------
+	 * Print the name and description of this variable to the console.
+	 */
 	void PrintInfo();
 
 	//-------------------------------------------------------------------------
