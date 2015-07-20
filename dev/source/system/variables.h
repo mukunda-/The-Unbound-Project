@@ -178,12 +178,12 @@ namespace Variables {
 	 */
 	bool Delete( const Util::StringRef &name );
 
-	/// -----------------------------------------------------------------------
-	/// Find a variable.
-	///
-	/// @param name Name of variable
-	/// @returns Variable or nullptr if none exists.
-	///
+	/** -----------------------------------------------------------------------
+	 * Find a variable.
+	 *
+	 * @param name Name of variable
+	 * @returns Variable or nullptr if none exists.
+	 */
 	Variable *Find( const Util::StringRef &name );
 }
 
