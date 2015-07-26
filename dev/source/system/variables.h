@@ -72,13 +72,14 @@ public:
 	bool SetFloat( double value );
 	bool SetString( const Util::StringRef &value );
 	
-	/* -----------------------------------------------------------------------
+	/* ------------------------------------------------------------------------
 	 * Add an "on-change" handler.
 	 *
 	 * When this variable is changed, your callback will be triggered.
 	 *
 	 * @param callback Callback function to add to the on-changed 
 	 *                 handler list.
+	 *
 	 * @returns Handle for unhooking later.
 	 */
 	int HookChange( ChangeHandler callback );
