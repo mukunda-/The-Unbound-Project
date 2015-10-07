@@ -38,7 +38,10 @@ void GameLoop::Start() {
 
 	bool main_thread = m_main;
 
-	m_timer.async_wait( std::bind( &GameLoop::OnTick, this ));
+	m_timer.async_wait( [&]( const boost::system::error_code &err ) {
+		OnTick( err );
+	});
+
 }
 
 //-----------------------------------------------------------------------------

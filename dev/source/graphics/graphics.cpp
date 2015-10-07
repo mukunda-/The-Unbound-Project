@@ -445,7 +445,9 @@ void draw_sprite( cml::vector3f position, float width, float height, float u1, f
 
 
 //-----------------------------------------------------------------------------
-Instance::Instance() {
+Instance::Instance() 
+		: Module( "graphics", Module::Levels::GL ) {
+
 	assert( g_instance == nullptr );
 	g_instance = this;
 

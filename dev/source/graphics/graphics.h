@@ -13,6 +13,7 @@
 #include "graphics/vertexstream.h"
 #include "video/texture.h"
 #include "forwards.h"
+#include "system/system.h"
 
 //-----------------------------------------------------------------------------
 namespace Graphics {
@@ -262,7 +263,7 @@ void RenderList( Util::SharedList<Element> &list );
 void RenderScene();
 
 //-----------------------------------------------------------------------------
-class Instance final {
+class Instance final : public System::Module {
 	
 	Util::SharedList<Element> m_elements_opaque;
 	Util::SharedList<Element> m_elements_blended;

@@ -8,6 +8,7 @@
 #include "game/game.h"
 #include "video/video.h"
 #include "system/debug_console.h"
+#include "graphics/graphics.h"
 
 #include "net/core.h"
 
@@ -26,6 +27,7 @@ INT WINAPI WinMain( HINSTANCE hinst, HINSTANCE p1, LPSTR p2, INT p3 ) {
 	auto system = std::unique_ptr<System::Main>( new System::Main(4) );
 	System::RegisterModule<Net::Instance>();
 	System::RegisterModule<Video::Instance>( "testes" );
+	System::RegisterModule<Graphics::Instance>();
 	System::RegisterModule<Game::Game>();
 	System::Start();
 	

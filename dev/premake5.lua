@@ -146,6 +146,7 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 		"source/mem/arena/*.cpp",
 		"source/net/*.cpp",
 		"source/system/*.cpp",
+		"source/system/events/*.cpp",
 		"source/util/*.cpp",
 		"source/video/*.cpp",
 		"source/video/shaders/*.cpp",

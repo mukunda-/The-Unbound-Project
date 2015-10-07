@@ -16,10 +16,10 @@ namespace Shaders {
 /** ---------------------------------------------------------------------------
  * A test shader.
  */
-class LineTester :  
+class LineTester :    
+	public Video::Shader,
 	public AttributePosition<LineTester,3>,
-	public ShaderCamera<LineTester>,
-	public Video::Shader {
+	public ShaderCamera<LineTester> {
 
 	friend class AttributePosition<LineTester,3>;
 	friend class ShaderCamera<LineTester>;
