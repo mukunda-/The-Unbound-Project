@@ -23,7 +23,7 @@ MakeButton( 'setup' );
 if( !isset($_POST['action']) ) die();
 
 if( $_POST['action'] == 'setup' ) {
-	$db = \SQLW::Get( $SQL_TEST );
+	$db = \SQLW::Get( $SQL_UNBOUND_TEST );
 	$db->RunQuery( "
 		CREATE TABLE IF NOT EXISTS test1 (
 			col1 INTEGER,

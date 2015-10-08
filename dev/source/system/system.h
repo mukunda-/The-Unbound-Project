@@ -309,7 +309,6 @@ public:
 	bool ExecuteScript( const Stref &file );
 	
 	void Start();
-	void StartI();
 	bool Live() { return m_live; }
 	void Post( std::function<void()> handler, bool main, int delay );
 	void Shutdown( const Stref &reason );
@@ -333,6 +332,8 @@ private:
 	bool AnyModulesBusy();
 	void ShutdownI( const Stref &reason );
 	void SystemEnd();
+
+	void OnFrame();
 
 	friend class Module;
 	friend class Commands::Instance;

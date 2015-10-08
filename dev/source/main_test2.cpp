@@ -44,7 +44,7 @@ void Test::OnStart() {
 	//Ui::SetupScreen( 1000, 800 );
 
 	m_pulse.Reset();
-	DoTick();
+	DoTick(); 
 }
 
 //-----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ void Test::DoTick() {
 void Test::OnShutdown() {
 	RemoveWork();
 }
- 
+
 //-----------------------------------------------------------------------------
 INT WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR, INT ) {
 

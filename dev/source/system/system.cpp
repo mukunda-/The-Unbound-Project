@@ -137,7 +137,20 @@ void Main::RegisterModule( Module *module_ptr ) {
 void Main::Start() { 
 	m_started = true;
 
-	Post( std::bind( &Main::StartI, this ), true, 0 );
+	Post( [&]() {
+		// prepare modules
+		for( auto &i : m_modules ) {
+			i->OnPrepare();
+		}
+
+		// start modules
+		for( auto &i : m_modules ) {
+			i->OnStart();
+		}
+
+		Post( std::bind( &Main::OnFrame, this ), true, 0 );
+
+	}, true, 0 );
 
 	if( m_start_mode == StartMode::DEDICATED_MAIN ) {
 		m_service_main.Join();
@@ -149,44 +162,38 @@ void Main::Start() {
 }
 
 //-----------------------------------------------------------------------------
-void Main::StartI() {
-	
-	// prepare modules
-	for( auto &i : m_modules ) {
-		i->OnPrepare();
-	}
+void Main::OnFrame() {
 
-	// start modules
-	for( auto &i : m_modules ) {
-		i->OnStart();
-	}
+
 }
   
 //-----------------------------------------------------------------------------
 void Main::Shutdown( const Stref &reason ) {
-	Post( std::bind( &Main::ShutdownI, this, reason.Copy() ), true, 0 );
-}
+	std::string reason_copy = reason;
 
-//-----------------------------------------------------------------------------
-void Main::ShutdownI( const Stref &reason ) {
-	if( !m_live ) return; // already shut down.
+	// execute in main strand 
+	Post( [this,reason_copy]() {
+		if( !m_live ) return; // already shut down.
 	
-	::Console::Print( "Shutting down. (%s)", reason );
+		::Console::Print( "Shutting down. (%s)", reason_copy );
 
-	std::lock_guard<std::recursive_mutex> lock(m_mutex);
-	m_live = false;
+		// TODO: why is there a lock here??
+		std::lock_guard<std::recursive_mutex> lock(m_mutex);
+		m_live = false;
 
-	for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
-		(*i)->OnShutdown();
-	} 
+		for( auto i = m_modules.rbegin(); i != m_modules.rend(); i++ ) {
+			(*i)->OnShutdown();
+		} 
 
-	if( m_busy_modules == 0 && !m_system_end_posted ) {
-		// all modules are idle.
-		m_system_end_posted = true;
+		if( m_busy_modules == 0 && !m_system_end_posted ) {
+			// all modules are idle.
+			m_system_end_posted = true;
 
-		Post( std::bind( &Main::SystemEnd, this ), true, 0 );
-	}
+			Post( std::bind( &Main::SystemEnd, this ), true, 0 );
+		}
+	}, true, 0 );
 }
+
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleIdle( Module &module ) {
