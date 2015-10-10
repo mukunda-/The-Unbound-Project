@@ -45,9 +45,9 @@ double Clock::GetTime() {
 
 	// guarantee that we don't return a time sooner than the last.
 	time = Util::Max( time, m_last_time );
-
+	
 	m_last_time = time;
-
+	
 	return time;
 }
 

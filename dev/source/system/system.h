@@ -285,6 +285,8 @@ private:
 	bool m_shutdown_complete = false;
 	bool m_system_end_posted = false;
 
+	Clock m_clock;
+
 	// number of modules that are busy, updated with Module::SetBusy
 	// when shutdown is active, the system waits for this to become zero
 	// before terminating the program.

@@ -68,6 +68,7 @@ void Module::SetBusy( bool busy ) {
 }*/
 
 //-----------------------------------------------------------------------------
+void Module::OnFrame() {}
 void Module::OnLoad() {}
 void Module::OnPrepare() {}
 void Module::OnStart() {}

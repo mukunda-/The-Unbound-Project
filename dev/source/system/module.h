@@ -63,6 +63,11 @@ protected:
 	virtual void OnStart();
 
 	/** -----------------------------------------------------------------------
+	 * Called when the system processes a new frame.
+	 */
+	virtual void OnFrame();
+
+	/** -----------------------------------------------------------------------
 	 * Called when the system is shutting down. This module and any other
 	 * modules will not be destroyed until all are not busy.
 	 */

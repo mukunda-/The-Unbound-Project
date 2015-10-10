@@ -148,6 +148,8 @@ void Main::Start() {
 			i->OnStart();
 		}
 
+		m_clock.Reset();
+
 		Post( std::bind( &Main::OnFrame, this ), true, 0 );
 
 	}, true, 0 );
@@ -164,6 +166,11 @@ void Main::Start() {
 //-----------------------------------------------------------------------------
 void Main::OnFrame() {
 
+	m_time = m_clock.GetTime();
+	
+	for( auto &i : m_modules ) {
+		i->OnFrame();
+	}
 
 }
   
