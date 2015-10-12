@@ -166,12 +166,16 @@ void Main::Start() {
 //-----------------------------------------------------------------------------
 void Main::OnFrame() {
 
+	m_last_time = m_time;
 	m_time = m_clock.GetTime();
 	
 	for( auto &i : m_modules ) {
 		i->OnFrame();
 	}
 
+	if( m_live ) {
+		Post( std::bind( &Main::OnFrame, this ), true, 0 );
+	}
 }
   
 //-----------------------------------------------------------------------------

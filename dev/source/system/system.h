@@ -11,6 +11,7 @@
 #include "forwards.h"
 #include "variables.h"
 #include "service.h"
+#include "clock.h"
 
 namespace System {
  
@@ -286,6 +287,8 @@ private:
 	bool m_system_end_posted = false;
 
 	Clock m_clock;
+	double m_time;
+	double m_last_time;
 
 	// number of modules that are busy, updated with Module::SetBusy
 	// when shutdown is active, the system waits for this to become zero
@@ -320,6 +323,9 @@ public:
 	Service &GetService() { return m_service; }
 	void Log( const Stref &message );
 	void LogError( const Stref &message );
+
+	double GetTime() { return m_time; }
+	double GetLastTime() { return m_last_time; }
 
 	EventInterface &Events() { return *m_events; }
 
