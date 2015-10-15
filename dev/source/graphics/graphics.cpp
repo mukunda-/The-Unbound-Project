@@ -14,10 +14,12 @@ namespace Graphics {
 Instance *g_instance = nullptr;
 
 Element::Element() {
-
+	::Console::DebugPrint( "Element created.", (unsigned long)this );
 }
 
 Element::~Element() {
+	::Console::DebugPrint( "Element destroyed.", (unsigned long)this );
+
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -471,6 +473,7 @@ void Instance::RenderList( Util::SharedList<Element> &list ) {
 	Element::ptr e;
 
 	for( e = list.First(); e; e = next ) {
+		
 		next = e->NextLink<Element>();
 
 		e->GetMaterial()->Bind();
@@ -499,6 +502,7 @@ void Instance::RenderScene() {
 
 	// todo sort ui elements
 	RenderList( m_elements_ui );
+
 }
 
 //-----------------------------------------------------------------------------

@@ -150,7 +150,12 @@ void Main::Start() {
 
 		m_clock.Reset();
 
-		Post( std::bind( &Main::OnFrame, this ), true, 0 );
+		if( m_start_mode != StartMode::PASS ) {
+			// we dont do frame updates in PASS mode
+			// PASS is used for unit testing.
+
+			Post( std::bind(&Main::OnFrame, this) );
+		}
 
 	}, true, 0 );
 
@@ -183,12 +188,14 @@ void Main::Shutdown( const Stref &reason ) {
 	std::string reason_copy = reason;
 
 	// execute in main strand 
-	Post( [this,reason_copy]() {
+	Post( [this, reason_copy]() {
 		if( !m_live ) return; // already shut down.
 	
 		::Console::Print( "Shutting down. (%s)", reason_copy );
 
-		// TODO: why is there a lock here??
+		// we lock here so async access is paused during the
+		// shutdown preparation
+		//
 		std::lock_guard<std::recursive_mutex> lock(m_mutex);
 		m_live = false;
 
@@ -202,9 +209,8 @@ void Main::Shutdown( const Stref &reason ) {
 
 			Post( std::bind( &Main::SystemEnd, this ), true, 0 );
 		}
-	}, true, 0 );
+	});
 }
-
 
 //-----------------------------------------------------------------------------
 void Main::OnModuleIdle( Module &module ) {
@@ -374,6 +380,8 @@ void         Post( std::function<void()> h, bool m, int d )    { g_main->Post( h
 void         RegisterEvent( const Event::Info &i )             { g_main->Events().Register( i );       }
 EventHookPtr HookEvent( const Event::Info &i, EventHandler h ) { return g_main->Events().Hook( i, h ); }
 void         SendEvent( Event &e )                             { g_main->Events().Send( e );           }
+double       Time()                                            { return g_main->GetTime();             }
+double       LastTime()                                        { return g_main->GetLastTime();         }
 
 /*void Join() {g_main->GetService().Join();}*/
  

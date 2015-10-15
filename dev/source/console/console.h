@@ -6,7 +6,9 @@
 
 #include "util/format.h"
 #include "util/stringref.h"
+#include "util/tostring.h"
 
+//-----------------------------------------------------------------------------
 namespace Console {
 
 /// ---------------------------------------------------------------------------
@@ -51,6 +53,22 @@ void PrintEx( const Util::StringRef &format, T...args ) {
 template< typename ... T >
 void PrintErrEx( const Util::StringRef &format, T...args ) {
 	PrintEx( Util::Format( format, args... ));
+}
+
+template< typename T >
+void DebugPrintEx( T text ) {
+	PrintEx( text + "\n" );
+}
+
+template< typename T, typename A, typename ... B >
+void DebugPrintEx( T text, A arg, B...args ) {
+	text = text + " " + Util::ToString( arg );
+	DebugPrintEx( text, args... );
+}
+
+template< typename ... T >
+void DebugPrint( T...args ) {
+	DebugPrintEx( std::string("D"), args ... );
 }
 
 /// ---------------------------------------------------------------------------

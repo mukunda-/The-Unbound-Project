@@ -106,11 +106,21 @@ void Game::OnStart() {
 	test_element->Add();
 
 	mat = Graphics::CreateMaterial( "mymat2", "ui" );
+
+	m_cam.SetPosition( Eigen::Vector3f( 0, 0, 5.0 ) );
+	m_cam.LookAt( Eigen::Vector3f( 0, 0, 0 ) );
+	m_cam.UpdateVideo();
+
+	//m_testfont.LoadFace( "cour.ttf", 20 );
+	//m_testfont.LoadMaterial();
+
+	SDL_SetRelativeMouseMode( SDL_TRUE );
 	
+	Video::Open( 1000, 800 );
 }
 
 //-----------------------------------------------------------------------------
-void Game::Run() {
+void Game::OnFrame() {
 
 	// connect to master
 	/*
@@ -120,106 +130,91 @@ void Game::Run() {
 		*/
 	
 	//Video::Texture::Pointer tex = Video::Texture::New( "test" );	
-	Graphics::FontMaterial testfont;
-	testfont.LoadFace( "cour.ttf", 20 );
-	testfont.LoadMaterial();
-
-
-	GameCamera cam;
-	cam.SetPosition( Eigen::Vector3f( 0, 0, 5.0 ) );
-	cam.LookAt( Eigen::Vector3f( 0, 0, 0 ) );
-	cam.UpdateVideo();
-	
-	float angle = 0.0;
-
-	SDL_SetRelativeMouseMode( SDL_TRUE );
+	//Graphics::FontMaterial testfont;
+	   
 	
 	SDL_Event e;
 	bool quit = false;
-	while (!quit){
-		while (SDL_PollEvent(&e)){
-			if (e.type == SDL_QUIT) {
-				quit = true;
-			}  
 
-			if( e.type == SDL_KEYDOWN ) {
+	while( SDL_PollEvent(&e) ){
+		if( e.type == SDL_QUIT ) {
+			System::Shutdown( "User exited." );
+		}  
+
+		if( e.type == SDL_KEYDOWN ) {
 			
-				// testing various camera orientations
+			// testing various camera orientations
 
-				if( e.key.keysym.scancode == SDL_SCANCODE_Y ) {
-					cam.SetOrientation( Eigen::Vector3f( 1,0,0 ) );
+			if( e.key.keysym.scancode == SDL_SCANCODE_Y ) {
+				m_cam.SetOrientation( Eigen::Vector3f( 1,0,0 ) );
 					 
-				} else if( e.key.keysym.scancode == SDL_SCANCODE_U ) {
-					cam.SetOrientation( Eigen::Vector3f( 0,1,0 ) );
-				} else if( e.key.keysym.scancode == SDL_SCANCODE_I ) {
-					cam.SetOrientation( Eigen::Vector3f( -1,0,0 ) );
-				} else if( e.key.keysym.scancode == SDL_SCANCODE_H ) {
-					cam.SetOrientation( Eigen::Vector3f( 0,0,1 ) );
-				} else if( e.key.keysym.scancode == SDL_SCANCODE_J ) {
-					cam.SetOrientation( Eigen::Vector3f( 0,-1,0 ) );
-				} else if( e.key.keysym.scancode == SDL_SCANCODE_K ) {
-					cam.SetOrientation( Eigen::Vector3f( 0,0,-1 ) );
-				} else if( e.key.keysym.scancode == SDL_SCANCODE_O ) {
-					cam.SetOrientation( Eigen::Vector3f( 1,1,0 ).normalized() );
-				}
+			} else if( e.key.keysym.scancode == SDL_SCANCODE_U ) {
+				m_cam.SetOrientation( Eigen::Vector3f( 0,1,0 ) );
+			} else if( e.key.keysym.scancode == SDL_SCANCODE_I ) {
+				m_cam.SetOrientation( Eigen::Vector3f( -1,0,0 ) );
+			} else if( e.key.keysym.scancode == SDL_SCANCODE_H ) {
+				m_cam.SetOrientation( Eigen::Vector3f( 0,0,1 ) );
+			} else if( e.key.keysym.scancode == SDL_SCANCODE_J ) {
+				m_cam.SetOrientation( Eigen::Vector3f( 0,-1,0 ) );
+			} else if( e.key.keysym.scancode == SDL_SCANCODE_K ) {
+				m_cam.SetOrientation( Eigen::Vector3f( 0,0,-1 ) );
+			} else if( e.key.keysym.scancode == SDL_SCANCODE_O ) {
+				m_cam.SetOrientation( Eigen::Vector3f( 1,1,0 ).normalized() );
 			}
-
-			
 		}
+	}
 
-		
-		int mx, my;
-		SDL_GetRelativeMouseState( &mx, &my );
+	int mx, my;
+	SDL_GetRelativeMouseState( &mx, &my );
 
-		if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_C] ) {
-			mx = 20 ;
-		} 
+	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_C] ) {
+		mx = 20;
+	} 
 		 
-		if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_ESCAPE] ) {
-			quit = true;
+	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_ESCAPE] ) {
+		System::Shutdown( "User exited." );
+	}
 
-		}
+	m_cam.Pan( (float)mx, (float)my );  
 
-		cam.Pan( (float)mx, (float)my );  
+	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_W] ) {
+		m_cam.MoveRel( Eigen::Vector3f( 0.0f, 0.0f, 0.1f ) );
+	
+	} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_S] ) {
+		m_cam.MoveRel( Eigen::Vector3f( 0.0f, 0.0f, -0.1f ) );
+	}
 
-		if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_W] ) {
-			cam.MoveRel( Eigen::Vector3f( 0.0f, 0.0f, 0.1f ) );
-		} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_S] ) {
-			cam.MoveRel( Eigen::Vector3f( 0.0f, 0.0f, -0.1f ) );
-		}
-
-		if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_D] ) {
-			cam.MoveRel( Eigen::Vector3f( 0.1f, 0.0f, 0.0f ) );
-		} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_A] ) {
-			cam.MoveRel( Eigen::Vector3f( -0.1f, 0.0f, 0.0f ) );
-		}
+	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_D] ) {
+		m_cam.MoveRel( Eigen::Vector3f( 0.1f, 0.0f, 0.0f ) );
+	} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_A] ) {
+		m_cam.MoveRel( Eigen::Vector3f( -0.1f, 0.0f, 0.0f ) );
+	}
 		
-		if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Q] ) {
-			cam.MoveRel( Eigen::Vector3f( 0.0f, 0.1f, 0.0f ) );
-		} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Z] ) {
-			cam.MoveRel( Eigen::Vector3f( 0.0f, -0.1f, 0.0f ) );
-		}
+	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Q] ) {
+		m_cam.MoveRel( Eigen::Vector3f( 0.0f, 0.1f, 0.0f ) );
+	} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Z] ) {
+		m_cam.MoveRel( Eigen::Vector3f( 0.0f, -0.1f, 0.0f ) );
+	}
 
-		if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_R] ) {
-			cam.Rotate( Eigen::Vector3f(0.0f, 0.0f, -0.01f) );
-		} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] ) {
-			cam.Rotate( Eigen::Vector3f(0.0f, 0.0f, 0.01f) );
-		}
+	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_R] ) {
+		m_cam.Rotate( Eigen::Vector3f(0.0f, 0.0f, -0.01f) );
+	} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_T] ) {
+		m_cam.Rotate( Eigen::Vector3f(0.0f, 0.0f, 0.01f) );
+	}
 
-		cam.OnTick();  
-		cam.UpdateVideo();
-		//Render the scene
+	m_cam.OnTick();  
+	m_cam.UpdateVideo();
+	//Render the scene
 
-		std::string build_string = "Unbound Development Build - ";
-		build_string += BUILD_DATE;
+	std::string build_string = "Unbound Development Build - ";
+	build_string += BUILD_DATE;
 //		Ui::RenderText( testfont, 0, 20, 7, 16, build_string.c_str() );
 //		Ui::EndRendering();
 		  
-		Video::Clear();
-		Graphics::RenderScene(); 
-		Video::Swap();
-		 
-	}
+	Video::Clear();
+	Graphics::RenderScene(); 
+	Video::Swap();
+	
 }
 
 }

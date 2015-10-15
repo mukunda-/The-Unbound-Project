@@ -13,6 +13,8 @@
 #include "system/variables.h"
 #include "system/module.h"
 
+#include "gamecamera.h"
+
 namespace Game {
 
 /// ---------------------------------------------------------------------------
@@ -22,6 +24,10 @@ class Game : public System::Module {
 	  
 	System::Variable &cl_master_address;
 
+	GameCamera m_cam;
+
+	//Graphics::font_material 
+//
 //	Network::Connection m_net_master;
 	
 public:
@@ -30,6 +36,7 @@ public:
 
 	//void OnLoad() override;
 	void OnStart() override;
+	void OnFrame() override;
 	//void OnShutdown() override;
 
 	void Run();

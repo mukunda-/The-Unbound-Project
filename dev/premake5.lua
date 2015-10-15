@@ -86,15 +86,15 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 	-------------------------------------------------------
 	if p_64bit then
 		libdirs {
-			"$(DEVPATH)/libs/vs12/debug/x64",
-			"$(DEVPATH)/libs/vs12/release/x64"
+			"$(DEVPATH)/libs/vs12/debug/x64";
+			"$(DEVPATH)/libs/vs12/release/x64";
 		}
 	end
 		
 	-------------------------------------------------------
 	configuration { "Release", "x64" }
 		libdirs {
-			"$(DEVPATH)/libs/vs12/release/x64"
+			"$(DEVPATH)/libs/vs12/release/x64";
 		}
 	
 	-------------------------------------------------------
@@ -103,10 +103,10 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 		flags {"Symbols"}
 		
 		libdirs {
-			"$(DEVPATH)/libs/vs12/debug/x86",
-			"$(DEVPATH)/libs/vs12/release/x86",
-			"$(DEVPATH)/libs/debug",
-			"$(DEVPATH)/libs/release"
+			"$(DEVPATH)/libs/vs12/debug/x86";
+			"$(DEVPATH)/libs/vs12/release/x86";
+			"$(DEVPATH)/libs/debug";
+			"$(DEVPATH)/libs/release";
 		}
 		objdir (project_path .. "/Debug")
 		
@@ -116,8 +116,8 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 		optimize "On" 
 		
 		libdirs {
-			"$(DEVPATH)/libs/vs12/release/x86",
-			"$(DEVPATH)/libs/release"
+			"$(DEVPATH)/libs/vs12/release/x86";
+			"$(DEVPATH)/libs/release";
 		}
 		objdir (project_path .. "/Release")
 	
@@ -136,34 +136,34 @@ project_path = CreateProject( "client", "CLIENT", "WindowedApp", true )
 	defines { "UB_CLIENT" }
 	
 	files { 
-		"source/console/*.cpp",
-		"source/asev/*.cpp",
-		"source/game/*.cpp",
-		"source/graphics/*.cpp",
-		"source/graphics/gui/*.cpp",
-		"source/io/*.cpp",
-		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp",
-		"source/net/*.cpp",
-		"source/system/*.cpp",
-		"source/system/events/*.cpp",
-		"source/util/*.cpp",
-		"source/video/*.cpp",
-		"source/video/shaders/*.cpp",
-		"source/pch/*.cpp",
-		"source/debug/*.cpp",
-		"source/ui/*.cpp",
-		"source/main_game.cpp",
+		"source/console/*.cpp";
+		"source/asev/*.cpp";
+		"source/game/*.cpp";
+		"source/graphics/*.cpp";
+		"source/graphics/gui/*.cpp";
+		"source/io/*.cpp";
+		"source/mem/*.cpp";
+		"source/mem/arena/*.cpp";
+		"source/net/*.cpp";
+		"source/system/*.cpp";
+		"source/system/events/*.cpp";
+		"source/util/*.cpp";
+		"source/video/*.cpp";
+		"source/video/shaders/*.cpp";
+		"source/pch/*.cpp";
+		"source/debug/*.cpp";
+		"source/ui/*.cpp";
+		"source/main_game.cpp";
 		
-		"libsource/stb_image.c",
+		"libsource/stb_image.c";
 		
-		"source/**.h",
-		"libsource/**.h",
+		"source/**.h";
+		"libsource/**.h";
 		
-		"libsource/hash/*.c",
-		"libsource/hash/*.cpp",
+		"libsource/hash/*.c";
+		"libsource/hash/*.cpp";
 		
-		"protocol/compiled/**.cc"
+		"protocol/compiled/**.cc";
 	}
 	
 
@@ -174,35 +174,35 @@ project_path = CreateProject( "test2", "TEST2", "WindowedApp", true )
 	defines { "UB_CLIENT" }
 	
 	files { 
-		"source/console/*.cpp",
-		"source/asev/*.cpp",
-		"source/graphics/*.cpp",
-		"source/graphics/gui/*.cpp",
-		"source/io/*.cpp",
-		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp",
-		"source/net/*.cpp",
-		"source/system/*.cpp",
-		"source/system/events/*.cpp",
-		"source/util/*.cpp",
-		"source/video/*.cpp",
-		"source/video/shaders/*.cpp",
-		"source/pch/*.cpp",
-		"source/debug/*.cpp",
-		"source/ui/**.cpp",
-		"source/main_test2.cpp",
+		"source/console/*.cpp";
+		"source/asev/*.cpp";
+		"source/graphics/*.cpp";
+		"source/graphics/gui/*.cpp";
+		"source/io/*.cpp";
+		"source/mem/*.cpp";
+		"source/mem/arena/*.cpp";
+		"source/net/*.cpp";
+		"source/system/*.cpp";
+		"source/system/events/*.cpp";
+		"source/util/*.cpp";
+		"source/video/*.cpp";
+		"source/video/shaders/*.cpp";
+		"source/pch/*.cpp";
+		"source/debug/*.cpp";
+		"source/ui/**.cpp";
+		"source/main_test2.cpp";
 		
-		"libsource/stb_image.c",
+		"libsource/stb_image.c";
 		
-		"source/**.h",
-		"libsource/**.h",
+		"source/**.h";
+		"libsource/**.h";
 		
-		"libsource/hash/*.c",
-		"libsource/hash/*.cpp",
+		"libsource/hash/*.c";
+		"libsource/hash/*.cpp";
 		
-		"protocol/compiled/**.cc",
+		"protocol/compiled/**.cc";
 		
-		"glsl/**.glsl"
+		"glsl/**.glsl";
 	}
 
 -------------------------------------------------------------------------------
@@ -212,16 +212,16 @@ project_path = CreateProject( "master", "MASTER", "ConsoleApp", true )
 	defines { "UB_SERVER" }
 	
 	files { 
-		"source/pch/*.cpp",
-		"source/io/*.cpp",
-		"source/net/*.cpp",
-		"source/system/*.cpp",
-		"source/system/server/*.cpp",
-		"source/util/*.cpp",
-		"source/mem/*.cpp",
-		"source/main_master.cpp",
+		"source/pch/*.cpp";
+		"source/io/*.cpp";
+		"source/net/*.cpp";
+		"source/system/*.cpp";
+		"source/system/server/*.cpp";
+		"source/util/*.cpp";
+		"source/mem/*.cpp";
+		"source/main_master.cpp";
 		
-		"protocol/compiled/**.cc"
+		"protocol/compiled/**.cc";
 	}
 
 -------------------------------------------------------------------------------
@@ -231,16 +231,16 @@ project_path = CreateProject( "node", "NODE", "ConsoleApp", true )
 	defines { "UB_SERVER" }
 	
 	files {
-		"source/pch/*.cpp",
-		"source/io/*.cpp",
-		"source/net/*.cpp",
-		"source/system/*.cpp",
-		"source/system/server/*.cpp",
-		"source/util/*.cpp",
-		"source/mem/*.cpp",
-		"source/main_node.cpp",
+		"source/pch/*.cpp";
+		"source/io/*.cpp";
+		"source/net/*.cpp";
+		"source/system/*.cpp";
+		"source/system/server/*.cpp";
+		"source/util/*.cpp";
+		"source/mem/*.cpp";
+		"source/main_node.cpp";
 		
-		"protocol/compiled/**.cc"
+		"protocol/compiled/**.cc";
 	}
 
 -------------------------------------------------------------------------------
@@ -250,27 +250,27 @@ project_path = CreateProject( "auth", "AUTH", "ConsoleApp", true )
 	defines {"UB_SERVER"}
 	
 	files {
-		"source/console/*.cpp",
-		"source/asev/*.cpp",
-		"source/pch/*.cpp",
-		"source/db/*.cpp",
-		"source/io/*.cpp",
-		"source/net/*.cpp",
-		"source/system/*.cpp",
-		"source/system/server/*.cpp",
-		"source/util/*.cpp",
-		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp",
-		"source/programs/auth/*.cpp",
-		"source/main_auth.cpp",
+		"source/console/*.cpp";
+		"source/asev/*.cpp";
+		"source/pch/*.cpp";
+		"source/db/*.cpp";
+		"source/io/*.cpp";
+		"source/net/*.cpp";
+		"source/system/*.cpp";
+		"source/system/server/*.cpp";
+		"source/util/*.cpp";
+		"source/mem/*.cpp";
+		"source/mem/arena/*.cpp";
+		"source/programs/auth/*.cpp";
+		"source/main_auth.cpp";
 		
-		"protocol/compiled/**.cc",
+		"protocol/compiled/**.cc";
 		 
-		"source/**.h",
-		"libsource/**.h",
+		"source/**.h";
+		"libsource/**.h";
 		
-		"libsource/hash/*.c",
-		"libsource/hash/*.cpp"
+		"libsource/hash/*.c";
+		"libsource/hash/*.cpp";
 	}
 
 -------------------------------------------------------------------------------
@@ -280,22 +280,22 @@ project_path = CreateProject( "test", "TEST", "ConsoleApp", true )
 	defines {"UB_TESTING"}
 	
 	files {
-		"source/console/*.cpp",
-		"source/pch/*.cpp",
-		"source/io/*.cpp",
-		"source/net/*.cpp",
-		"source/db/*.cpp",
-		"source/asev/*.cpp",
-		"source/system/*.cpp",
-		"source/system/server/*.cpp",
-		"source/util/*.cpp",
-		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp", 
-		"source/main_test.cpp",
+		"source/console/*.cpp";
+		"source/pch/*.cpp";
+		"source/io/*.cpp";
+		"source/net/*.cpp";
+		"source/db/*.cpp";
+		"source/asev/*.cpp";
+		"source/system/*.cpp";
+		"source/system/server/*.cpp";
+		"source/util/*.cpp";
+		"source/mem/*.cpp";
+		"source/mem/arena/*.cpp"; 
+		"source/main_test.cpp";
 		
 		
-		"protocol/compiled/**.cc",
-		"source/**.h"
+		"protocol/compiled/**.cc";
+		"source/**.h";
 	}
 
 -------------------------------------------------------------------------------
@@ -305,22 +305,22 @@ project_path = CreateProject( "rxgserv", "RXGSERV", "ConsoleApp", true )
 	defines {"UB_SERVER"}
 	
 	files {
-		"source/console/*.cpp",
-		"source/pch/*.cpp",
-		"source/io/*.cpp",
-		"source/net/*.cpp",
-		"source/db/*.cpp",
-		"source/asev/*.cpp",
-		"source/system/*.cpp",
-		"source/system/server/*.cpp",
-		"source/util/*.cpp",
-		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp", 
-		"source/programs/rxgserv/*.cpp",
-		"source/main_rxgserv.cpp",
+		"source/console/*.cpp";
+		"source/pch/*.cpp";
+		"source/io/*.cpp";
+		"source/net/*.cpp";
+		"source/db/*.cpp";
+		"source/asev/*.cpp";
+		"source/system/*.cpp";
+		"source/system/server/*.cpp";
+		"source/util/*.cpp";
+		"source/mem/*.cpp";
+		"source/mem/arena/*.cpp"; 
+		"source/programs/rxgserv/*.cpp";
+		"source/main_rxgserv.cpp";
 		
-		"protocol/compiled/**.cc",
-		"source/**.h"
+		"protocol/compiled/**.cc";
+		"source/**.h";
 	}
 	 
 -------------------------------------------------------------------------------
@@ -330,27 +330,27 @@ project_path = CreateProject( "unit", "UNIT", "ConsoleApp", true )
 	defines {"UB_TESTING"}
 	
 	files {
-		"source/console/*.cpp",
-		"source/pch/*.cpp",
-		"source/io/*.cpp",
-		"source/net/*.cpp",
-		"source/db/*.cpp",
-		"source/asev/*.cpp",
-		"source/system/*.cpp",
-		"source/system/server/*.cpp",
-		"source/system/events/*.cpp",
-		"source/util/*.cpp",
-		"source/mem/*.cpp",
-		"source/mem/arena/*.cpp",
-		"source/tests/*.cpp",
-		"source/main_unit.cpp",
+		"source/console/*.cpp";
+		"source/pch/*.cpp";
+		"source/io/*.cpp";
+		"source/net/*.cpp";
+		"source/db/*.cpp";
+		"source/asev/*.cpp";
+		"source/system/*.cpp";
+		"source/system/server/*.cpp";
+		"source/system/events/*.cpp";
+		"source/util/*.cpp";
+		"source/mem/*.cpp";
+		"source/mem/arena/*.cpp";
+		"source/tests/*.cpp";
+		"source/main_unit.cpp";
 		
-		"protocol/compiled/**.cc",
-		"source/**.h",
+		"protocol/compiled/**.cc";
+		"source/**.h";
 		
-		"libsource/hash/*.c",
-		"libsource/hash/*.cpp",
-		"libsource/hash/*.h"
+		"libsource/hash/*.c";
+		"libsource/hash/*.cpp";
+		"libsource/hash/*.h";
 	}
 	
 	

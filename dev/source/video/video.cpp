@@ -51,6 +51,9 @@ Instance::Instance( const Stref &window_name )
 
 //-----------------------------------------------------------------------------
 Instance::~Instance() {
+
+	m_shaders.clear();
+
 	g_instance = nullptr;
 
 	if( m_gl_context ) {

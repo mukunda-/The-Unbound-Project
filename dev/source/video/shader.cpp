@@ -163,8 +163,6 @@ void Shader::Use() {
 
 		glUseProgram( m_program );
 		m_vertex_state.Bind();
-
-		return;
 	}
 
 	SetCamera();

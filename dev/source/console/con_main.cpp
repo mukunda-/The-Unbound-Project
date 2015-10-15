@@ -13,25 +13,25 @@ namespace Console {
 Instance *g_instance;
 
 //-----------------------------------------------------------------------------
-void Print( const Util::StringRef &text ) {
+void Print( const Stref &text ) {
 	assert( g_instance );
 	g_instance->Print( text.CStr(), true, false );
 }
  
 //-----------------------------------------------------------------------------
-void PrintErr( const Util::StringRef &text ) {
+void PrintErr( const Stref &text ) {
 	assert( g_instance );
 	g_instance->Print( text.CStr(), true, true );
 }
  
 //-----------------------------------------------------------------------------
-void PrintEx( const Util::StringRef &text ) {
+void PrintEx( const Stref &text ) {
 	assert( g_instance );
 	g_instance->Print( text.CStr(), false, false );
 } 
 
 //-----------------------------------------------------------------------------
-void PrintErrEx( const Util::StringRef &text ) {
+void PrintErrEx( const Stref &text ) {
 	assert( g_instance );
 	g_instance->Print( text.CStr(), false, true );
 }

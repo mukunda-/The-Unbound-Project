@@ -170,6 +170,17 @@ void ExecuteCommand( const Stref &command_string,
 bool ExecuteScript( const Stref &file );
 
 /** ---------------------------------------------------------------------------
+ * Returns the system time when this frame started being processed.
+ * The time is measured in milliseconds since the system started.
+ */
+double Time();
+
+/** ---------------------------------------------------------------------------
+ * Returns the system time when the previous frame started being processed.
+ */
+double LastTime();
+
+/** ---------------------------------------------------------------------------
  * Get an event ID by its name.
  *
  * This will generate an event ID if it's not found.
@@ -242,7 +253,7 @@ private:
 
 	std::unique_ptr<::Console::Instance> m_console;
 
-	bool m_live; 
+	std::atomic<bool> m_live; 
 
 	int m_next_command_id = 0;
 	
@@ -315,7 +326,7 @@ public:
 	
 	void Start();
 	bool Live() { return m_live; }
-	void Post( std::function<void()> handler, bool main, int delay );
+	void Post( std::function<void()> handler, bool main = true, int delay = 0);
 	void Shutdown( const Stref &reason );
 	
 	void RegisterModule( Module *module );

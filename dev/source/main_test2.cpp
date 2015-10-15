@@ -25,6 +25,7 @@ public:
 
 	void OnStart() override;
 	void OnShutdown() override;
+	void OnFrame() override;
 
 	void DoTick();
 };
@@ -43,42 +44,34 @@ void Test::OnStart() {
 	Video::Open( 1000, 800 );
 	//Ui::SetupScreen( 1000, 800 );
 
-	m_pulse.Reset();
-	DoTick(); 
 }
 
 //-----------------------------------------------------------------------------
-void Test::DoTick() {
+void Test::OnFrame() {
 
 	static float r = 0.0;
 	r = (float)fmod( r + 0.01, 1.0 );
 	Video::SetBackgroundColor( r/2,r,1 ); 
 	Video::Clear();
 
+	::Console::Print( "time=%f", System::Time() );
 
 	Ui::Draw();
 
 	Video::Swap();
 	
-	SDL_Event e;
-	bool quit = false;
+	SDL_Event e; 
 
 	static int mx, my;
 
 	while( SDL_PollEvent(&e) ) {
 		if( e.type == SDL_QUIT ) {
-			quit = true;
+			System::Shutdown( "User exited." ); 
 		}
 		 
 		Ui::HandleInputEvent( e );
 	}
 
-	if( quit ) {
-		System::Shutdown( "User exited." );
-		
-	} else {
-		m_pulse.Wait( std::bind( &Test::DoTick, this ));
-	}
 }
 
 //-----------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "util/math.h"
+#include "video/video.h"
 
 namespace Game {
 
@@ -19,9 +20,7 @@ public:
 
 	GameCamera() {
 		orientation = Eigen::Vector3f( 0.0f, 1.0f, 0.0f );
-	}
-
-
+	} 
 
 	void UpdateVideo() {
 		camera.Fixup();

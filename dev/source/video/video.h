@@ -482,7 +482,7 @@ private:
 	int             m_matxp_serial = 0;
 
 	std::unordered_map<	std::string, std::unique_ptr<Shader> > m_shaders;
-	Shader         *m_active_shader;
+	Shader         *m_active_shader = nullptr;
 
 	// named textures, unnamed textures are owned by their creator
 	std::unordered_map< std::string, TexturePtr > m_textures;
