@@ -12,19 +12,24 @@ template< typename T > std::string ToString( T value ) {
 }
 
 // std::to_string wrappers
-template<> std::string ToString( int value                );
-template<> std::string ToString( long value               );
-template<> std::string ToString( long long value          );
-template<> std::string ToString( unsigned value           );
-template<> std::string ToString( unsigned long value      );
-template<> std::string ToString( unsigned long long value );
-template<> std::string ToString( float value              );
-template<> std::string ToString( double value             );
-template<> std::string ToString( long double value        );
+std::string ToString( int                );
+std::string ToString( long               );
+std::string ToString( long long          );
+std::string ToString( unsigned           );
+std::string ToString( unsigned long      );
+std::string ToString( unsigned long long );
+std::string ToString( float              );
+std::string ToString( double             );
+std::string ToString( long double        );
 
 // string types
-template<> std::string ToString( const char *value        );
-template<> std::string ToString( const Stref &value       );
-template<> std::string ToString( const std::string &value );
+std::string ToString( const char *        );
+std::string ToString( const Stref &       );
+std::string ToString( const std::string & );
+
+// eigen types
+std::string ToString( const Eigen::Vector3f& );
+//template<> std::string ToString<float&>( float & );
+//template<> std::string ToString( Eigen::Vector3f & );
  
 }

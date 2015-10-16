@@ -37,6 +37,9 @@ Instance::Instance( const Stref &window_name )
 	if( !m_window ) {
 		throw std::runtime_error( "Window creation error." );
 	}
+
+	m_mat_projection.setIdentity();
+	m_mat_view.setIdentity();
 	
 	// create our gl context
 	m_gl_context = SDL_GL_CreateContext( m_window );
@@ -282,7 +285,7 @@ void Instance::SetupProjection( float fovY, float aspect,
 	m_fov = fovY;
 	float theta = fovY*0.5f;
 	float range = ffar - fnear;
-	float invtan = 1.0f/tan(theta);
+	float invtan = 1.0f/tan(theta); 
 	
 	m_mat_projection(0,0) = invtan / aspect;
 	m_mat_projection(1,1) = invtan;
@@ -312,6 +315,8 @@ void Instance::CopyCamera( Camera &cam ) {
 //	mat_view.topLeftCorner<3,3>() = R.transpose();
 //	mat_view.topRightCorner<3,1>() = -R.transpose() * position;
 //	mat_view(3,3) = 1.0; 
+
+	m_mat_view.setIdentity();
 
 	m_mat_view.topLeftCorner<3,3>() = cam.m_rotation.transpose();
 	m_mat_view.topRightCorner<3,1>() = 
