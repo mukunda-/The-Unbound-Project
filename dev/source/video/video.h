@@ -121,7 +121,9 @@ enum class DepthBufferMode {
 	DISABLED,
 	WRITEONLY,
 	READONLY,
-	NORMAL
+	NORMAL,
+
+	UNKNOWN
 };
 
 #undef OPAQUE // wingdi collision
@@ -133,7 +135,9 @@ enum class BlendMode : uint8_t {
 	OPAQUE,		// no blending
 	ALPHA,		// alpha blending
 	ADD,		// additive
-	SUB			// subtractive
+	SUB,		// subtractive
+
+	UNKNOWN
 };
 
 /** ---------------------------------------------------------------------------
@@ -142,7 +146,9 @@ enum class BlendMode : uint8_t {
 enum class CullingMode : uint8_t {
 	NONE,	// no culling.
 	BACK,	// back-face culling.
-	FRONT	// front-face culling.
+	FRONT,	// front-face culling.
+
+	UNKNOWN
 };
 
 /** ---------------------------------------------------------------------------
@@ -451,17 +457,17 @@ TexturePtr GetTexture( const Stref &name );
 class Instance : public System::Module {
 
 private:
-	BlendMode       m_blendmode;
-	CullingMode     m_cullmode;
-	DepthBufferMode m_depthmode;
+	BlendMode       m_blendmode = BlendMode::UNKNOWN;
+	CullingMode     m_cullmode  = CullingMode::UNKNOWN;
+	DepthBufferMode m_depthmode = DepthBufferMode::UNKNOWN;
 	
 	float           m_bg_color[4];
 
 	float           m_fog_color[4];
-	float           m_fog_length; 
+	float           m_fog_length = 0.0f; 
 
-	float           m_fov; // field of view
-	float           m_view_distance;
+	float           m_fov = 0.0f; // field of view
+	float           m_view_distance = 0.0f;
 
 	SDL_Window     *m_window     = nullptr; 
 	SDL_GLContext   m_gl_context = nullptr; 

@@ -255,9 +255,9 @@ protected:
 	 */
 	Shader( const Stref &name );
 
-	Shader( Shader& )  = delete;
+	Shader( Shader&  ) = delete;
 	Shader( Shader&& ) = delete;
-	Shader& operator=( Shader& )  = delete;
+	Shader& operator=( Shader&  ) = delete;
 	Shader& operator=( Shader&& ) = delete;
 
 public:
