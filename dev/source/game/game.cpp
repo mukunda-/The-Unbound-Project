@@ -190,9 +190,9 @@ void Game::OnFrame() {
 		m_cam.MoveRel( Eigen::Vector3f( -0.1f, 0.0f, 0.0f ) );
 	}
 		
-	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Q] ) {
+	if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_SPACE] ) {
 		m_cam.MoveRel( Eigen::Vector3f( 0.0f, 0.1f, 0.0f ) );
-	} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_Z] ) {
+	} else if( SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LSHIFT] ) {
 		m_cam.MoveRel( Eigen::Vector3f( 0.0f, -0.1f, 0.0f ) );
 	}
 

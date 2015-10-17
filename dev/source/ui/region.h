@@ -159,6 +159,7 @@ private:
 	// regions this is the parent of
 	std::vector<Region*> m_children;
 
+	//-------------------------------------------------------------------------
 	void SetPointsThing( Anchor from, Anchor to, int index, 
 		                 bool set_offset, int offset, 
 						 bool set_percent, float percent );
@@ -257,7 +258,7 @@ public:
 	 * Unset points.
 	 *
 	 * When points are unset, they are computed using the other data present.
-	 * e.g when you have the `bottom` and `left` points defined, then the
+	 * e.g. when you have the `bottom` and `left` points defined, then the
 	 * `right` and `top` will be determined by the size.
 	 */
 	void UnsetPoints( Anchor horizontal, Anchor vertical );
