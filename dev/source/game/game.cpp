@@ -205,7 +205,7 @@ void Game::OnFrame() {
 	m_cam.OnTick();  
 	m_cam.UpdateVideo();
 	//Render the scene
-	::Console::DebugPrint(  m_cam.camera.GetPosition() );
+//	::Console::DebugPrint(  m_cam.camera.GetPosition() );
 
 	std::string build_string = "Unbound Development Build - ";
 	build_string += BUILD_DATE;
