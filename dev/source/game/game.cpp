@@ -211,9 +211,13 @@ void Game::OnFrame() {
 	build_string += BUILD_DATE;
 //		Ui::RenderText( testfont, 0, 20, 7, 16, build_string.c_str() );
 //		Ui::EndRendering();
+
+	
 		  
 	Video::Clear();
+	Ui::Draw();
 	Graphics::RenderScene(); 
+
 	Video::Swap();
 	
 }
