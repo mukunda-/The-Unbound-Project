@@ -26,7 +26,6 @@ class ArgString {
 		static Index FromPointers( const char *source, 
 								   const char *start, 
 								   const char *end ) {
-			
 			Index idx;
 			idx.start = (int)(start-source);
 			idx.length = (int)(end-source) - idx.start;
@@ -35,7 +34,6 @@ class ArgString {
 	};
 	
 	std::vector< Index > m_index;
-
 
 public:
 
