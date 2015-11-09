@@ -42,7 +42,7 @@ void Test::OnStart() {
 	AddWork();
 
 	Video::Open( 1000, 800 );
-	//Ui::SetupScreen( 1000, 800 );
+	Ui::SetupScreen( 1000, 800 );
 
 }
 
