@@ -17,18 +17,14 @@
 
 namespace Game {
 
-/// ---------------------------------------------------------------------------
-/// Main game class.
-///
+/** ---------------------------------------------------------------------------
+ * Main game class.
+ */
 class Game : public System::Module {
 	  
 	System::Variable &cl_master_address;
 
 	GameCamera m_cam;
-
-	//Graphics::font_material 
-//
-//	Network::Connection m_net_master;
 	
 public:
 	Game();
