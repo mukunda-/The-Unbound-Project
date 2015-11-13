@@ -72,6 +72,8 @@ function CreateProject( p_name, p_project, p_kind, p_64bit )
 		"source/pch";
 		"$(DEVPATH)/libs/include";
 		"protocol/compiled";
+		"../lua/src";
+		"../lua/config";
 	}
 	
 	if p_kind == "WindowedApp" then
