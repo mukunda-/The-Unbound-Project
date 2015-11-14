@@ -308,6 +308,8 @@ private:
 
 	std::unique_ptr<EventInterface> m_events;
 
+	lua_State m_lua_state;
+
 	//-------------------------------------------------------------------------
 
 public: 
