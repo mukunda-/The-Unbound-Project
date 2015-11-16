@@ -50,6 +50,7 @@
 #include <yaml-cpp/yaml.h>
 #include <unordered_map>
 #include <lua.h>
+#include <lauxlib.h>
 
 #ifdef TARGET_WINDOWS
 #define STDIN_FILENO 0

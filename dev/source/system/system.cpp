@@ -44,6 +44,8 @@ Main::Main( int threads, StartMode start_mode )
 	m_live       = true;
 	m_started    = false;
 
+	m_lua_state = luaL_newstate();
+
 	if( start_mode == StartMode::DEDICATED_MAIN ) {
 
 		m_using_strand = false;
