@@ -14,6 +14,7 @@
 #include "system/pulse.h"
 #include "video/video.h"
 #include "ui/ui.h"
+#include "ui/test/coloredregion.h"
 
 //-----------------------------------------------------------------------------
 class Test : public System::Module {
@@ -43,7 +44,10 @@ void Test::OnStart() {
 
 	Video::Open( 1000, 800 );
 	Ui::SetupScreen( 1000, 800 );
-	
+
+	auto &r = Ui::Create<Ui::ColoredRegion>( "test_region1" );
+	r.SetAllPoints();
+
 }
 
 //-----------------------------------------------------------------------------
