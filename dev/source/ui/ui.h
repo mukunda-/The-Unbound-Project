@@ -152,7 +152,7 @@ public:
  */
 template< typename T, typename ... A >
 T &Create( const Stref &name, A ... args ) {
-	return Instance::Get().CreateObjectT( name, args... );
+	return Instance::Get().CreateObjectT<T>( name, args... );
 }
 
 //-----------------------------------------------------------------------------
