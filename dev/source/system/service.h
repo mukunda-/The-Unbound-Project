@@ -48,16 +48,6 @@ public:
 	void Join();
 
 	/** -----------------------------------------------------------------------
-	 * Shutdown system.
-	 *
-	 * Runs io_service.stop and all threads should terminate.
-	 *
-	 * Called by deconstructor.
-	 */
-	// obsolete: does not promote clean shutdown.
-	//void Stop();
-
-	/** -----------------------------------------------------------------------
 	 * Finishes work and destroys threads.
 	 * 
 	 * Will stall if a thread is not told to exit.
