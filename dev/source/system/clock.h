@@ -32,7 +32,7 @@ public:
 	double GetTime();
 
 	/** -----------------------------------------------------------------------
-	 * Reset the clock.
+	 * Reset the clock. GetTime() returns the time since the last Reset().
 	 */
 	void Reset();
 
