@@ -129,15 +129,15 @@ public:
 	void FinishInputEvents();
 	void SetupScreen( int width, int height );
 
-	Object &CreateObject( const Stref &name, ObjectFactory &factory );
+	Object &CreateObject( const Stref &name, const ObjectFactory &factory );
 
 	template< typename T, typename ... A >
 	T &CreateObjectT( const Stref &name, A ... args ) {
-		return static_cast<T&>CreateObject( 
+		return static_cast<T&>(CreateObject( 
 			name,
-			[]() {
+			[&]() {
 				return new T( name, args... );
-			});
+			}));
 	}
 
 	void Draw();

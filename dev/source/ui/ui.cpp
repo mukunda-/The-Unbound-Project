@@ -265,7 +265,7 @@ void Instance::FinishInputEvents() {
 }
 
 //-----------------------------------------------------------------------------
-Object &Instance::CreateObject( const Stref &name, ObjectFactory &factory ) {
+Object &Instance::CreateObject( const Stref &name, const ObjectFactory &factory ) {
 	if( m_objects.count( name ) > 0 ) {
 		throw Error::NameCollision();
 	}
@@ -348,6 +348,11 @@ void Instance::Draw() {
 	}
 
 	EndRendering();
+}
+
+//-----------------------------------------------------------------------------
+Instance &Instance::Get() {
+	return *g_ui;
 }
 
 //-----------------------------------------------------------------------------
