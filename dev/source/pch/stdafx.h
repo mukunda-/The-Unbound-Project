@@ -49,8 +49,7 @@
 #include <cppconn/exception.h>
 #include <yaml-cpp/yaml.h>
 #include <unordered_map>
-#include <lua.h>
-#include <lauxlib.h>
+#include <lua.hpp>
 
 #ifdef TARGET_WINDOWS
 #define STDIN_FILENO 0
