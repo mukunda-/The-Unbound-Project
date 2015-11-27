@@ -168,6 +168,11 @@ void Region::SetVerticalPointPercent( Anchor from, Anchor to,
 }
 
 //-----------------------------------------------------------------------------
+void Region::SetAllPoints( int margin, float margin_p ) {
+
+}
+
+//-----------------------------------------------------------------------------
 void Region::SetParent( Region *parent, bool compute ) {
 
 	if( parent == nullptr ) parent = &g_ui->GetScreen();
