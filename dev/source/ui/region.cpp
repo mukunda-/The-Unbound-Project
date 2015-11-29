@@ -84,6 +84,16 @@ void Region::SetupScreen( int width, int height ) {
 }
 
 //-----------------------------------------------------------------------------
+/** ---------------------------------------------------------------------------
+ * Set points helper function.
+ *
+ * @param from, to   Anchors to link.
+ * @param index      0 for horizontal, 3 for vertical.
+ * @param set_offset true to set the pixel offset for the point.
+ * @param offset     The pixel offset for the point.
+ * @param set_percent true to set the relative offset for the point.
+ * @param percent    The relative offset for the point.
+ */
 void Region::SetPointsThing( Anchor from, Anchor to, int index, 
 		                 bool set_offset, int offset, 
 						 bool set_percent, float percent ) {
@@ -169,7 +179,10 @@ void Region::SetVerticalPointPercent( Anchor from, Anchor to,
 
 //-----------------------------------------------------------------------------
 void Region::SetAllPoints( int margin, float margin_p ) {
-	SetPoints( Anchor::LEFT, Anchor::LEFT, Anchor::TOP, Anchor::TOP, margin, margin );
+	SetPointsThing( Anchor::LEFT, Anchor::LEFT, 0, true, margin, true, margin_p );
+	SetPointsThing( Anchor::TOP, Anchor::TOP, 3, true, margin, true, margin_p );
+	SetPointsThing( Anchor::RIGHT, Anchor::RIGHT, 0, true, margin, true, margin_p );
+	SetPointsThing( Anchor::BOTTOM, Anchor::BOTTOM, 3, true, margin, true, margin_p );
 	// ...
 }
 
