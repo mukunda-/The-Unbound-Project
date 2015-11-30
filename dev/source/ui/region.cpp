@@ -179,9 +179,9 @@ void Region::SetVerticalPointPercent( Anchor from, Anchor to,
 
 //-----------------------------------------------------------------------------
 void Region::SetAllPoints( int margin, float margin_p ) {
-	SetPointsThing( Anchor::LEFT, Anchor::LEFT, 0, true, margin, true, margin_p );
-	SetPointsThing( Anchor::TOP, Anchor::TOP, 3, true, margin, true, margin_p );
-	SetPointsThing( Anchor::RIGHT, Anchor::RIGHT, 0, true, margin, true, margin_p );
+	SetPointsThing( Anchor::LEFT,   Anchor::LEFT,   0, true, margin, true, margin_p );
+	SetPointsThing( Anchor::TOP,    Anchor::TOP,    3, true, margin, true, margin_p );
+	SetPointsThing( Anchor::RIGHT,  Anchor::RIGHT,  0, true, margin, true, margin_p );
 	SetPointsThing( Anchor::BOTTOM, Anchor::BOTTOM, 3, true, margin, true, margin_p );
 	// ...
 }
