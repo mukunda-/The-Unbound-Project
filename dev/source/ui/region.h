@@ -55,18 +55,7 @@ enum class Strata {
 	// be negative to allow positioning behind a parent without changing
 	// the strata
 };
-
-/*
-//-----------------------------------------------------------------------------
-struct AnchorSet {
-	AnchorPoint from_x; // horizontal point on the region to anchor to the parent
-	AnchorPoint to_x;   // horizontal point on the parent to anchor to
-	AnchorPoint from_y; // vertical point on the region to anchor to the parent
-	AnchorPoint to_y;   // vertical point on the parent to anchor to
-
-	// "parent" meaning "anchor region", and not the "parent region"!
-};*/
-
+  
 /** ---------------------------------------------------------------------------
  * A region is an area on the screen. Regions are invisible by themselves
  * and rely on an implementation to display things.
