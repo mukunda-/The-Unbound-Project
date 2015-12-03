@@ -292,15 +292,7 @@ void Instance::OnObjectCreated( Object &obj ) {
 void Instance::OnObjectDeleted( Object &obj ) {
 
 	if( m_cleaning_up ) return;
-
-	/*
-	for( auto i = m_objects.begin(); i != m_objects.end(); i++ ) {
-		if( *i == &obj ) {
-			m_objects.erase(i);
-			return;
-		}
-	}*/
-
+	 
 	if( obj.GetName() != "" ) {
 		m_objects.erase( obj.GetName() );
 	}
