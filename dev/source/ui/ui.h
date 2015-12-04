@@ -104,6 +104,8 @@ class Instance final : public System::Module {
 
 	void OnPrepare() override;
 
+	void SetupScripting();
+
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	// get ui instance

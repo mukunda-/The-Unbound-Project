@@ -51,7 +51,7 @@ Instance::~Instance() {
 
 	for( auto i : m_objects ) {
 		delete i.second;
-	} 
+	}
 
 	g_ui = nullptr;
 }
