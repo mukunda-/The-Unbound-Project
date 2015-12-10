@@ -10,6 +10,7 @@
 #pragma comment( lib, "mysqlcppconn.lib" )
 #pragma comment( lib, "ssleay32.lib" )
 #pragma comment( lib, "libeay32.lib" )
+#pragma comment( lib, "lua53s.lib" )
 
 #ifdef _DEBUG
 	#pragma comment( lib, "libyaml-cppmdd.lib" )
