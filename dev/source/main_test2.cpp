@@ -12,6 +12,7 @@
 #include "system/debug_console.h"
 #include "system/module.h"
 #include "system/pulse.h"
+#include "net/core.h"
 #include "video/video.h"
 #include "ui/ui.h"
 #include "ui/test/coloredregion.h"
