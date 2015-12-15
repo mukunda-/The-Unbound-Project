@@ -9,8 +9,19 @@
 
 namespace Ui {
 
-void Instance::SetupScripting() {
+//-----------------------------------------------------------------------------
+namespace {
+
+void UI_Create() {
 
 }
-	
+
+//-----------------------------------------------------------------------------
+} // namespace
+
+void Instance::SetupScripting() {
+	lua_register(  UI_Create
 }
+
+} // namespace Ui
+

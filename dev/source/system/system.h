@@ -231,6 +231,8 @@ EventHookPtr HookEvent( const EventInfo &info, EventHandler handler );
  */
 void SendEvent( Event &e );
 
+
+
 /** ---------------------------------------------------------------------------
  * Main system class.
  */
