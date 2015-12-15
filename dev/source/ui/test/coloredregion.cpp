@@ -12,7 +12,7 @@ namespace Ui {
 ColoredRegion::ColoredRegion( const Stref &name ) : Region( name ) {}
 
 void ColoredRegion::Draw() {
-	//Ui::DrawBox(
+	
 }
 
 }
