@@ -384,6 +384,7 @@ EventHookPtr HookEvent( const Event::Info &i, EventHandler h ) { return g_main->
 void         SendEvent( Event &e )                             { g_main->Events().Send( e );           }
 double       Time()                                            { return g_main->GetTime();             }
 double       LastTime()                                        { return g_main->GetLastTime();         }
+lua_State   *LS()                                              { return g_main->GetLuaState();         }
 
 /*void Join() {g_main->GetService().Join();}*/
  
