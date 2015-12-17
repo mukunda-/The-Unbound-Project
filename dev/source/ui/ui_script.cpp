@@ -12,7 +12,7 @@ namespace Ui {
 //-----------------------------------------------------------------------------
 namespace {
 
-void UI_Create() {
+int UI_Create( lua_State *L ) {
 
 }
 
@@ -20,7 +20,7 @@ void UI_Create() {
 } // namespace
 
 void Instance::SetupScripting() {
-	lua_register(  UI_Create
+	lua_register( System::LS(), "UI_Create", UI_Create );
 }
 
 } // namespace Ui

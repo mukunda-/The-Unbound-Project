@@ -231,7 +231,10 @@ EventHookPtr HookEvent( const EventInfo &info, EventHandler handler );
  */
 void SendEvent( Event &e );
 
-
+/** ---------------------------------------------------------------------------
+ * Returns the global lua_State object
+ */
+lua_State *LS();
 
 /** ---------------------------------------------------------------------------
  * Main system class.
@@ -343,6 +346,8 @@ public:
 	double GetLastTime() { return m_last_time; }
 
 	EventInterface &Events() { return *m_events; }
+
+	lua_State *GetLuaState() { return m_lua_state; }
 
 private:
 	Commands::InstancePtr FindCommandInstance( const Stref &name );
