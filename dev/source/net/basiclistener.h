@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
@@ -8,9 +8,9 @@
 
 namespace Net {
 
-/// ---------------------------------------------------------------------------
-/// A wrapper for an ASIO tcp acceptor.
-///
+/** ---------------------------------------------------------------------------
+ * A wrapper for an ASIO tcp acceptor.
+ */
 class BasicListener : public Work {
 
 	boost::asio::ip::tcp::acceptor m_acceptor;
