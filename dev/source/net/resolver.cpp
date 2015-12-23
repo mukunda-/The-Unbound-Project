@@ -1,6 +1,6 @@
-//============================  The Unbound Project  ==========================//
-//                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//==========================  The Unbound Project  ==========================//
+//                                                                           //
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "resolver.h"
@@ -8,12 +8,12 @@
 
 namespace Net {
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 Resolver::Resolver(): resolver( DefaultService()() ) {
 	  
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 boost::asio::ip::tcp::resolver::iterator Resolver::Resolve( 
 					const std::string &hostname, 
 					const std::string &service )  {
@@ -23,7 +23,7 @@ boost::asio::ip::tcp::resolver::iterator Resolver::Resolve(
 	return resolver.resolve( q );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Resolver::ResolveThreaded( const std::string &hostname, 
 					const std::string &service, 
 					callback_t callback )  {
@@ -36,7 +36,7 @@ void Resolver::ResolveThreaded( const std::string &hostname,
 		  callback ) );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void Resolver::OnResolve( const boost::system::error_code &error_code, 
 					boost::asio::ip::tcp::resolver::iterator r_endpoints,
 					callback_t forward ) {
@@ -46,12 +46,12 @@ void Resolver::OnResolve( const boost::system::error_code &error_code,
 	forward( error_code, r_endpoints );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //bool Resolver::Finished() {
 //	return finished.Get() == 1;
 //}
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //void Resolver::WaitResolved() {
 //	finished.Wait(1);
 //}
