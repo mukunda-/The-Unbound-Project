@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2014, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
 
 #include "stdafx.h"
 #include "stream.h"
@@ -8,7 +8,8 @@
 namespace Net {
 
 	//-------------------------------------------------------------------------
-	Stream::SendLock::SendLock( Net::Stream &parent, boost::asio::streambuf &buffer ) : 
+	Stream::SendLock::SendLock( Net::Stream &parent, 
+								boost::asio::streambuf &buffer ) : 
 			m_parent(parent), 
 			m_buffer(buffer),
 			m_locked(true) {
