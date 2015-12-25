@@ -1,6 +1,6 @@
 //============================  The Unbound Project  ==========================//
 //                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//========== Copyright © 2015, Mukunda Johnson, All rights reserved. ==========//
 
 #pragma once
 
@@ -23,7 +23,8 @@ private:
 	//Util::ThreadState finished;
 	//int error; 
 	
-	typedef boost::function< void( const boost::system::error_code &error_code, boost::asio::ip::tcp::resolver::iterator &endpoints ) > callback_t;
+	typedef boost::function< void( const boost::system::error_code &error_code, 
+		                     boost::asio::ip::tcp::resolver::iterator &endpoints ) > callback_t;
 	callback_t callback; 
 
 	void OnResolve();
