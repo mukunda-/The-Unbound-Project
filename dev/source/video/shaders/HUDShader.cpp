@@ -1,14 +1,14 @@
 //============================  The Unbound Project  ==========================//
 //                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//========== Copyright © 2015, Mukunda Johnson, All rights reserved. ==========//
 
 #include "stdafx.h"
 
 #if 0
-//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 namespace Video { namespace Shaders {
 
-//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 HUDShader::HUDShader( const char *name ) {
 	AddShader( "glsl\\hudshader.v.glsl", GL_VERTEX_SHADER );
 	AddShader( "glsl\\hudshader.f.glsl", GL_FRAGMENT_SHADER );
@@ -24,7 +24,7 @@ HUDShader::HUDShader( const char *name ) {
 	Register( name );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void HUDShader::SetVertexAttributePointers( int offset, int set ) const {
 	
 	glVertexAttribPointer( a_texcoord, 2, GL_FLOAT, GL_FALSE, 20, (void*)(offset+0) );
@@ -32,17 +32,17 @@ void HUDShader::SetVertexAttributePointers( int offset, int set ) const {
 	glVertexAttribPointer( a_position, 2, GL_FLOAT, GL_FALSE, 20, (void*)(offset+12) );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void HUDShader::SetTranslation( float x, float y ) const {
 	glUniform2f( u_translate, x, y );
 }
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void HUDShader::SetSampler( int texture_unit ) const {
 	glUniform1i( u_sampler, texture_unit );
 }
 
 }}
 
-//-------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 #endif
