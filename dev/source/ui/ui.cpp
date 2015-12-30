@@ -50,8 +50,16 @@ Instance::~Instance() {
 	m_cleaning_up = true;
 
 	for( auto i : m_objects ) {
+
+		// we don't want to free the screen until later
+		// because it's used for special purposes.
+		if( i.second == m_screen ) continue;
+
 		delete i.second;
-	}
+		
+	} 
+
+	delete m_screen;
 
 	g_ui = nullptr;
 }
