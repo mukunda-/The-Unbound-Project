@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2016, Mukunda Johnson, All rights reserved. =========//
 
 // core of the user interface
  
@@ -55,8 +55,7 @@ Instance::~Instance() {
 		// because it's used for special purposes.
 		if( i.second == m_screen ) continue;
 
-		delete i.second;
-		
+		delete i.second; 
 	} 
 
 	delete m_screen;
