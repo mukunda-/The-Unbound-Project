@@ -13,7 +13,7 @@ namespace Ui {
 namespace {
 
 int UI_Create( lua_State *L ) {
-
+	return 0;
 }
 
 //-----------------------------------------------------------------------------
