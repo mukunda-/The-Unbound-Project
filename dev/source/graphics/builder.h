@@ -57,7 +57,7 @@ public:
 	/** -----------------------------------------------------------------------
  	 * Start a new sub-element in this stream.
 	 *
-	 * @param mat Material to use for rendering the upcoming vertice.s
+	 * @param mat Material to use for rendering the upcoming vertices.
 	 * @param sort sorting order when rendering this object
 	 */
 	void New( const Graphics::MaterialPtr &mat, int sort = 0 );

@@ -48,7 +48,7 @@ void Test::OnStart() {
 
 	auto &r = Ui::Create<Ui::ColoredRegion>( "test_region1" );
 	r.SetAllPoints();
-
+ 
 }
 
 //-----------------------------------------------------------------------------
