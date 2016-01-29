@@ -4,15 +4,15 @@
 
 #include "stdafx.h"
 #include "coloredregion.h"
-
+#include "graphics/builder.h"
 
 //-----------------------------------------------------------------------------
 namespace Ui {
 
 ColoredRegion::ColoredRegion( const Stref &name ) : Region( name ) {}
 
-void ColoredRegion::Draw() {
-	
+void ColoredRegion::Draw( Graphics::Builder &gfx ) {
+	gfx.New( 
 }
 
 }

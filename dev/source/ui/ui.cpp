@@ -343,7 +343,7 @@ void Instance::OnRegionDeleted( Region &r ) {
 void Instance::Draw() {
 
 	for( auto &r : m_regions ) {
-		r->Draw();
+		r->Draw( m_gfx_builder );
 	}
 
 	EndRendering();

@@ -11,7 +11,7 @@ class ColoredRegion : public Region {
 	friend class Instance;
 
 protected:
-	void Draw() override;
+	void Draw( Graphics::Builder& ) override;
 
 public:
 	

@@ -545,6 +545,11 @@ void Instance::DeleteMaterial( const Stref &name ) {
 }
 
 //-----------------------------------------------------------------------------
+Material::ptr Instance::GetMaterial( const Stref &name ) {
+
+}
+
+//-----------------------------------------------------------------------------
 Element::ptr Instance::CreateElement() {
 	return Element::Create();
 }

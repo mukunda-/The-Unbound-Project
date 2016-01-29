@@ -5,6 +5,7 @@
 #pragma once
 
 #include "object.h"
+#include "graphics/forwards.h"
 
 //-----------------------------------------------------------------------------
 namespace Ui {
@@ -175,7 +176,7 @@ protected:
 	/** ----------------------------------------------------------------------
 	 * Render this region.
 	 */
-	virtual void Draw();
+	virtual void Draw( Graphics::Builder & );
 
 public:
 	~Region();

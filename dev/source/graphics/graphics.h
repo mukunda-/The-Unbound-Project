@@ -283,6 +283,9 @@ public:
 
 	MaterialPtr CreateMaterial( const Stref &name, const Stref &shader );
 	void DeleteMaterial( const Stref &name );
+
+	MaterialPtr GetMaterial( const Stref &name );
+	MaterialPtr GetMaterial( const Stref &name, MaterialFactory factory );
 	
 	void RenderList( Util::SharedList<Element> &list );
 	void RenderScene();
