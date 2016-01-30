@@ -1,6 +1,6 @@
 //==========================  The Unbound Project  ==========================//
 //                                                                           //
-//========= Copyright © 2015, Mukunda Johnson, All rights reserved. =========//
+//========= Copyright © 2016, Mukunda Johnson, All rights reserved. =========//
 
 #pragma once
 
@@ -283,7 +283,7 @@ public:
 
 	MaterialPtr CreateMaterial( const Stref &name, const Stref &shader );
 	void DeleteMaterial( const Stref &name );
-
+	
 	MaterialPtr GetMaterial( const Stref &name );
 	MaterialPtr GetMaterial( const Stref &name, MaterialFactory factory );
 	
