@@ -520,7 +520,8 @@ void Instance::AddElement( const Element::ptr &e ) {
 
 //-----------------------------------------------------------------------------
 Material::ptr Instance::CreateMaterial( const Stref &name, 
-	                                    const Stref &shader ) {
+	                                    const Stref &shader,
+										MaterialFactory setup ) {
 	assert( !name.Empty() );
 
 	if( m_materials.count( name ) > 0 ) {
@@ -556,8 +557,8 @@ Element::ptr Instance::CreateElement() {
 
 //-----------------------------------------------------------------------------
 FT_Library    FTLib()                                          { return g_instance->FTLib();                }
-Material::ptr CreateMaterial( const Stref &n, const Stref &s ) { return g_instance->CreateMaterial( n, s ); }
-void          DeleteMaterial( const Stref &n )                 { g_instance->DeleteMaterial( n );           }
+Material::ptr CreateMaterial( CStref &n, CStref &s, MaterialFactory f ) { return g_instance->CreateMaterial( n, s, f ); }
+void          DeleteMaterial( CStref &n )                      { g_instance->DeleteMaterial( n );           }
 void          RenderList( Util::SharedList<Element> &l )       { g_instance->RenderList( l );               }  
 void          RenderScene()                                    { g_instance->RenderScene();                 }
 Element::ptr  CreateElement()                                  { return g_instance->CreateElement();        }

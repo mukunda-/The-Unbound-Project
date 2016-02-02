@@ -117,3 +117,4 @@ public:
  * Since this is used so often, we will define it globally as a "Stref"
  */
 using Stref = Util::StringRef;
+using CStref = const Stref;

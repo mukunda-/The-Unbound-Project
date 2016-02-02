@@ -11,5 +11,7 @@ using MaterialPtr = std::shared_ptr<Material>;
 class Element;
 using ElementPtr = std::shared_ptr<Element>;
 class Builder;
+using MaterialInitializer = std::function< 
+			MaterialPtr( MaterialPtr material, const Stref &shader ) >;
 
 }
