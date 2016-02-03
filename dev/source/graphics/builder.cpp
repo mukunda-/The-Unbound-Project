@@ -19,7 +19,7 @@ Builder::Builder( Video::VertexBuffer::Usage usage,
 	m_layer        = layer;
 	m_buffer_start = 0;
 	m_buffer_size  = 0;
-
+	
 	m_vbo = Video::VertexBuffer::Create( m_usage );
 }
 

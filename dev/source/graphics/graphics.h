@@ -233,7 +233,8 @@ FT_Library FTLib();
 /** ---------------------------------------------------------------------------
  * Create a new material, or return it if it already exists.
  *
- * @param name   Name of material.
+ * @param name   Name of material. Pass "" for an unnamed material which 
+ *               is destroyed after all references dies.
  * @param shader Name of shader the material will use.
  * @param setup  Initialization function that will be called if the material
  *               is created. Is not called if the material already exists.
@@ -249,6 +250,13 @@ MaterialPtr CreateMaterial( const Stref &name, const Stref &shader,
  * @param name Name of material.
  */
 void DeleteMaterial( const Stref &name );
+
+/** ---------------------------------------------------------------------------
+ * Get a pointer to a material.
+ *
+ * @param name Name of material.
+ */
+MaterialPtr GetMaterial( const Stref &name );
 
 /** ---------------------------------------------------------------------------
  * Create a new element.
@@ -289,7 +297,7 @@ public:
 	void DeleteMaterial( const Stref &name );
 	
 	MaterialPtr GetMaterial( const Stref &name );
-	MaterialPtr GetMaterial( const Stref &name, MaterialFactory factory );
+	MaterialPtr GetMaterial( const Stref &name, MaterialInitializer setup );
 	
 	void RenderList( Util::SharedList<Element> &list );
 	void RenderScene();

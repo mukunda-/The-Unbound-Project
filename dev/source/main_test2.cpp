@@ -16,6 +16,7 @@
 #include "video/video.h"
 #include "ui/ui.h"
 #include "ui/test/coloredregion.h"
+#include "video/shaders/uishader.h"
 
 //-----------------------------------------------------------------------------
 class Test : public System::Module {
@@ -37,6 +38,7 @@ Test::Test() :
 		Module( "testapp", Levels::USER ), 
 		m_pulse( 10.0 )  {
 	
+	Video::RegisterShader< Shaders::Ui >();
 };
 
 //-----------------------------------------------------------------------------
@@ -62,6 +64,7 @@ void Test::OnFrame() {
 	::Console::Print( "time=%f", System::Time() );
 
 	Ui::Draw();
+	Graphics::RenderScene();
 
 	Video::Swap();
 	
@@ -98,6 +101,7 @@ INT WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR, INT ) {
 	System::RegisterModule<Net::Instance>();
 	System::RegisterModule<Video::Instance>( "CLIENT" );
 	System::RegisterModule<Ui::Instance>();
+	System::RegisterModule<Graphics::Instance>();
 	System::RegisterModule<Test>();
 	
 	System::Start();

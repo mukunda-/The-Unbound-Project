@@ -486,7 +486,7 @@ void Instance::RenderList( Util::SharedList<Element> &list ) {
 			                    offset, start, size, index );
 
 		if( e->GetPostAction() == Element::PostAction::REMOVE ) {
-			list -= e;
+			list.Pull( e );
 		}
 	}
 }
@@ -521,16 +521,33 @@ void Instance::AddElement( const Element::ptr &e ) {
 //-----------------------------------------------------------------------------
 Material::ptr Instance::CreateMaterial( const Stref &name, 
 	                                    const Stref &shader,
-										MaterialFactory setup ) {
-	assert( !name.Empty() );
+										MaterialInitializer setup ) {
+	if( name.Empty() ) {
+		// Unnamed material.
 
-	if( m_materials.count( name ) > 0 ) {
-		Console::PrintErr( "CreateMaterial name collision." );
-		return m_materials.at( name );
+		auto ptr = std::make_shared<Material>( shader );
+		if( setup ) setup( ptr, shader );
+		return ptr;
+	}
+	
+	// Named material.
+
+	if( !name.Empty() ) {
+		if( m_materials.count( name ) > 0 ) {
+			// Already created; return existing.
+			return m_materials.at( name );
+		}
 	}
 
+	// Create new material.
 	auto ptr = std::make_shared<Material>( shader );
 	m_materials[name] = ptr;
+
+	// Initialize if a function is given.
+	if( setup ) {
+		setup( ptr, shader );
+	}
+
 	return ptr;
 }
 
@@ -538,7 +555,7 @@ Material::ptr Instance::CreateMaterial( const Stref &name,
 void Instance::DeleteMaterial( const Stref &name ) {
 	
 	if( m_materials.count( name ) == 0 ) {
-		Console::PrintErr( "DeleteMaterial name not found." );
+		Console::PrintErr( "DeleteMaterial: Name not found." );
 		return;
 	}
 
@@ -547,7 +564,11 @@ void Instance::DeleteMaterial( const Stref &name ) {
 
 //-----------------------------------------------------------------------------
 Material::ptr Instance::GetMaterial( const Stref &name ) {
-
+	try {
+		return m_materials.at( name );
+	} catch( std::out_of_range & ) {
+		return nullptr;
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -557,7 +578,7 @@ Element::ptr Instance::CreateElement() {
 
 //-----------------------------------------------------------------------------
 FT_Library    FTLib()                                          { return g_instance->FTLib();                }
-Material::ptr CreateMaterial( CStref &n, CStref &s, MaterialFactory f ) { return g_instance->CreateMaterial( n, s, f ); }
+Material::ptr CreateMaterial( CStref &n, CStref &s, MaterialInitializer f ) { return g_instance->CreateMaterial( n, s, f ); }
 void          DeleteMaterial( CStref &n )                      { g_instance->DeleteMaterial( n );           }
 void          RenderList( Util::SharedList<Element> &l )       { g_instance->RenderList( l );               }  
 void          RenderScene()                                    { g_instance->RenderScene();                 }

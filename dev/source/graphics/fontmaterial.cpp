@@ -10,9 +10,14 @@ namespace Graphics {
 
 //-----------------------------------------------------------------------------
 FontMaterial::FontMaterial()
-		: m_material( Graphics::CreateMaterial( "", "ui" )) {
+	: 
+	m_material( Graphics::CreateMaterial( "", "ui", 
+		[]( Graphics::MaterialPtr mat, const Stref & ) {
+			mat->SetTexture( 0, Video::Texture::New() );
+		})
+	) {
 
-	m_material->SetTexture( 0, Video::Texture::New() );
+	//m_material->SetTexture( 0, Video::Texture::New() );
 }
 
 //-----------------------------------------------------------------------------

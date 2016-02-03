@@ -13,9 +13,16 @@ class ColoredRegion : public Region {
 protected:
 	void Draw( Graphics::Builder& ) override;
 
+	int m_r;
+	int m_g;
+	int m_b;
+	int m_a;
+
 public:
 	
 	ColoredRegion( const Stref &name );
+
+	void SetColor( int r, int g, int b, int a );
 };
 
 }
