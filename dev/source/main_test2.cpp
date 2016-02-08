@@ -99,7 +99,7 @@ INT WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR, INT ) {
 	
 	auto system = std::unique_ptr<System::Main>( new System::Main( 4 ));
 	System::RegisterModule<Net::Instance>();
-	System::RegisterModule<Video::Instance>( "CLIENT" );
+	System::RegisterModule<Video::Instance>( "SANDBOX" );
 	System::RegisterModule<Ui::Instance>();
 	System::RegisterModule<Graphics::Instance>();
 	System::RegisterModule<Test>();

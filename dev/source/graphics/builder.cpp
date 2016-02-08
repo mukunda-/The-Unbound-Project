@@ -46,6 +46,7 @@ void Builder::Finish() {
 	OutputElement();
 
 	m_vertex_data.Load( *m_vbo );
+	m_vertex_data.Clear();
 
 	m_buffer_start = 0;
 	m_buffer_size  = 0;
