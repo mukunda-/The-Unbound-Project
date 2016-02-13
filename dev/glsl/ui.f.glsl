@@ -18,5 +18,5 @@ void main() {
 	col *= frag_color; 
 	col.a = 1.0;
 	
-	fragment_color = vec4(1.0,1.0,1.0,1.0);// col;
+	fragment_color = col;
 }
