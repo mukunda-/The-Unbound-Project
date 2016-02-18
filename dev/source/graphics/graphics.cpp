@@ -14,11 +14,11 @@ namespace Graphics {
 Instance *g_instance = nullptr;
 
 Element::Element() {
-	::Console::DebugPrint( "Element created.", (unsigned long)this );
+	//::Console::DebugPrint( "Element created.", (unsigned long)this );
 }
 
 Element::~Element() {
-	::Console::DebugPrint( "Element destroyed.", (unsigned long)this );
+	//::Console::DebugPrint( "Element destroyed.", (unsigned long)this );
 
 }
 
@@ -498,7 +498,6 @@ void Instance::RenderScene() {
 
 	Video::SetBlendMode( Video::BlendMode::ALPHA );
 	Video::SetDepthBufferMode( Video::DepthBufferMode::DISABLED );
-
 
 	// todo sort ui elements
 	RenderList( m_elements_ui );

@@ -61,10 +61,24 @@ void Test::OnFrame() {
 	Video::SetBackgroundColor( r/2,r,1 ); 
 	Video::Clear();
 
-	::Console::Print( "time=%f", System::Time() );
+	//::Console::Print( "time=%f", System::Time() );
 
-	Ui::Draw();
+	//Ui::Draw();
+
+	auto buffer = Video::VertexBuffer::Create();
+	auto mat = Graphics::CreateMaterial( "", "ui", nullptr );
+	Graphics::Builder builder( Video::VertexBuffer::Usage::STREAM_DRAW, Video::RenderMode::TRIANGLES, Graphics::RenderLayer::UI );
+	builder.New( mat );
+	builder.AddVertex( 0, 0, 0, 0 );
+	builder.AddVertex( 0, 0.1, 0, 0 );
+	builder.AddVertex( 0.1, 0.1, 0, 0 );
+	builder.AddVertex( 0.1, 0.1, 0, 0 );
+	builder.AddVertex( 0.1, 0, 0, 0 );
+	builder.AddVertex( 0, 0, 0, 0 );
+	builder.Finish();
+	
 	Graphics::RenderScene();
+
 
 	Video::Swap();
 	

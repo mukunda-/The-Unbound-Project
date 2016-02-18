@@ -242,7 +242,7 @@ FT_Library FTLib();
  * @returns pointer to material.
  */
 MaterialPtr CreateMaterial( const Stref &name, const Stref &shader, 
-							MaterialInitializer setup );
+							MaterialInitializer setup = nullptr );
 
 /** ---------------------------------------------------------------------------
  * Delete a material.
