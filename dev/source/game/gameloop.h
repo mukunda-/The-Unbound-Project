@@ -39,7 +39,7 @@ public:
 	//-------------------------------------------------------------------------
 private:
 	
-	bool   m_active;
+	bool   m_active;			// if the timer is active
 	double m_rate;
 	double m_period;
 	int    m_period_us;
