@@ -40,10 +40,10 @@ public:
 private:
 	
 	bool   m_active;			// if the timer is active
-	double m_rate;
-	double m_period;
-	int    m_period_us;
-	bool   m_main;
+	double m_rate;				// frequency of ticks
+	double m_period;			// time between ticks
+	int    m_period_us;			// in microseconds
+	bool   m_main;				// use main strand (?)
 	Timer  m_timer;
 
 	Clock::time_point m_next_tick;
