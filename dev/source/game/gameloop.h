@@ -46,7 +46,7 @@ private:
 	bool   m_main;				// use main strand (?)
 	Timer  m_timer;
 
-	Clock::time_point m_next_tick;
+	Clock::time_point m_next_tick; // ideal time when the next tick should fire
 
 	// to stop the game loop, return false in the tick handler
 	void Stop();
