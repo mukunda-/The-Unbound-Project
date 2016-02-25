@@ -1,6 +1,6 @@
 //============================  The Unbound Project  ==========================//
 //                                                                             //
-//========== Copyright © 2014, Mukunda Johnson, All rights reserved. ==========//
+//========== Copyright © 2016, Mukunda Johnson, All rights reserved. ==========//
 
 // this is a class that eases the process of reading data from a cell or cells
 // it automatically locks and unlocks the cells it is accessing
